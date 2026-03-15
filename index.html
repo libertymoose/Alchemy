@@ -472,7 +472,7 @@
     .tv-check-label { flex: 1; }
     .tv-check-val { color: var(--text-muted); font-size: 0.6rem; }
 
-    /* Canopy visual — ASCII-style tree */
+    /* Canopy visual - ASCII-style tree */
     .tv-tree {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 0.68rem;
@@ -562,7 +562,8 @@
       border-radius: 8px;
       padding: 1.75rem 1.5rem;
       position: relative;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.2s, box-shadow 0.2s;
@@ -607,6 +608,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.3rem;
+      flex: 1;
     }
 
     .wf-output {
@@ -626,7 +628,8 @@
 
     .wf-btn {
       display: inline-block;
-      margin-top: 1.25rem;
+      margin-top: 1.5rem;
+      align-self: flex-start;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 0.68rem;
       font-weight: 600;
@@ -704,7 +707,8 @@
       .workflow-grid::before { display: none; }
       .wf-btn {
       display: inline-block;
-      margin-top: 1.25rem;
+      margin-top: 1.5rem;
+      align-self: flex-start;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 0.68rem;
       font-weight: 600;
@@ -805,7 +809,7 @@
           <span class="step-role">audit</span>
         </div>
       </a>
-      <span class="pipeline-arrow">——→</span>
+      <span class="pipeline-arrow">--→</span>
       <a class="pipeline-step" href="https://elleiana.github.io/Canopy/" target="_blank" rel="noopener">
         <svg class="step-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <polygon points="16,3 26,16 6,16" fill="#008080" opacity="0.9"/>
@@ -816,7 +820,7 @@
           <span class="step-role">visualise</span>
         </div>
       </a>
-      <span class="pipeline-arrow">——→</span>
+      <span class="pipeline-arrow">--→</span>
       <a class="pipeline-step" href="https://elleiana.github.io/Waypoint/" target="_blank" rel="noopener">
         <svg class="step-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <polygon points="16,2 19,14 16,11 13,14" fill="#008080" opacity="0.9"/>
@@ -837,6 +841,15 @@
   <section class="tools" id="tools">
 
     <div class="section-hd reveal">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;margin-bottom:1rem;opacity:0.7;" aria-hidden="true">
+        <circle cx="16" cy="16" r="10" fill="none" stroke="#008080" stroke-width="1.4" opacity="0.85"/>
+        <circle cx="16" cy="16" r="6.5" fill="none" stroke="#008080" stroke-width="0.8" opacity="0.35"/>
+        <polygon points="16,6 24.66,21 7.34,21" fill="none" stroke="#008080" stroke-width="1" stroke-linejoin="round" opacity="0.5"/>
+        <circle cx="16" cy="16" r="2" fill="#008080"/>
+        <polygon points="16,0.8 17.8,7.2 14.2,7.2" fill="#008080" opacity="0.95"/>
+        <polygon points="29.16,23.6 22.72,21.96 24.52,18.84" fill="#008080" opacity="0.95"/>
+        <polygon points="2.84,23.6 9.28,21.96 7.48,18.84" fill="#008080" opacity="0.95"/>
+      </svg>
       <div class="section-kicker">The tools</div>
       <h2 class="section-title">No installs. No logins. No spreadsheets.</h2>
     </div>
@@ -848,7 +861,7 @@
         <div class="tool-name">Scout</div>
         <div class="tool-tagline">// website audit tool</div>
         <p class="tool-desc">
-          Point Scout at any URL and it runs eight automated checks in parallel — Lighthouse scores, security headers, sitemap analysis, tech stack detection, DNS, accessibility, GDPR compliance, and readability. Add your own observations to each section. Export a polished, print-ready report.
+          Point Scout at any URL and it runs eight automated checks in parallel - Lighthouse scores, security headers, sitemap analysis, tech stack detection, DNS, accessibility, GDPR compliance, and readability. Add your own observations to each section. Export a polished, print-ready report.
         </p>
         <div class="tool-checks">
           <span class="tool-check">⚡ PageSpeed</span>
@@ -905,7 +918,7 @@
         <div class="tool-name">Canopy</div>
         <div class="tool-tagline">// sitemap toolkit</div>
         <p class="tool-desc">
-          Crawl any site and Canopy maps every internal URL into an interactive tree. Explore by section and depth, collapse branches, click nodes for detail. Export the diagram as a PNG or SVG — useful for presentations, proposals, or understanding a site before a redesign.
+          Crawl any site and Canopy maps every internal URL into an interactive tree. Explore by section and depth, collapse branches, click nodes for detail. Export the diagram as a PNG or SVG - useful for presentations, proposals, or understanding a site before a redesign.
         </p>
         <div class="tool-checks">
           <span class="tool-check">🕷️ Live crawler</span>
@@ -945,7 +958,7 @@
         <div class="tool-name">Waypoint</div>
         <div class="tool-tagline">// site migration toolkit</div>
         <p class="tool-desc">
-          Paste in your old and new URL lists and Waypoint cross-references them — suggesting the best redirect for every changed URL, flagging loops, chains, and mergers, and letting you confirm or adjust each one. Export in CSV, .htaccess, or Nginx format when you're done.
+          Paste in your old and new URL lists and Waypoint cross-references them - suggesting the best redirect for every changed URL, flagging loops, chains, and mergers, and letting you confirm or adjust each one. Export in CSV, .htaccess, or Nginx format when you're done.
         </p>
         <div class="tool-checks">
           <span class="tool-check">🗺️ URL mapper</span>
@@ -998,6 +1011,15 @@
   <!-- Workflow -->
   <section class="workflow" id="workflow">
     <div class="section-hd reveal">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;margin-bottom:1rem;opacity:0.7;" aria-hidden="true">
+        <circle cx="16" cy="16" r="10" fill="none" stroke="#008080" stroke-width="1.4" opacity="0.85"/>
+        <circle cx="16" cy="16" r="6.5" fill="none" stroke="#008080" stroke-width="0.8" opacity="0.35"/>
+        <polygon points="16,6 24.66,21 7.34,21" fill="none" stroke="#008080" stroke-width="1" stroke-linejoin="round" opacity="0.5"/>
+        <circle cx="16" cy="16" r="2" fill="#008080"/>
+        <polygon points="16,0.8 17.8,7.2 14.2,7.2" fill="#008080" opacity="0.95"/>
+        <polygon points="29.16,23.6 22.72,21.96 24.52,18.84" fill="#008080" opacity="0.95"/>
+        <polygon points="2.84,23.6 9.28,21.96 7.48,18.84" fill="#008080" opacity="0.95"/>
+      </svg>
       <div class="section-kicker">How they connect</div>
       <h2 class="section-title">A pipeline, not just three tools</h2>
     </div>
@@ -1014,7 +1036,7 @@
           <line x1="21" y1="16" x2="27" y2="16" stroke="#008080" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <div class="wf-name">Read the site</div>
-        <p class="wf-desc">Scout runs automated checks across performance, security, content, and accessibility — then lets you layer in your own observations and export a client-ready report.</p>
+        <p class="wf-desc">Scout runs automated checks across performance, security, content, and accessibility - then lets you layer in your own observations and export a client-ready report.</p>
         <div class="wf-outputs">
           <span class="wf-output">Client-ready audit report</span>
           <span class="wf-output">Auto-detected findings</span>
@@ -1031,7 +1053,7 @@
           <polygon points="16,12 29,28 3,28" fill="#008080" opacity="0.65"/>
         </svg>
         <div class="wf-name">See the architecture</div>
-        <p class="wf-desc">Canopy crawls the site and renders its full URL structure as an interactive tree — every section, every depth level, every page. Export as a diagram or pass the URL list to Waypoint.</p>
+        <p class="wf-desc">Canopy crawls the site and renders its full URL structure as an interactive tree - every section, every depth level, every page. Export as a diagram or pass the URL list to Waypoint.</p>
         <div class="wf-outputs">
           <span class="wf-output">Visual tree diagram</span>
           <span class="wf-output">Section + depth analysis</span>
