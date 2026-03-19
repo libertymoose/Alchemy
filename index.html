@@ -216,7 +216,7 @@
     .topbar-btn.primary { background: var(--teal); border-color: var(--teal); color: #e0ddd8; }
     .topbar-btn.primary:hover { background: var(--teal-bright); border-color: var(--teal-bright); color: #e0ddd8; }
 
-    .btn-theme {
+    .alchemy-theme-btn {
       background: none;
       border: 1px solid var(--border);
       color: var(--text-muted);
@@ -231,7 +231,7 @@
       justify-content: center;
       flex-shrink: 0;
     }
-    .btn-theme:hover { border-color: var(--teal); color: var(--teal); }
+    .alchemy-theme-btn:hover { border-color: var(--teal); color: var(--teal); }
 
     /* ═══════════════════════════════════════
        BODY LAYOUT
@@ -1039,7 +1039,7 @@
     <div class="topbar-actions">
       <button class="topbar-btn" id="topbar-share-btn" onclick="copyProjectLink()">🔗 Share</button>
       <button class="topbar-btn primary" onclick="saveProjectNow()">↓ Save</button>
-      <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
+      <button class="alchemy-theme-btn" id="alchemy-theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
     </div>
   </div>
 
@@ -1073,7 +1073,7 @@
       <div class="sidebar-section">
         <div class="sidebar-label">Foundry</div>
 
-        <button class="nav-item active" onclick="showPage('overview', this)">
+        <button class="nav-item active" id="nav-overview" onclick="showPage('overview', this)">
           <div class="nav-item-left">
             <svg class="tool-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <rect x="4" y="4" width="10" height="10" rx="1.5" fill="#008080" opacity="0.9"/>
@@ -1749,7 +1749,7 @@
               <div id="result-rows" style="display:flex;flex-direction:column;gap:4px;max-height:380px;overflow-y:auto;"></div>
             </div>
             <div style="padding:0.65rem 1rem;border-top:1px solid var(--border-inner);display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
-              <button class="npf-btn" id="btn-save-crawl" onclick="saveCrawlToProject()" disabled>↓ Save to project</button>
+              <button class="npf-btn" id="btn-save-crawl" onclick="saveCrawlToProject(true)" disabled>↓ Save to project</button>
               <button class="topbar-btn" id="btn-copy-urls" onclick="copyURLs()" style="opacity:0.4;pointer-events:none;" disabled>⧉ Copy URLs</button>
               <span id="save-crawl-msg" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-muted);"></span>
             </div>
@@ -2087,7 +2087,7 @@ const rowMap      = new WeakMap();
 function toggleTheme() {
   isDark = !isDark;
   document.documentElement.classList.toggle('light', !isDark);
-  document.getElementById('btn-theme').textContent = isDark ? '🌙' : '☀️';
+  document.getElementById('alchemy-theme-btn').textContent = isDark ? '🌙' : '☀️';
 }
 
 /* ═══════════════════════════════════════════
@@ -2881,6 +2881,8 @@ async function startCrawl() {
     setEnabled('btn-save-crawl', true);
     setEnabled('btn-copy-urls', true);
     setStatusText('done — ' + n + ' URL' + (n !== 1 ? 's' : '') + ' found');
+    // Auto-save to project so tools can use the data immediately
+    saveCrawlToProject();
   } else {
     setStatusText('done — no URLs found');
   }
@@ -2894,7 +2896,11 @@ function stopCrawl() {
   document.getElementById('snail-emoji').classList.remove('crawling');
   const n = crawlState.results.length;
   setStatusText('stopped — ' + n + ' URL' + (n !== 1 ? 's' : '') + ' found');
-  if (n > 0) { setEnabled('btn-save-crawl', true); setEnabled('btn-copy-urls', true); }
+  if (n > 0) {
+    setEnabled('btn-save-crawl', true);
+    setEnabled('btn-copy-urls', true);
+    saveCrawlToProject();
+  }
 }
 
 function togglePause() {
@@ -3007,11 +3013,12 @@ function copyURLs() {
 /* ═══════════════════════════════════════════
    Save crawl to project → foundrystore
 ═══════════════════════════════════════════ */
-async function saveCrawlToProject() {
+async function saveCrawlToProject(redirectAfter) {
   if (!activeProject || !crawlState.results.length) return;
   const btn = document.getElementById('btn-save-crawl');
   const msg = document.getElementById('save-crawl-msg');
-  btn.disabled = true; btn.textContent = 'Saving…'; msg.textContent = '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  if (msg) msg.textContent = '';
 
   const f        = getFilters();
   const isImport = document.getElementById('mode-import-btn').classList.contains('active');
@@ -3036,17 +3043,21 @@ async function saveCrawlToProject() {
   try {
     upsertHistoryEntry(activeProject);
     updateTopbar();
-    // Attempt Worker persist in background
     storeProject(activeProject).catch(() => {});
-    btn.textContent = '✓ Saved'; btn.disabled = false;
-    msg.textContent = 'Saved — switching to Overview…';
-    setTimeout(() => {
-      const overviewBtn = document.querySelector('.nav-item[onclick*="overview"]');
-      showPage('overview', overviewBtn);
-    }, 900);
+    if (btn) { btn.textContent = '✓ Saved'; btn.disabled = false; }
+    if (msg) msg.textContent = redirectAfter ? 'Saved — switching to Overview…' : 'Auto-saved to project';
+    if (redirectAfter) {
+      setTimeout(() => {
+        const overviewBtn = document.getElementById('nav-overview') || document.querySelector('.nav-item[onclick*="overview"]');
+        showPage('overview', overviewBtn);
+      }, 900);
+    } else {
+      // Clear the auto-save message after a moment
+      setTimeout(() => { if (msg) msg.textContent = ''; }, 3000);
+    }
   } catch (e) {
-    btn.disabled = false; btn.textContent = '↓ Save to project';
-    msg.textContent = '⚠ Save failed: ' + e.message;
+    if (btn) { btn.disabled = false; btn.textContent = '↓ Save to project'; }
+    if (msg) msg.textContent = '⚠ Save failed: ' + e.message;
   }
 }
 
