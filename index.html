@@ -832,7 +832,7 @@
     /* tool inject container — tool body renders here */
     #tool-mount {
       min-height: 100%;
-      padding: 2.25rem 2.5rem 3.5rem;
+      padding: 0;
       position: relative;
     }
     /* tool heading bar — name + internal tab nav */
@@ -1051,7 +1051,7 @@
 
       <!-- Projects — top level -->
       <div class="sidebar-section">
-        <button class="nav-item" onclick="showPage('projects', this)">
+        <button class="nav-item" id="nav-projects" onclick="showPage('projects', this)">
           <div class="nav-item-left">
             <svg class="tool-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <circle cx="16" cy="16" r="10" fill="none" stroke="#008080" stroke-width="1.4" opacity="0.85"/>
@@ -1085,7 +1085,7 @@
           </div>
         </button>
 
-        <button class="nav-item" onclick="this.closest('.sidebar').querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active')">
+        <button class="nav-item" id="nav-crawl" onclick="showPage('crawl', this)">
           <div class="nav-item-left">
             <!-- Crawl — spider/web icon -->
             <svg class="tool-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -1101,10 +1101,9 @@
             </svg>
             <span class="nav-item-name">Crawl</span>
           </div>
-          <span class="nav-status ns-done">done</span>
         </button>
 
-        <button class="nav-item" onclick="this.closest('.sidebar').querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active')">
+        <button class="nav-item" id="nav-settings" onclick="showPage('settings', this)">
           <div class="nav-item-left">
             <!-- Settings — gear icon -->
             <svg class="tool-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -1760,6 +1759,57 @@
       </div><!-- /page-crawl -->
 
       <!-- ══════════════════════════════════════
+           PAGE: SETTINGS
+      ══════════════════════════════════════ -->
+      <div class="page" id="page-settings">
+        <div class="page-hd">
+          <div>
+            <div class="page-hd-title">Settings</div>
+            <div class="page-hd-sub">Project configuration — rename, update URL, or delete.</div>
+          </div>
+        </div>
+
+        <div id="settings-no-project" style="text-align:center;padding:4rem 2rem;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--text-dim);">
+          No project loaded — <a href="#" onclick="showPage('projects',document.getElementById('nav-projects'));return false;" style="color:var(--teal);text-decoration:none;">select a project first</a>.
+        </div>
+
+        <div id="settings-content" style="display:none;">
+          <div class="section-card" style="margin-bottom:1rem;">
+            <div class="card-header">
+              <div class="card-header-text">
+                <div class="card-title">Project details</div>
+              </div>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:0.85rem;">
+              <div class="npf-field">
+                <label class="npf-label">Project name</label>
+                <input class="npf-input" id="settings-name" type="text" maxlength="80" spellcheck="false" />
+              </div>
+              <div class="npf-field">
+                <label class="npf-label">Site URL</label>
+                <input class="npf-input" id="settings-url" type="url" />
+              </div>
+              <div style="display:flex;gap:0.75rem;align-items:center;">
+                <button class="npf-btn" onclick="saveSettings()">Save changes →</button>
+                <span id="settings-saved-msg" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--ok);display:none;">✓ Saved</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="card-header">
+              <div class="card-header-text">
+                <div class="card-title">Danger zone</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <button onclick="deleteCurrentProject()" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;background:none;border:1px solid var(--err);color:var(--err);border-radius:4px;padding:0.45rem 1rem;cursor:pointer;">✕ Delete project</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /page-settings -->
+
+      <!-- ══════════════════════════════════════
            PAGE: TOOL (fetch + inject target)
       ══════════════════════════════════════ -->
       <div class="page" id="page-tool">
@@ -2057,12 +2107,51 @@ function showPage(name, navBtn) {
   if (name === 'projects') renderProjectsList();
   if (name === 'overview') {
     renderOverview();
-    // Update URL back to project-only when on overview
     if (activeProject) {
       try { history.pushState({ project: activeProject.id, tool: null }, '', '?project=' + activeProject.id); } catch(e) {}
     }
   }
   if (name === 'crawl') renderCrawlPage();
+  if (name === 'settings') renderSettingsPage();
+}
+
+function renderSettingsPage() {
+  const noProj  = document.getElementById('settings-no-project');
+  const content = document.getElementById('settings-content');
+  if (!activeProject) {
+    noProj.style.display  = '';
+    content.style.display = 'none';
+    return;
+  }
+  noProj.style.display  = 'none';
+  content.style.display = '';
+  const nameEl = document.getElementById('settings-name');
+  const urlEl  = document.getElementById('settings-url');
+  if (nameEl) nameEl.value = activeProject.name || '';
+  if (urlEl)  urlEl.value  = activeProject.url  || '';
+}
+
+function saveSettings() {
+  if (!activeProject) return;
+  const nameEl = document.getElementById('settings-name');
+  const urlEl  = document.getElementById('settings-url');
+  const msg    = document.getElementById('settings-saved-msg');
+  if (nameEl && nameEl.value.trim()) activeProject.name = nameEl.value.trim();
+  if (urlEl  && urlEl.value.trim())  activeProject.url  = normaliseUrl(urlEl.value.trim());
+  activeProject.updatedAt = new Date().toISOString();
+  upsertHistoryEntry(activeProject);
+  storeProject(activeProject).catch(() => {});
+  updateTopbar();
+  if (msg) { msg.style.display = ''; setTimeout(() => { msg.style.display = 'none'; }, 2500); }
+}
+
+function deleteCurrentProject() {
+  if (!activeProject) return;
+  if (!confirm('Delete "' + activeProject.name + '"? This cannot be undone.')) return;
+  deleteProject(activeProject.id);
+  setProjectActive(null);
+  const projectsBtn = document.getElementById('nav-projects');
+  showPage('projects', projectsBtn);
 }
 
 function setProjectActive(project) {
