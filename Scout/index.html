@@ -830,7 +830,6 @@
                   <button class="btn-session save" onclick="window.print()" style="text-align:left;">↓ Print / save as PDF</button>
                   <button class="btn-session save" id="btn-save-from-export" style="text-align:left;">↓ Save audit (.json)</button>
                   <button class="btn-session" id="btn-copy-report-html" style="text-align:left;">⧉ Copy report as HTML</button>
-                  <button class="btn-session" id="btn-share-from-export" style="text-align:left;">🔗 Copy share link</button>
                   <button class="btn-session" id="btn-back-to-audit" style="text-align:left;">← Back to audit</button>
                 </div>
               </div>
@@ -1012,6 +1011,8 @@ async function runChecks() {
   } else {
     sumEl.innerHTML=`<span style="color:#008080">All ${doneCount} scans complete</span>`;
   }
+  // Auto-save completed audit to project so it can be restored next time Scout loads
+  autoSaveAuditToProject();
 }
 function expandAll(){document.querySelectorAll('.card-header.accordion').forEach(h=>{const id=h.id.replace('hdr-','');const b=document.getElementById('acc-'+id);if(b){h.classList.add('open');b.classList.add('open');}});}
 function collapseAll(){document.querySelectorAll('.card-header.accordion').forEach(h=>{const id=h.id.replace('hdr-','');const b=document.getElementById('acc-'+id);if(b){h.classList.remove('open');b.classList.remove('open');}});}
@@ -1403,8 +1404,7 @@ function renderStaticA11y(){
         <div class="dc-value">${formLabels}/${formInputs}</div>
         <div class="dc-sub">${formLabels>=formInputs?'all labelled':formLabels>0?'some missing':'no labels found'}</div>
       </div>`:''}
-    </div>
-    <div class="notice" style="margin-top:0.5rem;">Lighthouse catches ~30% of accessibility issues. For a full WCAG 2.1 AA assessment use <a href="https://wave.webaim.org/" target="_blank">WAVE ↗</a> or <a href="https://www.deque.com/axe/devtools/" target="_blank">axe DevTools ↗</a> and add findings below.</div>`;
+    </div>`;
 
   // Append to whatever Lighthouse data is already there, or set directly
   const el = document.getElementById('a11y-auto');
@@ -1723,6 +1723,7 @@ function readability(html){
   const gradeLabel=g=>g<=8?'good':g<=12?'mid':'bad';
 
   // Page title + meta description preview
+  const metaDescText = (S.raw.og && S.raw.og.descText) || '';
   const contentPreviewHtml = (()=>{
     let h = '';
     if(S.raw.siteTitle){
@@ -2722,8 +2723,23 @@ document.getElementById('btn-copy-report-html').addEventListener('click',()=>{
 
 // ── Scout.init — called by Alchemy with the active project ──
 function init(project) {
+  // If this project already has a saved Scout audit, restore it — don't re-run
+  const saved = project.toolData && project.toolData.scout;
+  if (saved && saved.url && saved.raw && Object.keys(saved.raw).length > 0) {
+    loadAudit(saved);
+    return;
+  }
+  // No saved audit — run fresh
   switchPage('audit');
   startAudit(project.url, project.name);
+}
+
+// ── Auto-save audit to project after completion ──
+function autoSaveAuditToProject() {
+  if (typeof window.onToolEvent !== 'function') return;
+  if (!S.url || !S.raw || Object.keys(S.raw).length === 0) return;
+  const data = gatherAudit();
+  window.onToolEvent('tool:save', { tool: 'scout', payload: data });
 }
 
 // ── Wire export save button to notify Alchemy ──
@@ -2771,6 +2787,7 @@ window.draftAll    = draftAll;
 window.expandAll   = expandAll;
 window.collapseAll = collapseAll;
 window.buildReport = buildReport;
+window.autoSaveAuditToProject = autoSaveAuditToProject;
 
 return { init };
 
