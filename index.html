@@ -326,6 +326,10 @@
       padding: 2.25rem 2.5rem 3.5rem;
       position: relative;
     }
+    /* When a tool is loaded, main has no padding — tool-mount handles its own */
+    .main:has(#page-tool.active) {
+      padding: 0;
+    }
 
     /* Subtle radial glow — same as landing page */
     .main::before {
@@ -824,15 +828,14 @@
       height: 100%;
       width: 100%;
       overflow-y: auto;
-      padding: 0;
     }
     #page-tool.active {
       display: block;
     }
-    /* tool inject container — tool body renders here */
+    /* tool inject container — owns its own spacing */
     #tool-mount {
       min-height: 100%;
-      padding: 0;
+      padding: 1.25rem 2rem 3rem;
       position: relative;
     }
     /* tool heading bar — name + internal tab nav */
