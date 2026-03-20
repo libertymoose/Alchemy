@@ -558,7 +558,8 @@
                 Existing site — old URLs
                 <span id="old-urls-badge" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-bd);border-radius:3px;padding:0.1rem 0.45rem;display:none;">from Alchemy crawl</span>
               </div>
-              <textarea id="old-input" placeholder="Loading from project crawl…" spellcheck="false" readonly style="opacity:0.8;"></textarea>
+              <textarea id="old-input" placeholder="Paste URLs (one per line), sitemap XML, or CSV…" spellcheck="false"></textarea>
+              <label class="file-label">↑ upload sitemap.xml, .csv or .txt<input type="file" accept=".xml,.txt,.csv" id="old-file" hidden /></label>
             </div>
             <div class="input-panel">
               <div class="panel-label">New site — destination URLs</div>
@@ -3302,15 +3303,15 @@ function init(project) {
   window._waypointProjectName = project.name || '';
 
   // Pre-fill old URLs from Alchemy crawl results
+  const oldInput = document.getElementById('old-input');
   if (project.crawl && project.crawl.results && project.crawl.results.length) {
     const urls = project.crawl.results
       .filter(r => r.ok)
       .map(r => r.url)
       .join('\n');
-    const oldInput = document.getElementById('old-input');
     if (oldInput) {
       oldInput.value = urls;
-      oldInput.readOnly = true;
+      oldInput.readOnly = false; // editable — user can still tweak the list
       const badge = document.getElementById('old-urls-badge');
       if (badge) badge.style.display = '';
     }
@@ -3321,6 +3322,14 @@ function init(project) {
     }
     const btn = document.getElementById('btn-analyse');
     if (btn) btn.disabled = false;
+  } else {
+    // No crawl data — leave input empty and editable for manual entry
+    if (oldInput) {
+      oldInput.value = '';
+      oldInput.readOnly = false;
+    }
+    const countEl = document.getElementById('url-count');
+    if (countEl) countEl.textContent = 'No crawl data — paste or upload old URLs above';
   }
 
   // Start on Mapper tab
