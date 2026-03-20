@@ -779,7 +779,7 @@
       <p style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🌳 Diagram</strong> — An interactive tree laid out by section and depth. Pan, zoom, and click any node to inspect it. Collapse branches to focus on what matters.</p>
       <p style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🍂 Export</strong> — PNG or SVG for presentations, CSV for spreadsheets, JSON for developers.</p>
       <div style="margin-top:1.25rem;">
-        <a href="https://github.com/Elleiana/Canopy" target="_blank" rel="noopener" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;">→ Full guide on GitHub</a>
+        <a href="https://github.com/libertymoose/Canopy" target="_blank" rel="noopener" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;">→ Full guide on GitHub</a>
       </div>
       <div style="margin-top:0.65rem;">
         <a href="#" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;" onclick="closeModal('m-about');showModal('m-alchemy');return false;">✦ Part of the Alchemy suite</a>
@@ -2492,7 +2492,7 @@ function sendToWaypoint() {
   const encoded = encodeURIComponent(urlList);
   // Open Waypoint — it will pick up ?oldurls= on load if supported,
   // otherwise fall back to copying to clipboard with instructions
-  const waypointUrl = `https://elleiana.github.io/Waypoint/?oldurls=${encoded}`;
+  const waypointUrl = `https://libertymoose.github.io/Waypoint/?oldurls=${encoded}`;
   if (waypointUrl.length < 8000) {
     window.open(waypointUrl, '_blank', 'noopener');
   } else {
@@ -2517,7 +2517,7 @@ function openInScout() {
   }
   let origin = url;
   try { origin = new URL(url).origin; } catch(e) {}
-  window.open(`https://elleiana.github.io/Scout/?url=${encodeURIComponent(origin)}`, '_blank', 'noopener');
+  window.open(`https://libertymoose.github.io/Scout/?url=${encodeURIComponent(origin)}`, '_blank', 'noopener');
   msg.innerHTML = '<span style="color:#5aab72;">✓ Opening Scout with ' + origin + '</span>';
 }
 
@@ -2650,11 +2650,11 @@ return { init };
       <p>Alchemy is a suite of browser-based tools for website discovery, auditing, and migration. No installs, no logins, no spreadsheets. Each tool does one thing well - together they cover the whole journey.</p>
       <div class="modal-st" style="margin-top:0.85rem;">The tools</div>
 
-      <p style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🔍 Scout</strong> — Point it at any URL and Scout runs eight automated checks: Lighthouse scores, security headers, sitemap analysis, tech stack detection, DNS records, accessibility, GDPR compliance, and readability. Add your findings and export a client-ready report. <a href="https://elleiana.github.io/Scout/" target="_blank" rel="noopener" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;">→ Open Scout</a></p>
+      <p style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🔍 Scout</strong> — Point it at any URL and Scout runs eight automated checks: Lighthouse scores, security headers, sitemap analysis, tech stack detection, DNS records, accessibility, GDPR compliance, and readability. Add your findings and export a client-ready report. <a href="https://libertymoose.github.io/Scout/" target="_blank" rel="noopener" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;">→ Open Scout</a></p>
 
-      <p style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🌿 Canopy</strong> — Crawls a live website and maps every internal URL into an interactive tree diagram. Explore the architecture by section and depth, export as PNG, SVG, CSV, or JSON. <a href="https://elleiana.github.io/Canopy/" target="_blank" rel="noopener" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;">→ Open Canopy</a></p>
+      <p style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🌿 Canopy</strong> — Crawls a live website and maps every internal URL into an interactive tree diagram. Explore the architecture by section and depth, export as PNG, SVG, CSV, or JSON. <a href="https://libertymoose.github.io/Canopy/" target="_blank" rel="noopener" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;">→ Open Canopy</a></p>
 
-      <p style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🧭 Waypoint</strong> — Takes old and new URL lists, suggests redirect matches, catches loops and chains, and exports a developer-ready map in CSV, .htaccess, or Nginx format. The last step before a site goes live. <a href="https://elleiana.github.io/Waypoint/" target="_blank" rel="noopener" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;">→ Open Waypoint</a></p>
+      <p style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🧭 Waypoint</strong> — Takes old and new URL lists, suggests redirect matches, catches loops and chains, and exports a developer-ready map in CSV, .htaccess, or Nginx format. The last step before a site goes live. <a href="https://libertymoose.github.io/Waypoint/" target="_blank" rel="noopener" style="color:#008080;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-decoration:none;">→ Open Waypoint</a></p>
     </div>
   </div>
 </div>
