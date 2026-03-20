@@ -3261,14 +3261,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       showPage('overview', document.querySelector('.nav-item[onclick*="overview"]'));
     }
   } else {
-    // Normal boot — land on overview (greeting state if no project, content if one exists)
-    const history = getHistory();
-    if (history.length) {
-      // Restore the most recently active project from localStorage
-      await loadProject(history[0].id);
-    } else {
-      showPage('overview', document.querySelector('.nav-item[onclick*="overview"]'));
-    }
+    // Normal boot — always land on Projects page, no project pre-selected
+    showPage('projects', document.getElementById('nav-projects'));
   }
 
   // Handle browser back/forward
