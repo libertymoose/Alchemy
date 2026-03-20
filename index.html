@@ -2570,6 +2570,67 @@ function renderOverview() {
         '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>' + sections + ' sections · max depth ' + maxDepth + '</div>';
     }
   }
+
+  /* ── Scout audit data (from project.toolData.scout) ── */
+  const scoutBody = document.getElementById('tc-scout-body');
+  if (scoutBody) {
+    const sd = p.toolData && p.toolData.scout;
+    if (sd && sd.raw && Object.keys(sd.raw).length > 0) {
+      const raw = sd.raw;
+
+      // PSI scores
+      const dp = raw.psi_desktop && raw.psi_desktop.lighthouseResult && raw.psi_desktop.lighthouseResult.categories;
+      const mp = raw.psi_mobile  && raw.psi_mobile.lighthouseResult  && raw.psi_mobile.lighthouseResult.categories;
+      const dPerf = dp ? Math.round((dp.performance && dp.performance.score || 0) * 100) : null;
+      const mPerf = mp ? Math.round((mp.performance && mp.performance.score || 0) * 100) : null;
+      const dA11y = dp ? Math.round((dp.accessibility && dp.accessibility.score || 0) * 100) : null;
+      const mA11y = mp ? Math.round((mp.accessibility && mp.accessibility.score || 0) * 100) : null;
+
+      // Security grade
+      const secResults = raw.secResults || [];
+      const secPassed  = secResults.filter(x => x.present).length;
+      const secGrade   = secPassed >= 6 ? 'A' : secPassed >= 5 ? 'B' : secPassed >= 4 ? 'C' : secPassed >= 2 ? 'D' : secResults.length ? 'F' : null;
+      const secCl      = secGrade === 'A' || secGrade === 'B' ? 'ts-ok' : secGrade === 'C' ? 'ts-warn' : secGrade ? 'ts-err' : '';
+
+      // Findings count by severity
+      const findings  = sd.findings || [];
+      const critical  = findings.filter(f => f.sev === 'crit' || f.sev === 'high').length;
+      const medium    = findings.filter(f => f.sev === 'mid').length;
+
+      // Score colour helper
+      function scoreClass(s) { return s === null ? '' : s >= 90 ? 'ts-ok' : s >= 50 ? 'ts-warn' : 'ts-err'; }
+
+      let html = '<div class="tc-stat-row">';
+      if (dPerf !== null) html += '<div class="tc-stat ' + scoreClass(dPerf) + '"><strong>' + dPerf + '</strong>perf desktop</div>';
+      if (mPerf !== null) html += '<div class="tc-stat ' + scoreClass(mPerf) + '"><strong>' + mPerf + '</strong>perf mobile</div>';
+      if (secGrade)       html += '<div class="tc-stat ' + secCl + '"><strong>' + secGrade + '</strong>security</div>';
+      html += '</div>';
+
+      if (dA11y !== null || mA11y !== null) {
+        html += '<div class="tc-stat-row" style="margin-top:0.4rem;">';
+        if (dA11y !== null) html += '<div class="tc-stat ' + scoreClass(dA11y) + '"><strong>' + dA11y + '</strong>a11y desktop</div>';
+        if (mA11y !== null) html += '<div class="tc-stat ' + scoreClass(mA11y) + '"><strong>' + mA11y + '</strong>a11y mobile</div>';
+        html += '</div>';
+      }
+
+      html += '<div class="tc-finding-row" style="margin-top:0.5rem;">';
+      if (critical > 0) {
+        html += '<div class="tf-bullet tb-warn"></div>' + critical + ' high/critical finding' + (critical !== 1 ? 's' : '');
+      } else if (findings.length > 0) {
+        html += '<div class="tf-bullet tb-ok"></div>No critical findings';
+      } else {
+        html += '<div class="tf-bullet" style="background:var(--teal);width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:1px;"></div>Audit complete';
+      }
+      html += '</div>';
+      if (medium > 0) {
+        html += '<div class="tc-finding-row"><div class="tf-bullet" style="background:var(--border-soft);width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:1px;"></div>' + medium + ' medium finding' + (medium !== 1 ? 's' : '') + '</div>';
+      }
+
+      scoutBody.innerHTML = html;
+    } else {
+      scoutBody.innerHTML = '<div class="tc-empty">Open Scout to run an audit — results will appear here.</div>';
+    }
+  }
 }
 
 function setText(id, val) {
@@ -3261,14 +3322,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       showPage('overview', document.querySelector('.nav-item[onclick*="overview"]'));
     }
   } else {
-    // Normal boot — land on overview (greeting state if no project, content if one exists)
-    const history = getHistory();
-    if (history.length) {
-      // Restore the most recently active project from localStorage
-      await loadProject(history[0].id);
-    } else {
-      showPage('overview', document.querySelector('.nav-item[onclick*="overview"]'));
-    }
+    // Normal boot — always land on Projects page, no project pre-selected
+    showPage('projects', document.getElementById('nav-projects'));
   }
 
   // Handle browser back/forward
