@@ -314,6 +314,15 @@
     .d-legend    { top: 14px; left: 14px; padding: 0.65rem 0.85rem; display: flex; flex-direction: column; gap: 5px; color: var(--text-muted); }
     .legend-item { display: flex; align-items: center; gap: 8px; }
     .legend-box  { width: 30px; height: 14px; border-radius: 2px; border: 1px solid; flex-shrink: 0; }
+
+    /* Node status tags */
+    .node-tag-btn { background: var(--tag-bg); border: 1px solid var(--tag-b); color: var(--tag-c); padding: 0.18rem 0.55rem; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; cursor: pointer; transition: opacity 0.15s; }
+    .node-tag-btn:hover { opacity: 0.8; }
+    .node-tag-btn.active { outline: 1.5px solid var(--tag-c); outline-offset: 1px; }
+
+    /* Diagram search highlight */
+    .dnode.search-match rect { stroke-width: 2.5 !important; stroke: #008080 !important; }
+    .dnode.search-no-match { opacity: 0.2; }
     .d-info-header { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; display: flex; justify-content: space-between; }
     .d-info-body { padding: 0.65rem 0.75rem; display: flex; flex-direction: column; gap: 5px; }
     .d-info-row { display: flex; justify-content: space-between; font-size: 0.68rem; }
@@ -609,6 +618,14 @@
           </div>
         </div>
       </div>
+
+      <!-- Tree search bar -->
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <input class="search-input" id="diagram-search" type="text" placeholder="search nodes…" autocomplete="off" spellcheck="false" style="flex:1;max-width:280px;" oninput="handleDiagramSearch(this.value)" />
+        <button class="btn-session" id="diagram-search-clear" style="font-size:0.65rem;padding:0.2rem 0.55rem;display:none;" onclick="clearDiagramSearch()">✕ clear</button>
+        <span id="diagram-search-count" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--text-muted);display:none;"></span>
+      </div>
+
       <div class="diagram-canvas-wrap" id="diagram-canvas">
         <svg id="diagram">
           <g id="dg" transform="translate(0,0) scale(1)">
@@ -677,6 +694,18 @@
             <div id="d-node-annotation-row" style="border-top:1px solid var(--border-soft);padding-top:0.5rem;display:none;">
               <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.3rem;">Note</div>
               <textarea id="d-node-annotation" class="base-url-input" rows="3" placeholder="e.g. Merging with /about in new IA" maxlength="280" style="width:100%;font-size:0.68rem;padding:0.3rem 0.5rem;resize:none;line-height:1.5;" oninput="autoSaveAnnotation()"></textarea>
+            </div>
+            <!-- Status tag -->
+            <div id="d-node-tag-row" style="border-top:1px solid var(--border-soft);padding-top:0.5rem;display:none;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.4rem;">Status</div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.3rem;" id="d-node-tag-btns">
+                <button class="node-tag-btn" data-tag="keep"     onclick="setNodeTag('keep')"    style="--tag-c:#5aab72;--tag-b:#243d28;--tag-bg:#0c1f10;">keep</button>
+                <button class="node-tag-btn" data-tag="merge"    onclick="setNodeTag('merge')"   style="--tag-c:#6a9fd8;--tag-b:#1a3050;--tag-bg:#0a1828;">merge</button>
+                <button class="node-tag-btn" data-tag="redirect" onclick="setNodeTag('redirect')" style="--tag-c:#c8a060;--tag-b:#3a2808;--tag-bg:#1a1008;">redirect</button>
+                <button class="node-tag-btn" data-tag="new"      onclick="setNodeTag('new')"     style="--tag-c:#a06ad8;--tag-b:#301848;--tag-bg:#180c28;">new</button>
+                <button class="node-tag-btn" data-tag="delete"   onclick="setNodeTag('delete')"  style="--tag-c:#c86a5a;--tag-b:#3a1e1a;--tag-bg:#1e0f0c;">delete</button>
+                <button class="node-tag-btn" data-tag=""         onclick="setNodeTag('')"        style="--tag-c:var(--text-muted);--tag-b:var(--border);--tag-bg:transparent;">none</button>
+              </div>
             </div>
           </div>
         </div>
@@ -830,13 +859,15 @@ let selectedDNode = null;
 let customLabels  = {};
 let currentLabelMode = 'slug';
 let nodeAnnotations = {};
+let nodeStatusTags  = {};  // url → 'keep' | 'merge' | 'redirect' | 'new' | 'delete'
+let diagramSearchTerm = '';
 
 /* ── Clear ── */
 function clearCrawl() {
   if (crawlState.results.length && !confirm('Clear this crawl? This cannot be undone.')) return;
   if (crawlState.running) stopCrawl();
   crawlState = { running: false, paused: false, queue: [], visited: new Set(), results: [], base: '' };
-  excludedCount = 0; diagramTree = null; manualCollapseState = {}; hiddenNodes = {}; nodeAnnotations = {}; customLabels = {};
+  excludedCount = 0; diagramTree = null; manualCollapseState = {}; hiddenNodes = {}; nodeAnnotations = {}; customLabels = {}; nodeStatusTags = {}; diagramSearchTerm = '';
   currentLabelMode = 'slug';
   document.getElementById('crawl-url').value = '';
   const nameEl = document.getElementById('session-name');
@@ -1726,6 +1757,20 @@ function renderDiagram(showCounts, resetView) {
       g.appendChild(dot);
     }
 
+    // Status tag — coloured left border strip
+    const TAG_COLOURS = { keep:'#5aab72', merge:'#6a9fd8', redirect:'#c8a060', new:'#a06ad8', delete:'#c86a5a' };
+    const tag = nodeStatusTags[n.url || ''];
+    if (!n.isRoot && tag && TAG_COLOURS[tag]) {
+      const strip = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      strip.setAttribute('width', 4);
+      strip.setAttribute('height', h);
+      strip.setAttribute('rx', 2);
+      strip.setAttribute('ry', 2);
+      strip.style.fill = TAG_COLOURS[tag];
+      strip.style.pointerEvents = 'none';
+      g.appendChild(strip);
+    }
+
     // Child count sub-label (visible, expanded sections only)
     if (!n.collapsed && showCounts && n.isSection && n.children.length > 0) {
       const sub = document.createElementNS('http://www.w3.org/2000/svg','text');
@@ -1846,8 +1891,9 @@ function renderDiagram(showCounts, resetView) {
       });
     }
 
-    // Register in map
+    // Register in map (by node object AND by URL for tag lookups)
     nodeElemMap.set(n, g);
+    if (n.url) nodeElemMap.set(n.url, g);
 
     // Hover tooltip — shows full URL path
     g.addEventListener('mouseenter', e => {
@@ -1902,6 +1948,26 @@ function renderDiagram(showCounts, resetView) {
       }
     });
   }
+
+  // Re-apply search highlighting if a search is active
+  if (diagramSearchTerm) handleDiagramSearch(diagramSearchTerm);
+
+  // Update legend to show active status tags
+  updateStatusTagLegend();
+}
+
+function updateStatusTagLegend() {
+  const legend = document.getElementById('d-legend');
+  if (!legend) return;
+  legend.querySelectorAll('.legend-tag-item').forEach(el => el.remove());
+  const TAG_COLOURS = { keep:'#5aab72', merge:'#6a9fd8', redirect:'#c8a060', new:'#a06ad8', delete:'#c86a5a' };
+  const activeTags = [...new Set(Object.values(nodeStatusTags))].filter(t => TAG_COLOURS[t]);
+  activeTags.forEach(tag => {
+    const item = document.createElement('div');
+    item.className = 'legend-item legend-tag-item';
+    item.innerHTML = `<div class="legend-box" style="background:${TAG_COLOURS[tag]}22;border-color:${TAG_COLOURS[tag]};"></div>${tag}`;
+    legend.appendChild(item);
+  });
 }
 
 function applyDt() {
@@ -1987,6 +2053,16 @@ function showNodePanel(n) {
     annotInput.value = nodeAnnotations[n.url || ''] || '';
   }
 
+  // Status tag — shown for all non-root nodes
+  const tagRow = document.getElementById('d-node-tag-row');
+  if (tagRow) {
+    tagRow.style.display = n.isRoot ? 'none' : '';
+    const currentTag = nodeStatusTags[n.url || ''] || '';
+    document.querySelectorAll('.node-tag-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tag === currentTag);
+    });
+  }
+
   panel.classList.remove('hidden');
 }
 
@@ -1999,6 +2075,73 @@ function autoSaveAnnotation() {
   } else {
     delete nodeAnnotations[url];
   }
+}
+
+function setNodeTag(tag) {
+  if (!selectedDNode) return;
+  const url = selectedDNode.url || '';
+  if (tag) {
+    nodeStatusTags[url] = tag;
+  } else {
+    delete nodeStatusTags[url];
+  }
+  // Update button active states
+  document.querySelectorAll('.node-tag-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tag === tag);
+  });
+  // Redraw just the affected node without full rebuild
+  const el = nodeElemMap.get(url);
+  if (el) {
+    const TAG_COLOURS = { keep:'#5aab72', merge:'#6a9fd8', redirect:'#c8a060', new:'#a06ad8', delete:'#c86a5a' };
+    // Remove existing strip
+    el.querySelectorAll('.tag-strip').forEach(s => s.remove());
+    if (tag && TAG_COLOURS[tag]) {
+      const h = selectedDNode.isRoot ? 36 : 30;
+      const strip = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      strip.setAttribute('class','tag-strip');
+      strip.setAttribute('width', 4);
+      strip.setAttribute('height', h);
+      strip.setAttribute('rx', 2);
+      strip.setAttribute('ry', 2);
+      strip.style.fill = TAG_COLOURS[tag];
+      strip.style.pointerEvents = 'none';
+      el.appendChild(strip);
+    }
+  }
+}
+
+function handleDiagramSearch(val) {
+  diagramSearchTerm = val.trim().toLowerCase();
+  const clearBtn   = document.getElementById('diagram-search-clear');
+  const countEl    = document.getElementById('diagram-search-count');
+  if (!diagramSearchTerm) {
+    clearDiagramSearch();
+    return;
+  }
+  clearBtn.style.display  = '';
+  // Apply match/no-match classes to all dnodes
+  const all = document.querySelectorAll('.dnode');
+  let matches = 0;
+  all.forEach(el => {
+    const url = (el.dataset.url || '').toLowerCase();
+    const isMatch = url.includes(diagramSearchTerm);
+    el.classList.toggle('search-match',   isMatch);
+    el.classList.toggle('search-no-match', !isMatch);
+    if (isMatch) matches++;
+  });
+  countEl.style.display = '';
+  countEl.textContent   = matches + ' match' + (matches !== 1 ? 'es' : '');
+}
+
+function clearDiagramSearch() {
+  diagramSearchTerm = '';
+  const input  = document.getElementById('diagram-search');
+  if (input) input.value = '';
+  document.getElementById('diagram-search-clear').style.display = 'none';
+  document.getElementById('diagram-search-count').style.display = 'none';
+  document.querySelectorAll('.dnode').forEach(el => {
+    el.classList.remove('search-match','search-no-match');
+  });
 }
 
 function clearNodePanel() {
@@ -2634,6 +2777,9 @@ window.clearSearch      = clearSearch;
 window.copyURLs         = copyURLs;
 window.sendToWaypoint   = sendToWaypoint;
 window.previewCustomLabel = previewCustomLabel;
+window.setNodeTag         = setNodeTag;
+window.handleDiagramSearch = handleDiagramSearch;
+window.clearDiagramSearch  = clearDiagramSearch;
 
 return { init };
 
