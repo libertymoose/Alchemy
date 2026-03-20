@@ -1767,6 +1767,10 @@
                 <span style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-stat);display:none;" id="stat-excl-wrap"><strong id="stat-excl" style="font-size:1.1rem;font-weight:600;margin-right:0.3rem;">0</strong>excluded</span>
               </div>
             </div>
+            <!-- Incomplete crawl warning -->
+            <div id="crawl-incomplete-banner" style="display:none;padding:0.6rem 1rem;background:#1a1008;border-bottom:1px solid #3a2808;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:#c8a060;">
+              ⚠ Crawl stopped early — these results are incomplete. Re-crawl the site to get the full picture.
+            </div>
             <div class="card-body" style="padding:0.5rem 0.85rem;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.65rem;flex-wrap:wrap;gap:0.5rem;">
                 <div style="display:flex;gap:0;">
@@ -2162,6 +2166,7 @@ function exportAlchemyFile() {
 let isDark        = true;
 let activeProject = null;
 let crawlState    = { running: false, paused: false, queue: [], visited: new Set(), results: [], base: '' };
+let crawlStateProjectId = null; // tracks which project the in-memory crawlState belongs to
 let excludedCount = 0;
 let resultFilter  = 'all';
 let resultSearch  = '';
@@ -2793,6 +2798,47 @@ function renderCrawlPage() {
     wbHeader.classList.add('open');
     wbBody.classList.add('open');
   }
+
+  // If a crawl isn't currently running but we have saved results, restore them
+  // Only restore if crawlState doesn't already belong to this project (avoids wiping a live crawl)
+  const saved = activeProject.crawl;
+  const crawlBelongsHere = crawlStateProjectId === activeProject.id;
+  if (!crawlState.running && saved && saved.results && saved.results.length && !crawlBelongsHere) {
+    crawlStateProjectId = activeProject.id;
+    crawlState.results = saved.results.map(r => ({
+      url: r.url, ok: r.ok, status: r.status,
+      statusText: r.statusText, depth: r.depth,
+      section: r.section, title: r.title || ''
+    }));
+    showResults();
+    updateStats();
+    renderResults();
+
+    // Re-enable action buttons
+    const saveBtn    = document.getElementById('btn-save-crawl');
+    const copyBtn    = document.getElementById('btn-copy-urls');
+    if (saveBtn) { saveBtn.disabled = false; }
+    if (copyBtn) { copyBtn.disabled = false; copyBtn.style.opacity = '1'; copyBtn.style.pointerEvents = ''; }
+
+    // Show incomplete banner if crawl was stopped mid-way
+    const banner = document.getElementById('crawl-incomplete-banner');
+    if (banner) banner.style.display = saved.status === 'stopped' ? '' : 'none';
+
+    const statusEl = document.getElementById('save-crawl-msg');
+    if (statusEl) statusEl.textContent = '';
+
+    // Restore the progress bar label
+    const statusText = document.getElementById('crawl-status-text');
+    if (statusText) {
+      if (saved.status === 'stopped') {
+        statusText.textContent = 'stopped — ' + saved.totalUrls + ' URL' + (saved.totalUrls !== 1 ? 's' : '') + ' found (incomplete)';
+      } else if (saved.status === 'complete') {
+        statusText.textContent = '✓ complete — ' + saved.totalUrls + ' URL' + (saved.totalUrls !== 1 ? 's' : '') + ' found';
+      } else if (saved.status === 'imported') {
+        statusText.textContent = '✓ ' + saved.totalUrls + ' URL' + (saved.totalUrls !== 1 ? 's' : '') + ' imported';
+      }
+    }
+  }
 }
 
 function setCrawlerMode(mode) {
@@ -2955,6 +3001,7 @@ async function startCrawl() {
 
   excludedCount = 0;
   crawlState = { running: true, paused: false, queue: [startUrl], visited: new Set([startUrl]), results: [], base: origin };
+  crawlStateProjectId = activeProject.id;
   activeProject.crawl.startedAt = new Date().toISOString();
   updateSidebarPills();
 
@@ -2963,6 +3010,8 @@ async function startCrawl() {
   show('btn-crawl-pause');
   showResults();
   document.getElementById('result-rows').innerHTML = '';
+  const banner = document.getElementById('crawl-incomplete-banner');
+  if (banner) banner.style.display = 'none';
   show('crawl-progress-wrap');
   document.getElementById('crawl-progress-fill').classList.add('crawling');
   document.getElementById('snail-emoji').classList.add('crawling');
@@ -3040,6 +3089,9 @@ function stopCrawl() {
   document.getElementById('snail-emoji').classList.remove('crawling');
   const n = crawlState.results.length;
   setStatusText('stopped — ' + n + ' URL' + (n !== 1 ? 's' : '') + ' found');
+  // Show incomplete banner
+  const banner = document.getElementById('crawl-incomplete-banner');
+  if (banner && n > 0) banner.style.display = '';
   if (n > 0) {
     setEnabled('btn-save-crawl', true);
     setEnabled('btn-copy-urls', true);
