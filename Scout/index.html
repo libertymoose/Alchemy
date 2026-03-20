@@ -250,28 +250,6 @@
     .notice strong { display: block; margin-bottom: 0.15rem; }
     .notice a { color: var(--cors-text); }
 
-    /* ── home ── */
-    .home-title { font-family: 'IBM Plex Mono', monospace; font-size: 1.3rem; font-weight: 600; color: var(--text-strong); letter-spacing: -0.02em; margin-bottom: 0.35rem; }
-    .home-sub { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; max-width: 680px; }
-    .home-hero { text-align: center; padding: 3rem 1rem 2rem; }
-    .home-greeting { font-family: 'IBM Plex Mono', monospace; font-size: 1.4rem; font-weight: 600; color: var(--text-strong); margin-bottom: 0.75rem; letter-spacing: -0.02em; }
-    .home-fact { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; color: var(--text-muted); max-width: 480px; margin: 0 auto; line-height: 1.7; margin-bottom: 0; }
-    .home-input-wrap { max-width: 480px; margin: 1.75rem auto 0; display: flex; flex-direction: column; gap: 0.65rem; }
-    .home-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.6rem; }
-    .home-audit-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.9rem; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; align-items: center; gap: 1rem; }
-    .home-audit-card:hover { border-color: #008080; box-shadow: 0 0 0 1px #008080; }
-    .home-audit-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 600; color: var(--text-title); margin-bottom: 0.18rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .home-audit-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--text-muted); }
-    .has { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-align: center; }
-    .has-n { font-size: 0.95rem; font-weight: 600; display: block; line-height: 1.1; }
-    .has-l { color: var(--text-muted); font-size: 0.55rem; }
-    .home-empty { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--text-dimmer); text-align: center; padding: 1.75rem 1rem; border: 1px dashed var(--border-inner); border-radius: 6px; line-height: 1.8; }
-    /* checks pill grid */
-    .home-checks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.5rem; }
-    .home-check-pill { display: flex; align-items: flex-start; gap: 0.65rem; padding: 0.6rem 0.75rem; background: var(--bg-input); border: 1px solid var(--border-inner); border-radius: 6px; }
-    .home-check-icon { font-size: 1rem; flex-shrink: 0; line-height: 1.3; }
-    .home-check-pill strong { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 600; color: var(--text-title); display: block; margin-bottom: 0.1rem; }
-    .home-check-pill span { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.7rem; color: var(--text-muted); line-height: 1.45; display: block; }
 
     /* ── export / report ── */
     .view-report { font-family: 'IBM Plex Sans', sans-serif; max-width: 860px; margin: 0 auto; }
@@ -330,7 +308,7 @@
       .page-heading, #export-empty, .section-card:not(.print-ok), nav,
       footer.waypoint-footer { display: none !important; }
       #page-export { display: block !important; }
-      #page-home, #page-audit { display: none !important; }
+      #page-audit { display: none !important; }
       #export-ready { display: block !important; }
       .rpt-cover { page-break-after: always; }
       .rpt-section { page-break-inside: avoid; }
@@ -1601,12 +1579,15 @@ async function runTrackers(){
     const g={};found.forEach(t=>{if(!g[t.c])g[t.c]=[];g[t.c].push(t.n);});
 
     // GDPR compliance assessment
+    const tmpDoc=document.createElement('div'); tmpDoc.innerHTML=html;
+    const privacyHref=(()=>{const a=tmpDoc.querySelector('a[href*="privacy"]');return a?new URL(a.getAttribute('href'),S.url).href:null;})();
+    const cookieHref=(()=>{const a=tmpDoc.querySelector('a[href*="cookie"]');return a?new URL(a.getAttribute('href'),S.url).href:null;})();
     const gdprChecks=[
       {label:'Cookie consent tool present',  pass:hasC,        sev:'high', tip:'Non-essential cookies require explicit prior consent under the ePrivacy Directive.'},
       {label:'Analytics requires consent',   pass:hasC||!hasMk, sev:'high', tip:'Analytics/marketing scripts present without a consent tool — data may be collected before consent is given.'},
       {label:'CRM data requires consent',    pass:hasC||!hasCrm,sev:'mid',  tip:'CRM tools may process personal data. Ensure consent is obtained before CRM scripts fire.'},
-      {label:'Privacy policy linked',        pass:/privacy.policy|privacy-policy|privacypolicy/i.test(html), sev:'low', tip:'A privacy policy link was not detected on this page.'},
-      {label:'Cookie policy linked',         pass:/cookie.policy|cookie-policy|cookiepolicy/i.test(html),   sev:'low', tip:'A cookie policy link was not detected on this page.'},
+      {label:'Privacy policy linked',        pass:!!privacyHref, sev:'low', tip:'A privacy policy link was not detected on this page.'},
+      {label:'Cookie policy linked',         pass:!!cookieHref,  sev:'low', tip:'A cookie policy link was not detected on this page.'},
     ];
     const gdprPassed=gdprChecks.filter(c=>c.pass).length;
     const gdprCl=gdprPassed===gdprChecks.length?'good':gdprPassed>=3?'mid':'bad';
@@ -1627,6 +1608,28 @@ async function runTrackers(){
     const fl=document.getElementById('fl-integrations');
     if(!hasC&&hasMk)autoFinding(fl,'No consent tool — marketing scripts present','Marketing and analytics scripts fire without a consent mechanism. High risk under GDPR and ePrivacy Directive.','high',['gdpr','compliance']);
     gdprChecks.filter(c=>!c.pass&&c.sev!=='low').forEach(c=>autoFinding(fl,'GDPR: '+c.label,c.tip,c.sev,['gdpr','compliance']));
+
+    // Async: validate that detected policy links actually resolve
+    (async function validatePolicyLinks(){
+      const checks=[
+        {href:privacyHref, label:'Privacy policy', rowIdx:3},
+        {href:cookieHref,  label:'Cookie policy',  rowIdx:4},
+      ];
+      for(const chk of checks){
+        if(!chk.href) continue;
+        try{
+          const r=await fetch(PROXY+encodeURIComponent(chk.href));
+          const d=await r.json();
+          const cell=document.querySelector(`#integrations-auto table tbody tr:nth-child(${chk.rowIdx+1}) td:last-child`);
+          if(!d.ok&&d.status>=400){
+            if(cell){cell.className='td-fail';cell.textContent=`✗ 404 (${d.status})`;}
+            autoFinding(fl,'GDPR: '+chk.label+' returns '+d.status,chk.label+' link resolves to a '+d.status+' error — the page may have moved or been deleted.','mid',['gdpr','compliance']);
+          } else if(cell&&d.ok){
+            cell.className='td-pass';cell.textContent='✓ Pass (resolves)';
+          }
+        }catch(e){/* silent — proxy unavailable */}
+      }
+    })();
 
     checkBrokenLinks(html);
     readability(html);
@@ -2814,7 +2817,7 @@ return { init };
 
       <div class="modal-section-title" style="margin-top:0.85rem;">In development</div>
 
-      <p class="modal-text" style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🏗 Foundry</strong> — Project setup and shared crawl. Create a project, run the crawl once, and every tool reads from the same dataset.</p>
+      <p class="modal-text" style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🏗 Alchemy</strong> — Project setup and shared crawl. Create a project, run the crawl once, and every tool reads from the same dataset.</p>
 
       <p class="modal-text" style="margin-top:0.4rem;"><strong style="color:var(--text-title);">🗺 Atlas</strong> — Content inventory. Catalogue every page with metadata and assign a disposition — keep, rewrite, merge, redirect, or delete.</p>
 
