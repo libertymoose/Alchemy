@@ -1914,7 +1914,7 @@ async function loadTool(key, navBtn) {
     return;
   }
 
-  // Guard: don't reload the same tool
+  // Guard: don't reload if already successfully loaded (activeTool is set below only on success)
   if (activeTool === key) {
     setNavActive(navBtn);
     showPage('tool', null);
@@ -1922,7 +1922,6 @@ async function loadTool(key, navBtn) {
   }
 
   setNavActive(navBtn);
-  activeTool = key;
 
   // Record openedAt
   const t = activeProject.tools[key];
@@ -2013,9 +2012,13 @@ async function loadTool(key, navBtn) {
       initFn.init(fullProject);
     }
 
+    // Only mark as active after a successful load
+    activeTool = key;
+
   } catch (err) {
     loading.style.display = 'none';
-    mount.innerHTML = '<div style="padding:3rem 2rem;font-family:\'IBM Plex Mono\',monospace;font-size:0.78rem;color:var(--err);">Failed to load ' + meta.name + '. Make sure the file exists at ' + meta.path + '.</div>';
+    activeTool = null; // reset so clicking again retries the fetch
+    mount.innerHTML = '<div style="padding:3rem 2rem;font-family:\'IBM Plex Mono\',monospace;font-size:0.78rem;color:var(--err);">Failed to load ' + meta.name + '. Make sure the file exists at ' + meta.path + '. <span style="opacity:0.6;">Click ' + meta.name + ' in the sidebar to try again.</span></div>';
   }
 }
 
@@ -2722,7 +2725,7 @@ function updateTopbar() {
 
 function copyProjectLink() {
   if (!activeProject) return;
-  let link = 'https://elleiana.github.io/Alchemy/?project=' + activeProject.id;
+  let link = 'https://libertymoose.github.io/Alchemy/?project=' + activeProject.id;
   if (activeTool) link += '&tool=' + activeTool;
   navigator.clipboard.writeText(link).then(() => {
     const btn = document.getElementById('topbar-share-btn');
