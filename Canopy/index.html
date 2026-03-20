@@ -490,27 +490,6 @@
     .modal-body strong { color: var(--text-strong); }
     .modal-st { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 1rem 0 0.4rem; }
 
-    /* ── Home page (inline, not overlay) ── */
-    .home-hero { text-align: center; padding: 3rem 1rem 2rem; }
-    .home-greeting { font-family: 'IBM Plex Mono', monospace; font-size: 1.35rem; font-weight: 600; color: var(--text-strong); margin-bottom: 0.75rem; letter-spacing: -0.02em; }
-    .home-fact { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.7; }
-    .home-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.75rem; }
-    .home-session-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; align-items: center; gap: 1.25rem; }
-    .home-session-card:hover { border-color: #008080; box-shadow: 0 0 0 1px #008080; }
-    .home-session-info { flex: 1; min-width: 0; }
-    .home-session-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; font-weight: 600; color: var(--text-title); margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .home-session-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.35rem; }
-    .home-mini-bar-wrap { height: 3px; background: var(--border-soft); border-radius: 99px; overflow: hidden; margin-bottom: 0.25rem; }
-    .home-mini-bar-fill { height: 100%; background: linear-gradient(90deg, #008080, #00a0a0); border-radius: 99px; }
-    .home-mini-bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--text-dimmer); }
-    .home-session-stats { display: flex; gap: 1.1rem; flex-shrink: 0; }
-    .home-stat { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-align: center; }
-    .home-stat-n { font-size: 1.1rem; font-weight: 600; display: block; line-height: 1.1; }
-    .home-stat-l { color: var(--text-muted); font-size: 0.6rem; }
-    .home-arrow { color: var(--text-dim); font-size: 0.9rem; flex-shrink: 0; transition: color 0.15s; }
-    .home-session-card:hover .home-arrow { color: #008080; }
-    .home-empty { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--text-dim); padding: 2rem 1rem; text-align: center; }
-
     /* ── Footer ── */
     footer { border-top: 1px solid var(--border); margin-top: 2.5rem; padding-top: 0.75rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--text-muted); display: flex; gap: 0.75rem; align-items: center; justify-content: center; }
     footer a { color: var(--text-muted); text-decoration: none; }
@@ -855,196 +834,9 @@ let customLabels  = {};
 let currentLabelMode = 'slug';
 let nodeAnnotations = {};
 
-/* ═══════════════════════════════════════════
-   Session — save / load / share / history
-═══════════════════════════════════════════ */
-const SESSION_KEY = 'canopy_session_v2';
-const HISTORY_KEY = 'canopy_history_v2';
-const MAX_HISTORY = 5;
-
-/* Minimal LZString — compress to base64 URL-safe, decompress back */
-const LZString = {
-  compressToEncodedURIComponent(str) {
-    try {
-      return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-        (_, p1) => String.fromCharCode('0x' + p1)))
-        .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    } catch { return ''; }
-  },
-  decompressFromEncodedURIComponent(b64) {
-    try {
-      const s = b64.replace(/-/g,'+').replace(/_/g,'/');
-      const pad = s.length % 4 ? '='.repeat(4 - s.length % 4) : '';
-      return decodeURIComponent(atob(s + pad).split('').map(
-        c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-    } catch { return null; }
-  }
-};
-
-function getSessionName() {
-  return (activeProjectName || 'Untitled sitemap');
-}
-let activeProjectName = '';
-
-function formatDate(iso) {
-  const d = new Date(iso);
-  const pad = n => String(n).padStart(2,'0');
-  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function updateTimestamp(iso) {
-  const el = document.getElementById('session-timestamp');
-  if (!el) return;
-  el.textContent = iso ? `saved ${formatDate(iso)}` : '';
-}
-
-function buildSessionPayload() {
-  const iso = new Date().toISOString();
-  return {
-    version: 2, savedAt: iso,
-    name: getSessionName(),
-    startUrl: crawlState.base || '',
-    totalUrls: crawlState.results.length,
-    okUrls: crawlState.results.filter(r => r.ok).length,
-    results: crawlState.results.map(r => ({
-      url: r.url, ok: r.ok, status: r.status,
-      statusText: r.statusText, depth: r.depth, section: r.section,
-      title: r.title || ''
-    })),
-    customLabels: { ...customLabels },
-    labelMode: currentLabelMode,
-    collapseState: { ...manualCollapseState },
-    hiddenNodes: { ...hiddenNodes },
-    annotations: { ...nodeAnnotations },
-  };
-}
-
-function getHistory() {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
-  catch { return []; }
-}
-
-function saveSession() {
-  if (!crawlState.results.length) return;
-  try {
-    const data = buildSessionPayload();
-    localStorage.setItem(SESSION_KEY, JSON.stringify(data));
-    let hist = getHistory().filter(h => h.name !== data.name);
-    hist.unshift({ id: data.savedAt, name: data.name, savedAt: data.savedAt,
-      startUrl: data.startUrl, totalUrls: data.totalUrls, okUrls: data.okUrls });
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist.slice(0, MAX_HISTORY)));
-    localStorage.setItem(`canopy_sess_${data.savedAt}`, JSON.stringify(data));
-    updateTimestamp(data.savedAt);
-  } catch(e) { /* storage full */ }
-}
-
-function loadSessionById(id) {
-  try {
-    const raw = localStorage.getItem(`canopy_sess_${id}`);
-    if (raw) return JSON.parse(raw);
-    return JSON.parse(localStorage.getItem(SESSION_KEY));
-  } catch { return null; }
-}
-
-function _applySession(data, announce) {
-  if (!data?.results) return;
-  crawlState.results = data.results;
-  if (data.startUrl) document.getElementById('crawl-url').value = data.startUrl;
-  const nameEl = document.getElementById('session-name');
-  if (nameEl && data.name) nameEl.value = data.name;
-  if (data.customLabels) customLabels = { ...data.customLabels };
-  if (data.labelMode) setLabelMode(data.labelMode, null, false);
-  if (data.collapseState) manualCollapseState = { ...data.collapseState };
-  if (data.hiddenNodes) hiddenNodes = { ...data.hiddenNodes };
-  if (data.annotations) nodeAnnotations = { ...data.annotations };
-  document.getElementById('crawler-results').classList.remove('hidden');
-  document.getElementById('crawl-progress-wrap').classList.remove('hidden');
-  updateStats();
-  renderResults();
-  document.getElementById('btn-to-diagram').disabled = false;
-  document.getElementById('btn-export-csv').disabled = false;
-  document.getElementById('btn-copy-urls').disabled = false;
-  updateTimestamp(data.savedAt || null);
-  if (announce) setStatusText(`loaded — ${data.results.length} URLs`);
-}
-
-function loadSession()            { _applySession(JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'), false); }
-function loadSessionData(data)    { _applySession(data, true); }
-
-/* ── Save to .json file ── */
-function saveSessionFile() {
-  if (!crawlState.results.length) { alert('Nothing to save — run a crawl first.'); return; }
-  const data = buildSessionPayload();
-  const safe = (data.name || 'canopy').replace(/[^a-z0-9-_]/gi,'_').toLowerCase();
-  dl(`${safe}.json`, JSON.stringify(data, null, 2), 'application/json');
-  saveSession();
-}
-
-/* ── Load from .json file ── */
-function loadSessionFile(input) {
-  const file = input.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data.results) throw new Error('Not a Canopy session');
-      loadSessionData(data);
-      saveSession();
-      switchPage('diagram');
-    } catch { alert('Could not load — file may be invalid or from a different tool.'); }
-  };
-  reader.readAsText(file);
-  input.value = '';
-}
-
-/* ── Share via URL hash ── */
-/* ── Share via Worker store (short link) with LZString fallback ── */
-const CANOPY_STORE = 'https://canopystore.libertyhphillips.workers.dev';
-
-async function shareViaStore() {
-  const res = await fetch(`${CANOPY_STORE}/store`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session: buildSessionPayload() }),
-  });
-  if (!res.ok) throw new Error(`Store ${res.status}`);
-  const { id } = await res.json();
-  return `${location.origin}${location.pathname}#s=${id}`;
-}
-
-async function loadFromStore(id) {
-  const res = await fetch(`${CANOPY_STORE}/get?id=${encodeURIComponent(id)}`);
-  if (!res.ok) throw new Error(`Store ${res.status}`);
-  const { session } = await res.json();
-  return session;
-}
-
-async function shareSession() {
-  if (!crawlState.results.length) { alert('Run a crawl first before sharing.'); return; }
-  const btn = document.getElementById('btn-share');
-  btn.textContent = '… generating'; btn.disabled = true;
-  try {
-    const link = await shareViaStore();
-    await navigator.clipboard.writeText(link);
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => { btn.textContent = '🔗 Share'; btn.disabled = false; }, 2200);
-  } catch(err) {
-    // Worker unavailable — fall back to LZString long link
-    console.warn('Store share failed, falling back to base64:', err);
-    try {
-      const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(buildSessionPayload()));
-      const link = `${location.origin}${location.pathname}#sl=${compressed}`;
-      await navigator.clipboard.writeText(link);
-      btn.textContent = '✓ Copied (long link)';
-    } catch {
-      btn.textContent = '🔗 Share';
-    }
-    setTimeout(() => { btn.textContent = '🔗 Share'; btn.disabled = false; }, 2500);
-  }
-}
-
 /* ── Clear ── */
 function clearCrawl() {
+  if (crawlState.results.length && !confirm('Clear this crawl? This cannot be undone.')) return;
   if (crawlState.running) stopCrawl();
   crawlState = { running: false, paused: false, queue: [], visited: new Set(), results: [], base: '' };
   excludedCount = 0; diagramTree = null; manualCollapseState = {}; hiddenNodes = {}; nodeAnnotations = {}; customLabels = {};
@@ -1087,101 +879,6 @@ function copyURLs() {
 }
 
 
-/* ── On page load: check for ?url= deep-link from Scout ── */
-(function checkDeepLink() {
-  const params = new URLSearchParams(location.search);
-  const deepUrl = params.get("url");
-  if (!deepUrl) return;
-  history.replaceState(null, "", location.pathname + location.hash);
-  function initDeepLink() {
-    const input = document.getElementById("crawl-url");
-    if (!input) return;
-    input.value = deepUrl;
-    switchPage("crawler");
-    showScoutReferralBanner(deepUrl);
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initDeepLink, { once: true });
-  } else {
-    initDeepLink();
-  }
-})();
-
-function showScoutReferralBanner(url) {
-  const existing = document.getElementById('scout-referral-banner');
-  if (existing) existing.remove();
-  let hostname = url;
-  try { hostname = new URL(url).hostname; } catch(e) {}
-  const banner = document.createElement('div');
-  banner.id = 'scout-referral-banner';
-  banner.style.cssText = [
-    'display:flex', 'align-items:center', 'justify-content:space-between',
-    'flex-wrap:wrap', 'gap:0.5rem',
-    'background:var(--bg-card)', 'border:1px solid var(--border-soft)',
-    'border-left:3px solid #008080', 'border-radius:6px',
-    'padding:0.6rem 1rem', 'margin-bottom:1rem',
-    "font-family:'IBM Plex Mono',monospace", 'font-size:0.72rem',
-    'color:var(--text-muted)'
-  ].join(';');
-  banner.innerHTML =
-    '<span>🔍 Referred from Scout &nbsp;·&nbsp; ' +
-    '<span style="color:var(--text-body);">' + hostname + '</span></span>' +
-    '<div style="display:flex;gap:0.5rem;">' +
-    '<button class="btn-check" style="padding:0.3rem 0.85rem;font-size:0.7rem;" ' +
-    'onclick="startCrawl();document.getElementById(\'scout-referral-banner\').remove();">▶ Crawl now</button>' +
-    '<button style="background:none;border:none;color:var(--text-muted);cursor:pointer;' +
-    'font-size:0.85rem;padding:0 4px;line-height:1;" ' +
-    'onclick="document.getElementById(\'scout-referral-banner\').remove();">✕</button>' +
-    '</div>';
-  const sessionBar = null; // session bar removed
-  if (sessionBar) {
-    sessionBar.parentNode.insertBefore(banner, sessionBar);
-  } else {
-    const crawlerPage = null; // crawler page removed
-    if (crawlerPage) crawlerPage.prepend(banner);
-  }
-}
-
-/* ── On page load: check for shared link in hash ── */
-(async function checkShareLink() {
-  const hash = location.hash;
-
-  // Short link via store Worker: #s=<id>
-  if (hash.startsWith('#s=')) {
-    const id = hash.slice(3);
-    // Only try the store if the value looks like a short ID (no base64 padding chars)
-    // Long base64 strings contain '-' and '_' and are typically 100+ chars
-    if (id.length < 40) {
-      try {
-        const session = await loadFromStore(id);
-        if (!session?.results) throw new Error('invalid');
-        history.replaceState(null, '', location.pathname);
-        document.addEventListener('DOMContentLoaded', () => {
-          loadSessionData(session); saveSession(); switchPage('diagram');
-        }, { once: true });
-        return;
-      } catch(e) { console.warn('Could not load from store:', e); }
-    }
-  }
-
-  // Long fallback link: #sl=<lzstring>
-  if (hash.startsWith('#sl=')) {
-    try {
-      const json = LZString.decompressFromEncodedURIComponent(hash.slice(4));
-      if (!json) throw new Error('empty');
-      const data = JSON.parse(json);
-      if (!data.results) throw new Error('invalid');
-      history.replaceState(null, '', location.pathname);
-      document.addEventListener('DOMContentLoaded', () => {
-        loadSessionData(data); saveSession(); switchPage('diagram');
-      }, { once: true });
-    } catch(e) { /* bad link */ }
-  }
-})();
-
-/* ═══════════════════════════════════════════
-   Theme
-═══════════════════════════════════════════ */
 function toggleTheme() {
   isDark = !isDark;
   document.documentElement.classList.toggle('light', !isDark);
@@ -1357,7 +1054,6 @@ function runImport() {
   }
 
   status.textContent = `✓ ${urls.length} URL${urls.length !== 1 ? 's' : ''} imported`;
-  saveSession();
 }
 
 /* ═══════════════════════════════════════════
@@ -1473,6 +1169,8 @@ async function startCrawl() {
   updateStats();
   setStatusText('crawling…');
   setQueueInfo('');
+  const dStatus = document.getElementById('d-status');
+  if (dStatus) { dStatus.textContent = '🔄 crawling'; dStatus.className = 'dv'; }
 
   // Waypoint-style worker: dequeue → fetch → enqueue new links
   // visited is used only to prevent duplicate queuing, not to skip fetching
@@ -1550,10 +1248,11 @@ async function startCrawl() {
     document.getElementById('btn-export-csv').disabled = false;
     document.getElementById('btn-copy-urls').disabled = false;
     setStatusText(`done — ${n} URL${n!==1?'s':''} found`);
-    saveSession();
   } else {
     setStatusText('done — no URLs found');
   }
+  const dStatusDone = document.getElementById('d-status');
+  if (dStatusDone) { dStatusDone.textContent = n > 0 ? '✅ complete' : '⚠ no URLs'; dStatusDone.className = n > 0 ? 'dv good' : 'dv'; }
 }
 
 function stopCrawl() {
@@ -1566,6 +1265,8 @@ function stopCrawl() {
   document.getElementById('snail-emoji').classList.remove('crawling');
   const n = crawlState.results.length;
   setStatusText(`stopped — ${n} URL${n!==1?'s':''} found`);
+  const dStatusStop = document.getElementById('d-status');
+  if (dStatusStop) { dStatusStop.textContent = `⏹ stopped (${n})`; dStatusStop.className = 'dv'; }
 }
 
 function togglePause() {
@@ -2301,7 +2002,6 @@ function autoSaveAnnotation() {
   } else {
     delete nodeAnnotations[url];
   }
-  saveSession();
 }
 
 function clearNodePanel() {
@@ -2355,7 +2055,6 @@ function toggleNodeHidden() {
   selectedDNode = null;
   clearNodePanel();
   buildDiagram();
-  saveSession();
 }
 
 function unhideChildrenOf(parentPath) {
@@ -2367,7 +2066,6 @@ function unhideChildrenOf(parentPath) {
     }
   });
   buildDiagram();
-  saveSession();
 }
 
 /* ── Label mode ── */
@@ -2420,7 +2118,6 @@ function applyCustomLabel() {
     delete customLabels[selectedDNode.url];
   }
   if (diagramTree) buildDiagram();
-  saveSession();
 }
 
 function previewCustomLabel(val) {
@@ -2523,7 +2220,111 @@ function exportJSON() {
 }
 function exportSVGFile() {
   if (!diagramTree) { document.getElementById('export-msg').textContent='⚠ Build the diagram first.'; return; }
-  dl('canopy-sitemap.svg', new XMLSerializer().serializeToString(document.getElementById('diagram')), 'image/svg+xml');
+
+  const PAD = 60;
+
+  // ── 1. Compute full content bounding box (mirrors exportPNG) ──
+  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+  function svgBbWalk(n) {
+    const hw = (n.isRoot ? ROOT_W : NODE_W) / 2;
+    minX = Math.min(minX, n.x - hw);
+    maxX = Math.max(maxX, n.x + hw);
+    minY = Math.min(minY, n.y);
+    maxY = Math.max(maxY, n.y + (n.isRoot ? ROOT_H : NODE_H));
+    n.children.forEach(svgBbWalk);
+  }
+  svgBbWalk(diagramTree);
+
+  const contentW = maxX - minX + PAD * 2;
+  const contentH = maxY - minY + PAD * 2;
+
+  // ── 2. Clone SVG, reset pan/zoom, set viewBox to content bounds ──
+  const svg   = document.getElementById('diagram');
+  const clone = svg.cloneNode(true);
+  clone.setAttribute('xmlns',   'http://www.w3.org/2000/svg');
+  clone.setAttribute('width',   contentW);
+  clone.setAttribute('height',  contentH);
+  clone.setAttribute('viewBox', `${minX - PAD} ${minY - PAD} ${contentW} ${contentH}`);
+  const dgClone = clone.querySelector('#dg');
+  if (dgClone) dgClone.setAttribute('transform', 'translate(0,0) scale(1)');
+
+  // ── 3. Resolve CSS vars ──
+  const cs   = getComputedStyle(document.documentElement);
+  const vars = {};
+  for (let d = 0; d <= 7; d++) {
+    vars[`--dt-d${d}-fill`]   = cs.getPropertyValue(`--dt-d${d}-fill`).trim();
+    vars[`--dt-d${d}-stroke`] = cs.getPropertyValue(`--dt-d${d}-stroke`).trim();
+  }
+  ['--dt-rail','--dt-rail-root','--dt-text','--dt-text-root','--dt-text-sub',
+   '--dt-sel-stroke','--dt-anc-stroke'].forEach(v => {
+    vars[v] = cs.getPropertyValue(v).trim();
+  });
+
+  // ── 4. Inline styles (same as PNG export) ──
+  clone.querySelectorAll('.dnode rect').forEach(el => {
+    const g  = el.closest('.dnode');
+    const di = Math.min(parseInt(g.dataset.depth ?? '0') || 0, 7);
+    let fill   = vars[`--dt-d${di}-fill`]   || vars['--dt-d0-fill'];
+    let stroke = vars[`--dt-d${di}-stroke`] || vars['--dt-d0-stroke'];
+    let sw = g.classList.contains('root') ? '1.5' : '1';
+    if (g.classList.contains('selected')) { stroke = vars['--dt-sel-stroke']; sw = '2'; }
+    if (g.classList.contains('ancestor')) { stroke = vars['--dt-anc-stroke']; sw = '1.5'; }
+    el.setAttribute('fill', fill); el.setAttribute('stroke', stroke); el.setAttribute('stroke-width', sw);
+    el.removeAttribute('style'); el.removeAttribute('class');
+  });
+
+  const resolveStyle = (s) => s
+    .replace(/var\(--dt-d(\d+)-fill\)/g,   (_, d) => vars[`--dt-d${d}-fill`]   || '')
+    .replace(/var\(--dt-d(\d+)-stroke\)/g, (_, d) => vars[`--dt-d${d}-stroke`] || '')
+    .replace(/var\(--dt-d0-fill\)/g,   vars['--dt-d0-fill']   || '')
+    .replace(/var\(--dt-d0-stroke\)/g, vars['--dt-d0-stroke'] || '');
+
+  clone.querySelectorAll('circle').forEach(el => {
+    const s = el.getAttribute('style') || '';
+    el.setAttribute('style', resolveStyle(s));
+  });
+
+  clone.querySelectorAll('.dnode rect[style*="cursor"]').forEach(el => el.remove());
+  clone.querySelectorAll('.dnode text[style*="pointer-events"]').forEach(el => {
+    if (!el.parentElement?.querySelector('circle')) el.remove();
+  });
+
+  clone.querySelectorAll('.dnode text').forEach(el => {
+    const g = el.closest('.dnode');
+    let fill;
+    if      (el.classList.contains('nl-root')) fill = vars['--dt-text-root'];
+    else if (el.classList.contains('nl-sub'))  fill = vars['--dt-text-sub'];
+    else fill = g?.classList.contains('root') ? vars['--dt-text-root'] : vars['--dt-text'];
+    if (el.style.fill && el.style.fill !== 'var(--dt-text)') { /* badge text already resolved */ }
+    else { el.setAttribute('fill', fill || vars['--dt-text']); }
+    el.setAttribute('font-family', 'monospace');
+    el.setAttribute('font-size',   el.classList.contains('nl-root') ? '11' : el.classList.contains('nl-sub') ? '9' : '10');
+    if (el.classList.contains('nl-root')) el.setAttribute('font-weight', '600');
+    el.removeAttribute('class');
+  });
+
+  clone.querySelectorAll('.dedge').forEach(el => {
+    el.setAttribute('stroke',       el.classList.contains('root-edge') ? vars['--dt-rail-root'] : vars['--dt-rail']);
+    el.setAttribute('stroke-width', el.classList.contains('root-edge') ? '1.5' : '1');
+    el.setAttribute('fill', 'none');
+    el.removeAttribute('class');
+  });
+
+  clone.querySelectorAll('.dnode').forEach(el => el.removeAttribute('class'));
+
+  // ── 5. Add background rect ──
+  const bgFill = isDark ? '#0a0a0d' : '#e8e8e2';
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('x', minX - PAD); bg.setAttribute('y', minY - PAD);
+  bg.setAttribute('width', contentW); bg.setAttribute('height', contentH);
+  bg.setAttribute('fill', bgFill);
+  const dgEl = clone.querySelector('#dg');
+  clone.insertBefore(bg, dgEl || clone.firstChild);
+
+  // ── 6. Remove overlay panels (tooltip, info panel, node panel) ──
+  clone.querySelectorAll('.diagram-overlay, .d-tooltip').forEach(el => el.remove());
+
+  dl('canopy-sitemap.svg', new XMLSerializer().serializeToString(clone), 'image/svg+xml');
 }
 function exportPNG() {
   if (!diagramTree) { document.getElementById('export-msg').textContent='⚠ Build the diagram first.'; return; }
@@ -2781,7 +2582,7 @@ document.addEventListener('keydown', e => {
 function init(project) {
   activeProjectName = project.name || '';
 
-  // Load crawl results from Foundry project into Canopy's crawlState
+  // Load crawl results from Alchemy project into Canopy's crawlState
   if (project.crawl && project.crawl.results && project.crawl.results.length) {
     crawlState.results = project.crawl.results.map(r => ({
       url:        r.url,
@@ -2805,7 +2606,7 @@ function init(project) {
     if (empty) {
       empty.classList.remove('hidden');
       empty.querySelector('.card-body').innerHTML =
-        'No crawl data yet — go to <strong>Foundry › Crawl</strong> and run a crawl first.';
+        'No crawl data yet — go to <strong>Alchemy › Crawl</strong> and run a crawl first.';
     }
   }
 }
@@ -2828,9 +2629,6 @@ window.openInScout      = openInScout;
 window.showModal        = showModal;
 window.closeModal       = closeModal;
 window.toggleTheme      = toggleTheme;
-window.saveSessionFile  = saveSessionFile;
-window.loadSessionFile  = loadSessionFile;
-window.shareSession     = shareSession;
 window.clearCrawl       = clearCrawl;
 window.handleImportFile = handleImportFile;
 window.runImport        = runImport;
