@@ -2999,12 +2999,12 @@ function init(project) {
   // If this project already has a saved Scout audit, restore it — don't re-run
   const saved = project.toolData && project.toolData.scout;
   if (saved && saved.url && saved.raw && Object.keys(saved.raw).length > 0) {
-    loadAudit(saved);
+    setTimeout(() => loadAudit(saved), 0);
     return;
   }
   // No saved audit — run fresh
-  switchPage('audit');
-  startAudit(project.url, project.name);
+  // setTimeout defers until DOM is fully settled after Alchemy's tool injection
+  setTimeout(() => startAudit(project.url, project.name), 0);
 }
 
 // ── Auto-save audit to project after completion ──
