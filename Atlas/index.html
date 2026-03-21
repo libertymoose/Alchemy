@@ -1302,7 +1302,7 @@ function atlasStartEnrich() {
         if (metaEl) row.metaDesc = metaEl.getAttribute('content') || '';
         const bodyText = doc.body ? doc.body.innerText || doc.body.textContent : '';
         row.wordCount  = bodyText.trim().split(/\s+/).filter(Boolean).length;
-      } catch { /* skip */ }
+      } catch (e) { /* skip */ }
     }
     fill.style.width = '100%';
     lbl.textContent = enrichAbort ? 'Cancelled.' : 'Enrich complete.';
@@ -1435,7 +1435,7 @@ function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 function getSection(url) {
   try { const p = new URL(url).pathname.split('/').filter(Boolean); return p.length ? '/' + p[0] : '/'; }
-  catch { return '/'; }
+  catch (e) { return '/'; }
 }
 
 /* ── Accordion ── */
