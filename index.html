@@ -1953,7 +1953,8 @@ async function loadTool(key, navBtn) {
 
   } catch (err) {
     loading.style.display = 'none';
-    mount.innerHTML = '<div style="padding:3rem 2rem;font-family:\'IBM Plex Mono\',monospace;font-size:0.78rem;color:var(--err);">Failed to load ' + meta.name + '. Make sure the file exists at ' + meta.path + '.</div>';
+    console.error('loadTool error:', err);
+    mount.innerHTML = '<div style="padding:3rem 2rem;font-family:\'IBM Plex Mono\',monospace;font-size:0.78rem;color:var(--err);">Failed to load ' + meta.name + '. Make sure the file exists at ' + meta.path + '.<br><br><span style="opacity:0.6;font-size:0.68rem;">' + (err && err.message ? err.message : String(err)) + '</span></div>';
   }
 }
 
