@@ -510,14 +510,15 @@
       <div class="page-heading-sub">Automated checks run on load — add your observations and findings to each section.</div>
     </div>
 
-    <!-- session + run bar — always visible, matches original Scout layout -->
+    <!-- recrawl buttons — re-run all always shown after audit; retry failed only shown when errors exist -->
+    <div id="recrawl-bar" style="display:none;margin-bottom:0.5rem;align-items:center;justify-content:flex-end;gap:0.5rem;">
+      <button class="btn-session" id="btn-retry-failed" onclick="retryFailedChecks()" style="border-color:rgba(200,160,96,0.4);color:#c8a060;">↺ re-run failed checks</button>
+      <button class="btn-session" id="btn-rerun-all" onclick="startAudit(S.url, S.client).catch(e=>console.error(e))">↺ re-run crawl</button>
+    </div>
+
+    <!-- session + run bar -->
     <div class="section-card" id="run-bar" style="margin-bottom:1rem;">
-      <div class="card-body" style="padding:0.65rem 1rem;">
-        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
-          <span class="audit-url-pill" id="audit-url-pill">—</span>
-          <span id="audit-client-label" style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text-muted);"></span>
-          <span id="audit-timestamp" style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--text-dim);margin-left:auto;"></span>
-        </div>
+      <div class="card-body" style="padding:0.55rem 1rem 0.6rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
           <span id="run-label" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:0.4rem;"><span id="run-tortoise" class="tortoise-emoji">🐢</span><span> Running checks…</span><span id="run-slow-msg" style="color:var(--text-muted);"></span></span>
           <div style="display:flex;gap:0.75rem;align-items:center;">
@@ -526,9 +527,16 @@
           </div>
         </div>
         <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
-        <div class="checks-grid" id="checks-grid"></div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:0.5rem;">
+          <div class="checks-grid" id="checks-grid" style="margin-top:0.65rem;flex:1;"></div>
+          <span id="audit-timestamp" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text-dim);white-space:nowrap;padding-bottom:0.15rem;flex-shrink:0;"></span>
+        </div>
       </div>
     </div>
+
+    <!-- hidden elements kept for JS compatibility -->
+    <span id="audit-url-pill" style="display:none;">—</span>
+    <span id="audit-client-label" style="display:none;"></span>
 
     <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-bottom:0.75rem;align-items:center;">
       <button class="btn-session" id="btn-draft-all" onclick="draftAll(this)" style="color:#008080;border-color:rgba(0,128,128,0.35);">✦ Draft all sections</button>
@@ -940,6 +948,7 @@ async function startAudit(url, clientName) {
     img.src='https://image.thum.io/get/width/200/crop/130/'+S.url;
   }
   const _runBar=document.getElementById('run-bar'); // always visible — no display change needed
+  const _recrawlBar=document.getElementById('recrawl-bar'); if(_recrawlBar)_recrawlBar.style.display='none';
   switchPage('audit');
   await runChecks();
 }
@@ -991,6 +1000,42 @@ const CHECKS=[
   {id:'axe',      label:'Accessibility+',    fn:runAxe          },
   {id:'hreflang', label:'Hreflang',          fn:runHreflang     },
 ];
+async function retryFailedChecks() {
+  // Find which check IDs currently have error pills
+  const failedIds = new Set(
+    [...document.querySelectorAll('.check-pill.error')].map(p => p.id.replace('cp-',''))
+  );
+  if(!failedIds.size) return;
+  const failedChecks = CHECKS.filter(c => failedIds.has(c.id));
+
+  // Hide recrawl bar while retrying
+  const recrawlBar = document.getElementById('recrawl-bar');
+  if(recrawlBar) recrawlBar.style.display = 'none';
+
+  // Re-run only failed checks
+  for(const check of failedChecks) {
+    pill(check.id, 'running');
+    try { await check.fn(); pill(check.id, 'done'); }
+    catch(e) { console.warn(check.id, e); pill(check.id, 'error', e.message||'Unknown error'); }
+  }
+
+  // Recount and update summary + recrawl bar
+  const errs = [...document.querySelectorAll('.check-pill.error')].length;
+  const doneCount = document.querySelectorAll('.check-pill.done').length;
+  const sumEl = document.getElementById('run-summary');
+  if(sumEl) {
+    if(errs) {
+      sumEl.innerHTML=`<span style="color:#008080">${doneCount} completed</span> · <span style="color:#c86a5a">${errs} failed</span>`;
+    } else {
+      sumEl.innerHTML=`<span style="color:#008080">All ${doneCount} scans complete</span>`;
+    }
+  }
+  if(recrawlBar) recrawlBar.style.display = 'flex';
+  const retryFailedBtn = document.getElementById('btn-retry-failed');
+  if(retryFailedBtn) retryFailedBtn.style.display = errs > 0 ? '' : 'none';
+  autoSaveAuditToProject();
+}
+
 async function runChecks() {
   const g=document.getElementById('checks-grid'); if(!g)return; g.innerHTML='';
   CHECKS.forEach(c=>{const p=document.createElement('div');p.className='check-pill';p.id='cp-'+c.id;p.innerHTML=`<span class="check-dot"></span>${c.label}`;g.appendChild(p);});
@@ -1013,6 +1058,11 @@ async function runChecks() {
       sumEl.innerHTML=`<span style="color:#008080">All ${doneCount} scans complete</span>`;
     }
   }
+  // Show recrawl bar after audit completes; only show retry-failed if there were errors
+  const recrawlBar = document.getElementById('recrawl-bar');
+  const retryFailedBtn = document.getElementById('btn-retry-failed');
+  if(recrawlBar) recrawlBar.style.display = 'flex';
+  if(retryFailedBtn) retryFailedBtn.style.display = errCount > 0 ? '' : 'none';
   // Auto-save completed audit to project so it can be restored next time Scout loads
   autoSaveAuditToProject();
 }
