@@ -3638,6 +3638,7 @@ document.querySelectorAll('.export-format-bar .pill').forEach(btn => {
    Waypoint.init — called by Alchemy with the active project
 ═══════════════════════════════════════════ */
 function init(project) {
+  requestAnimationFrame(() => {
   // Make project name available to filename/export functions
   window._waypointProjectName = project.name || '';
 
@@ -3673,6 +3674,7 @@ function init(project) {
 
   // Start on Mapper tab
   switchPage('mapper');
+  }); // defer until DOM is painted after Alchemy tool injection
 }
 
 return { init };
