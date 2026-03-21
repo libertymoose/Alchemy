@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    /* -── THEME ──- */
+    /* ── THEME ── */
     :root {
       --bg:           #0a0a0d;
       --bg-card:      #111114;
@@ -835,10 +835,10 @@
     <span class="footer-text">🗺 // Atlas // ✦ Alchemy suite</span>
   </footer>
 
-</div><!-- /atlas-wrap -->
+  <!-- Status cycle popup -->
+  <div class="status-popup" id="status-popup"></div>
 
-<!-- Status cycle popup -->
-<div class="status-popup" id="status-popup"></div>
+</div><!-- /atlas-wrap -->
 
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -1227,6 +1227,7 @@ function flagEmoji(state) {
 function atlasOpenStatusPopup(el, e) {
   e.stopPropagation();
   const popup = document.getElementById('status-popup');
+  if (!popup) return;
   popup.innerHTML = DISPOSITIONS.map(d =>
     '<div class="sp-item" onclick="atlasSetDisposition(\'' + el.dataset.id + '\',\'' + d + '\')">' +
     '<span class="dp dp-' + d + '" style="pointer-events:none">' + cap(d) + '</span></div>'
@@ -1243,8 +1244,10 @@ function atlasSetDisposition(id, disposition) {
 }
 
 document.addEventListener('click', e => {
-  if (!e.target.closest('.status-popup')) document.getElementById('status-popup').classList.remove('open');
-  if (!e.target.closest('#status-dd-wrap')) document.getElementById('status-dd-menu').classList.remove('open');
+  const popup = document.getElementById('status-popup');
+  const menu  = document.getElementById('status-dd-menu');
+  if (popup && !e.target.closest('.status-popup')) popup.classList.remove('open');
+  if (menu  && !e.target.closest('#status-dd-wrap')) menu.classList.remove('open');
 });
 
 /* ── Status dropdown toggle ── */
