@@ -2526,7 +2526,7 @@ function renderOverview() {
   }
 
   /* ── Tool cards: clickable badge cycles state, open btn calls loadTool ── */
-  const hasCrawl = crawl && crawl.results && crawl.results.length > 0;
+  const hasCrawl = !!(crawl && crawl.results && crawl.results.length > 0 && crawl.totalUrls);
 
   ['scout','canopy','waypoint'].forEach(key => {
     const t       = tools[key];
@@ -2571,9 +2571,9 @@ function renderOverview() {
   });
 
   /* ── Canopy crawl stats (from project crawl data) ── */
-  if (hasCrawl) {
+  const hasCrawlResults = !!(crawl && crawl.results && crawl.results.length && crawl.totalUrls);
+  if (hasCrawlResults) {
     setText('ov-canopy-pages',    crawl.totalUrls.toLocaleString());
-    // sections and depth are derived at diagram-build time, so show what we have
     const sections = [...new Set(crawl.results.map(r => r.section))].length;
     const maxDepth = Math.max(...crawl.results.map(r => r.depth || 0));
     setText('ov-canopy-sections', sections);
@@ -2588,6 +2588,14 @@ function renderOverview() {
         (errCount > 0 ? '<div class="tc-finding-row"><div class="tf-bullet tb-warn"></div>' + errCount + ' error URLs</div>' : '') +
         '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>' + sections + ' sections · max depth ' + maxDepth + '</div>';
     }
+  } else {
+    setText('ov-canopy-pages',    '—');
+    setText('ov-canopy-sections', '—');
+    setText('ov-canopy-depth',    '—');
+    const bar = document.getElementById('ov-canopy-bar');
+    if (bar) bar.style.width = '0%';
+    const findingsEl = document.getElementById('ov-canopy-findings');
+    if (findingsEl) findingsEl.innerHTML = '<div class="tc-empty">No crawl data yet — open Canopy after running a crawl.</div>';
   }
 }
 
