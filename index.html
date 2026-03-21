@@ -1981,7 +1981,7 @@ function onToolEvent(type, data) {
     const key = data.tool || activeTool;
     if (!key || !activeProject) return;
     if (!activeProject.toolData) activeProject.toolData = {};
-    activeProject.toolData[key] = data.payload;
+    activeProject.toolData[key] = data.payload || data.data || data;
     activeProject.updatedAt = new Date().toISOString();
     upsertHistoryEntry(activeProject);
     storeProject(activeProject).catch(() => {});
