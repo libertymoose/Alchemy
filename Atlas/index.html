@@ -79,21 +79,17 @@
       flex-shrink: 0;
       background: var(--bg);
     }
-    .atlas-nav-title {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.78rem; font-weight: 500;
-      color: var(--teal); margin-right: 1.5rem;
-      display: flex; align-items: center; gap: 0.4rem;
-    }
     .anav-btn {
-      height: 42px; padding: 0 1rem;
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
-      color: var(--text-muted); background: transparent; border: none;
-      border-bottom: 2px solid transparent; cursor: pointer;
-      transition: color 0.15s; margin-bottom: -1px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
+      padding: 0.5rem 1.25rem 0.65rem;
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--text-muted); cursor: pointer; margin-bottom: -1px;
+      transition: color 0.15s; white-space: nowrap;
+      display: flex; flex-direction: column; align-items: center; gap: 0.25rem; line-height: 1;
     }
-    .anav-btn:hover { color: var(--text); }
-    .anav-btn.active { color: var(--text); border-bottom-color: var(--teal); }
+    .anav-btn .nav-emoji { font-size: 1.25rem; line-height: 1; }
+    .anav-btn:hover { color: var(--text-title); }
+    .anav-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
     .anav-right { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
     .anav-count {
       font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
@@ -572,10 +568,9 @@
 
   <!-- NAV BAR -->
   <nav class="atlas-nav">
-    <span class="atlas-nav-title">🗺 Atlas</span>
-    <button class="anav-btn active" id="anav-home"      onclick="atlasShowPage('home', this)">Home</button>
-    <button class="anav-btn"        id="anav-inventory" onclick="atlasShowPage('inventory', this)">Inventory</button>
-    <button class="anav-btn"        id="anav-export"    onclick="atlasShowPage('export', this)">Export</button>
+    <button class="anav-btn nav-tab active" id="anav-home"      onclick="atlasShowPage('home', this)"><span class="nav-emoji">🏠</span>Home</button>
+    <button class="anav-btn nav-tab"        id="anav-inventory" onclick="atlasShowPage('inventory', this)"><span class="nav-emoji">📋</span>Inventory</button>
+    <button class="anav-btn nav-tab"        id="anav-export"    onclick="atlasShowPage('export', this)"><span class="nav-emoji">↓</span>Export</button>
     <div class="anav-right">
       <span class="anav-count" id="anav-count" style="display:none"></span>
     </div>
@@ -876,16 +871,26 @@ const CONTENT_TYPES = ['Page','Post','Landing page','Product','Category','PDF','
 /* ── Init (called by Alchemy shell) ── */
 function atlasInit(project) {
   A.project = project;
-  atlasUpdateTiers();
+  A.rows = [];
+
+  /* 1. Try to restore saved inventory from project */
   atlasRestoreFromProject();
-  atlasShowPage('home', document.getElementById('anav-home'));
+
+  /* 2. If no saved rows but a crawl exists, auto-build from it */
+  if (!A.rows.length && project.crawl && project.crawl.results && project.crawl.results.length) {
+    atlasBuildFromFoundry();
+    return; /* atlasBuildFromFoundry navigates to Inventory itself */
+  }
+
+  /* 3. Show inventory if we have rows, otherwise home */
+  atlasUpdateTiers();
   if (A.rows.length) {
     atlasRenderTable();
     atlasUpdateExport();
     atlasUpdateNavCount();
-    const invBtn = document.getElementById('anav-inventory');
-    const homeBtn = document.getElementById('anav-home');
-    atlasShowPage('inventory', invBtn);
+    atlasShowPage('inventory', document.getElementById('anav-inventory'));
+  } else {
+    atlasShowPage('home', document.getElementById('anav-home'));
   }
 }
 
@@ -927,10 +932,10 @@ function atlasBuildFromFoundry() {
   const scoutData = (p.toolData && p.toolData.scout) || null;
   const scoutMap  = {};
   if (scoutData && scoutData.pages) {
-    scoutData.pages.forEach(pg => { scoutMap[pg.url] = pg; });
+    scoutData.pages.forEach(function(pg) { scoutMap[pg.url] = pg; });
   }
 
-  A.rows = p.crawl.results.map((r, i) => {
+  A.rows = p.crawl.results.map(function(r, i) {
     const s = scoutMap[r.url] || null;
     const row = atlasBlankRow(r.url);
     row.id         = 'r_' + i;
@@ -948,8 +953,10 @@ function atlasBuildFromFoundry() {
 
   atlasApplyFlags();
   atlasSave();
-  atlasRenderTable();
+  atlasUpdateTiers();
   atlasUpdateNavCount();
+  atlasRenderTable();
+  atlasUpdateExport();
   atlasShowPage('inventory', document.getElementById('anav-inventory'));
 }
 
