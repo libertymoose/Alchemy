@@ -841,6 +841,7 @@
 </div><!-- /atlas-wrap -->
 
 <script>
+(function() {
 /* ═══════════════════════════════════════════════════════
    ATLAS — v0.1.0
    Content inventory for the Alchemy suite
@@ -1446,11 +1447,33 @@ function atlasToggleAccordion(headerId, bodyId) {
 /* ── Expose to Alchemy shell ── */
 window.Atlas = { init: atlasInit };
 
+/* ── Expose onclick handlers to global scope ── */
+window.atlasShowPage        = atlasShowPage;
+window.atlasToggleStatusDd  = atlasToggleStatusDd;
+window.atlasSetFilter       = atlasSetFilter;
+window.atlasSetView         = atlasSetView;
+window.atlasSort            = atlasSort;
+window.atlasStartEnrich     = atlasStartEnrich;
+window.atlasStopEnrich      = atlasStopEnrich;
+window.atlasBuildFromFoundry= atlasBuildFromFoundry;
+window.atlasImportManual    = atlasImportManual;
+window.atlasHandleFileUpload= atlasHandleFileUpload;
+window.atlasApplyFlags      = atlasApplyFlags;
+window.atlasCycleFlag       = atlasCycleFlag;
+window.atlasOpenStatusPopup = atlasOpenStatusPopup;
+window.atlasSetDisposition  = atlasSetDisposition;
+window.atlasEditNotes       = atlasEditNotes;
+window.atlasExportCSV       = atlasExportCSV;
+window.atlasSendToWaypoint  = atlasSendToWaypoint;
+window.atlasToggleAccordion = atlasToggleAccordion;
+
 /* ── Standalone init (direct file open) ── */
 if (typeof onToolEvent === 'undefined') {
   window.onToolEvent = function() {};
   atlasShowPage('home', document.getElementById('anav-home'));
 }
+
+})();
 </script>
 
 </body>
