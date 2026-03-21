@@ -227,8 +227,8 @@
     .open-link:hover { color: var(--teal-bright); }
 
     /* ── INVENTORY PAGE ── */
-    #page-inventory { display: none; flex-direction: column; overflow: hidden; padding: 0; }
-    #page-inventory.active { display: flex; }
+    #atlas-page-inventory { display: none; flex-direction: column; overflow: hidden; padding: 0; }
+    #atlas-page-inventory.active { display: flex; }
 
     .inv-toolbar {
       display: flex; align-items: center; gap: 0.5rem;
@@ -584,7 +584,7 @@
   <!-- ══════════════════════════════════════════
        HOME PAGE
   ══════════════════════════════════════════ -->
-  <div class="atlas-page active" id="page-home">
+  <div class="atlas-page active" id="atlas-page-home">
     <div class="page-hd">
       <div class="page-hd-title">Content inventory</div>
       <div class="page-hd-sub">// what is on this site and what are we doing with it?</div>
@@ -684,13 +684,13 @@
       <div class="card-body" id="home-recent-body"></div>
     </div>
 
-  </div><!-- /page-home -->
+  </div><!-- /atlas-page-home -->
 
 
   <!-- ══════════════════════════════════════════
        INVENTORY PAGE
   ══════════════════════════════════════════ -->
-  <div class="atlas-page" id="page-inventory">
+  <div class="atlas-page" id="atlas-page-inventory">
 
     <!-- Toolbar -->
     <div class="inv-toolbar">
@@ -760,13 +760,13 @@
       <div class="card-grid" id="inv-card-grid"></div>
     </div>
 
-  </div><!-- /page-inventory -->
+  </div><!-- /atlas-page-inventory -->
 
 
   <!-- ══════════════════════════════════════════
        EXPORT PAGE
   ══════════════════════════════════════════ -->
-  <div class="atlas-page" id="page-export">
+  <div class="atlas-page" id="atlas-page-export">
     <div class="page-hd">
       <div class="page-hd-title">Export</div>
       <div class="page-hd-sub" id="export-sub">—</div>
@@ -828,7 +828,7 @@
       <label class="option-row"><input type="checkbox" id="csv-opt-notes"  checked /> Include notes column</label>
     </div>
 
-  </div><!-- /page-export -->
+  </div><!-- /atlas-page-export -->
 
   <!-- Footer -->
   <footer>
@@ -892,7 +892,7 @@ function atlasInit(project) {
 /* ── Page switching ── */
 function atlasShowPage(name, btn) {
   document.querySelectorAll('.atlas-page').forEach(p => p.classList.remove('active'));
-  const page = document.getElementById('page-' + name);
+  const page = document.getElementById('atlas-page-' + name);
   if (page) page.classList.add('active');
   document.querySelectorAll('.anav-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
@@ -905,7 +905,7 @@ function atlasUpdateTiers() {
   const p = A.project;
   const crawlEl = document.getElementById('tier-crawl-status');
   const scoutEl = document.getElementById('tier-scout-status');
-  if (!p) return;
+  if (!p || !crawlEl || !scoutEl) return;
   const crawl = p.crawl && p.crawl.results && p.crawl.results.length;
   crawlEl.textContent = crawl ? '✓ ' + p.crawl.results.length + ' URLs' : 'no crawl yet';
   crawlEl.className   = 'tier-status' + (crawl ? ' ok' : '');
@@ -913,9 +913,9 @@ function atlasUpdateTiers() {
   scoutEl.textContent = scout ? '✓ ready' : 'no audit yet';
   scoutEl.className   = 'tier-status' + (scout ? ' ok' : '');
   const buildBtn = document.getElementById('btn-build-inventory');
-  if (buildBtn) buildBtn.disabled = !crawl;
-  if (!crawl) {
-    buildBtn.title = 'Run a crawl in Foundry first';
+  if (buildBtn) {
+    buildBtn.disabled = !crawl;
+    buildBtn.title = crawl ? '' : 'Run a crawl in Foundry first';
   }
 }
 
