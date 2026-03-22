@@ -71,24 +71,36 @@
       display: flex; flex-direction: column; height: 100vh; overflow: hidden;
     }
 
-    /* ── PAGE NAV — matches Scout exactly ── */
+    /* ── PAGE NAV ── */
     .atlas-tabnav {
-      display: flex; align-items: center; gap: 0;
+      display: flex;
+      align-items: center;
+      gap: 0;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 0; padding: 0;
+      margin-bottom: 1rem;
+      padding: 0;
     }
     .atlas-tabnav .nav-tab {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
-      color: var(--text-muted); background: none; border: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      background: none;
+      border: none;
       border-bottom: 2px solid transparent;
-      padding: 0.55rem 1.1rem 0.65rem;
-      cursor: pointer; transition: color 0.12s, border-color 0.12s;
+      padding: 0.5rem 1.25rem 0.65rem;
+      cursor: pointer;
+      transition: color 0.15s;
       margin-bottom: -1px;
-      display: flex; align-items: center; gap: 0.35rem;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      line-height: 1;
     }
-    .atlas-tabnav .nav-tab:hover { color: var(--text-body); }
+    .atlas-tabnav .nav-tab .nav-emoji { font-size: 1.25rem; line-height: 1; }
+    .atlas-tabnav .nav-tab:hover { color: var(--text-title); }
     .atlas-tabnav .nav-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
-    .atlas-tabnav .nav-emoji { font-size: 0.8rem; }
 
     /* ── MODAL ── */
     .atlas-modal-overlay {
@@ -528,8 +540,8 @@
 
   <!-- NAV BAR -->
   <div class="atlas-tabnav">
-    <button class="nav-tab active" data-page="inventory"><span class="nav-emoji">🗺</span>Inventory</button>
-    <button class="nav-tab" data-page="export"><span class="nav-emoji">📜</span>Export</button>
+    <button class="nav-tab active" data-page="inventory"><span class="nav-emoji">📋</span>Inventory</button>
+    <button class="nav-tab" data-page="export"><span class="nav-emoji">⬇</span>Export</button>
   </div>
 
   <!-- ══════════════════════════════════════════
@@ -843,6 +855,13 @@ function atlasBuildFromFoundry() {
   atlasRenderTable();
   atlasUpdateExport();
   atlasShowPage('inventory');
+
+  /* Auto-enrich: if most rows are missing word count (Scout only covers 1 URL),
+     start enriching automatically after a brief delay so the table renders first */
+  const missingData = A.rows.filter(function(r) { return !r.isNew && r.wordCount === null; }).length;
+  if (missingData > 1) {
+    setTimeout(atlasStartEnrich, 400);
+  }
 }
 
 /* ── Blank row factory ── */
