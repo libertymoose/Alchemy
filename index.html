@@ -2120,8 +2120,12 @@ function showPage(name, navBtn) {
   const page = document.getElementById('page-' + name);
   if (page) page.classList.add('active');
 
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (navBtn) navBtn.classList.add('active');
+  // Only update nav-item active state for Foundry pages (projects/overview/crawl/settings)
+  // Tool pages keep whatever setNavActive set — don't clear it here
+  if (name !== 'tool') {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (navBtn) navBtn.classList.add('active');
+  }
 
   // Reset activeTool if navigating away from a tool page
   if (name !== 'tool') activeTool = null;
