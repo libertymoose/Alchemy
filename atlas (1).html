@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── THEME ── */
+    :root {
+      --bg:           #0a0a0d;
+      --bg-card:      #111114;
+      --bg-card-hd:   #0d0d10;
+      --bg-input:     #0d0d10;
+      --border:       #1e1e26;
+      --border-soft:  #1a1a22;
+      --border-inner: #161620;
+      --text:         #e0ddd8;
+      --text-strong:  #f0ece4;
+      --text-title:   #d0cdc8;
+      --text-muted:   #4a4a56;
+      --text-dim:     #333340;
+      --text-body:    #c0bbb4;
+      --text-help:    #404048;
+      --teal:         #008080;
+      --teal-bright:  #00a0a0;
+      --teal-dim:     rgba(0,128,128,0.1);
+      --ok:           #5aab72;
+      --ok-bg:        #172a1c;
+      --warn:         #c8963a;
+      --warn-bg:      #2a1e0e;
+      --err:          #c86a5a;
+      --err-bg:       #1e0f0c;
+    }
+    html.light {
+      --bg:           #e8e8e2;
+      --bg-card:      #f5f5f0;
+      --bg-card-hd:   #eeeee8;
+      --bg-input:     #e8e8e2;
+      --border:       #c8c8be;
+      --border-soft:  #d0d0c4;
+      --border-inner: #d8d8d0;
+      --text:         #0d0d12;
+      --text-strong:  #020208;
+      --text-title:   #141420;
+      --text-muted:   #666;
+      --text-dim:     #999;
+      --text-body:    #1e1e28;
+      --text-help:    #585858;
+      --ok-bg:        #c8e8d2;
+      --warn-bg:      #f0e4c8;
+      --err-bg:       #f0dcd8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      font-family: 'IBM Plex Sans', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #222230; border-radius: 2px; }
+    html.light ::-webkit-scrollbar-thumb { background: #b0b0a8; }
+
+    /* ── LAYOUT ── */
+    .atlas-wrap {
+      display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+    }
+
+    /* ── PAGE NAV ── */
+    .atlas-tabnav {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+      padding: 0;
+    }
+    .atlas-tabnav .nav-tab {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.5rem 1.25rem 0.65rem;
+      cursor: pointer;
+      transition: color 0.15s;
+      margin-bottom: -1px;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      line-height: 1;
+    }
+    .atlas-tabnav .nav-tab .nav-emoji { font-size: 1.25rem; line-height: 1; }
+    .atlas-tabnav .nav-tab:hover { color: var(--text-title); }
+    .atlas-tabnav .nav-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+    /* ── MODAL ── */
+    .atlas-modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 600;
+      background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+    }
+    .atlas-modal-overlay.open { display: flex; }
+    .atlas-modal {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; width: 480px; max-width: 95vw;
+      display: flex; flex-direction: column;
+    }
+    .atlas-modal-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border-inner);
+    }
+    .atlas-modal-title {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
+      font-weight: 500; color: var(--text-title);
+    }
+    .atlas-modal-close {
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 0.9rem; padding: 0.2rem;
+    }
+    .atlas-modal-close:hover { color: var(--text); }
+    .atlas-modal-body { padding: 1rem 1.1rem; }
+    .atlas-modal-footer {
+      display: flex; justify-content: flex-end; gap: 0.5rem;
+      padding: 0.75rem 1.1rem; border-top: 1px solid var(--border-inner);
+    }
+
+    /* ── PAGES ── */
+    .atlas-page { display: none; flex: 1; overflow-y: auto; padding: 1.75rem 2rem; }
+    .atlas-page.active { display: block; }
+
+    /* ── PAGE HEADER ── */
+    .page-hd { margin-bottom: 1.5rem; }
+    .page-hd-title {
+      font-family: 'IBM Plex Mono', monospace; font-size: 1rem;
+      font-weight: 500; color: var(--text-strong);
+    }
+    .page-hd-sub {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+      color: var(--text-muted); margin-top: 0.25rem;
+    }
+
+    /* ── SECTION CARDS ── */
+    .section-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; margin-bottom: 1rem; overflow: hidden;
+    }
+    .card-hd {
+      padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border-inner);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .card-title {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem;
+      font-weight: 500; color: var(--text-title); flex: 1;
+    }
+    .card-body { padding: 1.1rem; }
+    .card-help {
+      font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.85rem;
+      line-height: 1.5;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      height: 32px; padding: 0 0.9rem;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+      border-radius: 6px; cursor: pointer; border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text-body);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn:hover { border-color: var(--teal); color: var(--teal); }
+    .btn-primary {
+      background: var(--teal); border-color: var(--teal); color: #fff;
+    }
+    .btn-primary:hover { background: var(--teal-bright); border-color: var(--teal-bright); color: #fff; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── INPUTS ── */
+    .inp {
+      width: 100%; height: 34px; padding: 0 0.75rem;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+      background: var(--bg-input); border: 1px solid var(--border-inner);
+      border-radius: 6px; color: var(--text);
+    }
+    .inp:focus { outline: none; border-color: var(--teal); }
+    textarea.inp { height: 90px; padding: 0.6rem 0.75rem; resize: none; }
+
+    /* ── UPLOAD ZONE (used in modals) ── */
+    .upload-zone {
+      border: 1px dashed var(--border-soft); border-radius: 6px;
+      padding: 1rem; text-align: center;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+      color: var(--text-muted); cursor: pointer; margin-bottom: 0.75rem;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .upload-zone:hover { border-color: var(--teal); color: var(--teal); }
+
+    .card-help {
+      font-size: 0.72rem; color: var(--text-muted); line-height: 1.5;
+    }
+
+    /* ── INVENTORY PAGE ── */
+    #atlas-page-inventory { display: none; flex-direction: column; overflow: hidden; padding: 0; }
+    #atlas-page-inventory.active { display: flex; }
+
+    .inv-toolbar {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border);
+      flex-shrink: 0; flex-wrap: wrap; background: var(--bg);
+    }
+    .inv-search {
+      height: 28px; flex: 1; min-width: 160px; padding: 0 0.7rem;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+      background: var(--bg-input); border: 1px solid var(--border-inner);
+      border-radius: 6px; color: var(--text);
+    }
+    .inv-search:focus { outline: none; border-color: var(--teal); }
+
+    .filter-pill {
+      height: 26px; padding: 0 0.7rem; border-radius: 99px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+      border: 1px solid var(--border); background: var(--bg-card);
+      color: var(--text-muted); cursor: pointer; white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .filter-pill:hover { border-color: var(--teal); color: var(--teal); }
+    .filter-pill.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+    /* Status dropdown */
+    .status-dd-wrap { position: relative; }
+    .status-dd-btn {
+      height: 26px; padding: 0 0.7rem; border-radius: 99px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+      border: 1px solid var(--border); background: var(--bg-card);
+      color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
+    .status-dd-btn.has-filter { border-color: var(--teal); color: var(--teal); }
+    .status-dd-menu {
+      display: none; position: absolute; top: 32px; left: 0; z-index: 200;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.4rem 0; min-width: 160px;
+    }
+    .status-dd-menu.open { display: block; }
+    .status-dd-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.35rem 0.8rem; font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem; cursor: pointer; color: var(--text-body);
+    }
+    .status-dd-item:hover { background: var(--bg-input); }
+    .status-dd-item input[type=checkbox] { accent-color: var(--teal); cursor: pointer; }
+    .dd-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .view-toggle {
+      display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    }
+    .vt-btn {
+      height: 26px; width: 30px; font-size: 12px; cursor: pointer;
+      background: var(--bg-card); color: var(--text-muted); border: none;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .vt-btn.active { background: var(--bg-input); color: var(--text); }
+
+    .toolbar-count {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+      color: var(--text-muted); white-space: nowrap; margin-left: auto;
+    }
+    .enrich-btn {
+      height: 26px; padding: 0 0.7rem; border-radius: 6px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+      border: 1px solid var(--teal); background: transparent; color: var(--teal); cursor: pointer;
+    }
+    .enrich-btn:hover { background: var(--teal-dim); }
+
+    /* ── TABLE VIEW ── */
+    .inv-table-wrap {
+      flex: 1; overflow: auto;
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+      table-layout: fixed;
+    }
+    thead th {
+      text-align: left; padding: 0.5rem 0.75rem;
+      font-size: 0.65rem; font-weight: 500; color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card-hd); position: sticky; top: 0; z-index: 10;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    thead th.sortable { cursor: pointer; }
+    thead th.sortable:hover { color: var(--text); }
+    thead th.sort-asc::after  { content: ' ↑'; color: var(--teal); }
+    thead th.sort-desc::after { content: ' ↓'; color: var(--teal); }
+    tbody tr { border-bottom: 1px solid var(--border-inner); }
+    tbody tr:hover { background: var(--bg-card-hd); }
+    td {
+      padding: 0.55rem 0.75rem; color: var(--text-body);
+      vertical-align: middle; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    td.cell-url { color: var(--text-muted); font-size: 0.68rem; }
+    td.cell-muted { color: var(--text-muted); }
+    td.cell-flag { color: var(--err); font-style: italic; }
+    td.cell-flag-num { color: var(--err); }
+    td.cell-flag-num::after { content: ' ↓'; font-size: 0.6rem; }
+
+    .col-flag   { width: 40px; }
+    .col-status { width: 90px; }
+    .col-url    { width: 22%; }
+    .col-title  { width: 17%; }
+    .col-sect   { width: 8%; }
+    .col-wc     { width: 7%; }
+    .col-read   { width: 6%; }
+    .col-meta   { width: 12%; }
+    .col-type   { width: 10%; }
+    .col-notes  { width: 13%; }
+
+    /* ── DISPOSITION PILLS ── */
+    .dp {
+      display: inline-block; padding: 2px 8px; border-radius: 99px;
+      font-size: 0.65rem; font-weight: 500; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .dp:hover { opacity: 0.8; }
+    .dp-keep     { background: #172a1c; color: #5aab72; border: 1px solid #243d28; }
+    .dp-rewrite  { background: #2a1e0e; color: #c8963a; border: 1px solid #4a3518; }
+    .dp-merge    { background: #0e1a2a; color: #5a8ac8; border: 1px solid #1c3050; }
+    .dp-redirect { background: #0a1a1a; color: #00a0a0; border: 1px solid #103030; }
+    .dp-delete   { background: #1e0f0c; color: #c86a5a; border: 1px solid #3a1a16; }
+    .dp-new      { background: #1a1030; color: #9a80e0; border: 1px solid #2e1e50; }
+    .dp-unset    { background: var(--bg-input); color: var(--text-muted); border: 1px dashed var(--border); }
+    html.light .dp-keep     { background: #c8e8d2; color: #145828; border-color: #7ab888; }
+    html.light .dp-rewrite  { background: #f0e4c8; color: #7a4808; border-color: #d4a855; }
+    html.light .dp-merge    { background: #c8d8f0; color: #184888; border-color: #6888c8; }
+    html.light .dp-redirect { background: #c0e8e8; color: #085858; border-color: #48a8a8; }
+    html.light .dp-delete   { background: #f0d8d4; color: #8a2818; border-color: #c87868; }
+    html.light .dp-new      { background: #dcd8f0; color: #381888; border-color: #8878d0; }
+    html.light .dp-unset    { background: var(--bg-input); color: var(--text-muted); }
+
+    /* Status cycle popup */
+    .status-popup {
+      display: none; position: fixed; z-index: 500;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.35rem 0; min-width: 110px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .status-popup.open { display: block; }
+    .sp-item {
+      padding: 0.3rem 0.75rem; font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .sp-item:hover { background: var(--bg-input); }
+
+    /* ── FLAG PILL ── */
+    .flag-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 99px; font-size: 12px;
+      cursor: pointer; border: 1px solid var(--border-inner);
+      user-select: none; line-height: 1; transition: background 0.15s;
+    }
+    .flag-pill[data-state="red"]    { background: var(--err-bg); }
+    .flag-pill[data-state="yellow"] { background: var(--warn-bg); }
+    .flag-pill[data-state="green"]  { background: var(--ok-bg); }
+
+    /* ── CARD VIEW ── */
+    .card-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.75rem; padding: 1.25rem 1.5rem;
+    }
+    .inv-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.9rem 1rem;
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    .inv-card.has-flag { border-color: #3a1a16; }
+    .inv-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+    .inv-card-title { font-size: 0.8rem; font-weight: 500; color: var(--text); line-height: 1.3; }
+    .inv-card-url   { font-size: 0.68rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .inv-card-meta {
+      display: flex; gap: 0.75rem; font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem; border-top: 1px solid var(--border-inner); padding-top: 0.6rem;
+    }
+    .icm-item { display: flex; flex-direction: column; gap: 2px; }
+    .icm-label { font-size: 0.6rem; color: var(--text-muted); }
+    .icm-val   { color: var(--text-body); }
+    .icm-val.flag { color: var(--err); }
+    .inv-card-notes {
+      font-size: 0.68rem; color: var(--text-muted); font-style: italic;
+      border-top: 1px solid var(--border-inner); padding-top: 0.5rem;
+    }
+    .inv-card-flags { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .flag-chip {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem;
+      padding: 2px 6px; border-radius: 99px;
+      background: var(--err-bg); color: var(--err); border: 1px solid #3a1a16;
+    }
+
+    /* ── NOTES INLINE EDIT ── */
+    .notes-cell {
+      cursor: pointer; min-width: 60px;
+    }
+    .notes-cell:hover { color: var(--text); }
+    .notes-input {
+      width: 100%; height: 24px; padding: 0 0.4rem;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+      background: var(--bg-input); border: 1px solid var(--teal);
+      border-radius: 4px; color: var(--text);
+    }
+    .notes-input:focus { outline: none; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 4rem 2rem; text-align: center;
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-title {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.88rem;
+      color: var(--text-muted); margin-bottom: 0.5rem;
+    }
+    .empty-sub { font-size: 0.78rem; color: var(--text-dim); }
+
+    /* ── EXPORT PAGE ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+    .stat-card {
+      background: var(--bg-input); border-radius: 6px; padding: 0.9rem 1rem;
+    }
+    .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .stat-val   { font-family: 'IBM Plex Mono', monospace; font-size: 1.4rem; font-weight: 500; color: var(--text-strong); }
+    .stat-sub   { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .breakdown { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .bd-chip {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+      padding: 3px 10px; border-radius: 99px;
+    }
+
+    .export-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+    .export-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.1rem;
+    }
+    .export-card-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; color: var(--text-title); margin-bottom: 0.35rem; }
+    .export-card-desc  { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.5; }
+    .export-card-meta  { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 0.75rem; }
+    .export-card .btn  { width: 100%; justify-content: center; }
+
+    .options-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.1rem;
+    }
+    .option-row {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.3rem 0; font-size: 0.75rem; color: var(--text-body); cursor: pointer;
+    }
+    .option-row input[type=checkbox] { accent-color: var(--teal); cursor: pointer; }
+    .options-title {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem;
+      font-weight: 500; color: var(--text-title); margin-bottom: 0.65rem;
+    }
+
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 1.1rem 0; }
+    .section-label-sm {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 0.65rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
+    }
+    .footer-text {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--text-dim);
+    }
+    .footer-link {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+      color: var(--text-muted); text-decoration: none; cursor: pointer;
+    }
+    .footer-link:hover { color: var(--teal); }
+
+    /* ── ENRICH PROGRESS ── */
+    .enrich-bar-wrap {
+      display: none; padding: 0.5rem 1.5rem; border-bottom: 1px solid var(--border);
+      background: var(--bg); align-items: center; gap: 0.75rem; flex-shrink: 0;
+    }
+    .enrich-bar-wrap.visible { display: flex; }
+    .enrich-bar-track {
+      flex: 1; height: 3px; background: var(--border);
+      border-radius: 2px; overflow: hidden;
+    }
+    .enrich-bar-fill {
+      height: 100%; background: var(--teal); border-radius: 2px;
+      transition: width 0.3s;
+    }
+    .enrich-label {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .enrich-cancel {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+      color: var(--err); cursor: pointer; border: none; background: none;
+    }
+
+    /* ── WORKBENCH ── */
+    .wb-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.5rem 0; border-bottom: 1px solid var(--border-inner);
+    }
+    .wb-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .wb-label { font-size: 0.75rem; color: var(--text-body); flex: 1; }
+    .wb-input {
+      width: 70px; height: 28px; padding: 0 0.5rem;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+      background: var(--bg-input); border: 1px solid var(--border-inner);
+      border-radius: 4px; color: var(--text); text-align: right;
+    }
+    .wb-input:focus { outline: none; border-color: var(--teal); }
+    .wb-unit { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--text-muted); width: 40px; }
+
+    /* ── NOTICE ── */
+    .notice {
+      background: var(--warn-bg); border: 1px solid var(--warn-bd, #4a3518);
+      border-radius: 6px; padding: 0.65rem 0.9rem;
+      font-size: 0.72rem; color: var(--warn); margin-bottom: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="atlas-wrap" id="atlas-root">
+
+  <!-- NAV BAR -->
+  <div class="atlas-tabnav">
+    <button class="nav-tab active" data-page="inventory"><span class="nav-emoji">📋</span>Inventory</button>
+    <button class="nav-tab" data-page="export"><span class="nav-emoji">⬇</span>Export</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INVENTORY PAGE
+  ══════════════════════════════════════════ -->
+  <div class="atlas-page active" id="atlas-page-inventory">
+
+    <!-- Toolbar -->
+    <div class="inv-toolbar">
+      <input class="inv-search" id="inv-search" placeholder="Search URLs or titles…" oninput="atlasRenderTable()" />
+
+      <div class="status-dd-wrap" id="status-dd-wrap">
+        <button class="status-dd-btn" id="status-dd-btn" onclick="atlasToggleStatusDd()">Status ▾</button>
+        <div class="status-dd-menu" id="status-dd-menu">
+          <label class="status-dd-item"><input type="checkbox" value="keep"     checked onchange="atlasRenderTable()"><span class="dd-dot" style="background:#5aab72"></span>Keep</label>
+          <label class="status-dd-item"><input type="checkbox" value="rewrite"  checked onchange="atlasRenderTable()"><span class="dd-dot" style="background:#c8963a"></span>Rewrite</label>
+          <label class="status-dd-item"><input type="checkbox" value="merge"    checked onchange="atlasRenderTable()"><span class="dd-dot" style="background:#5a8ac8"></span>Merge</label>
+          <label class="status-dd-item"><input type="checkbox" value="redirect" checked onchange="atlasRenderTable()"><span class="dd-dot" style="background:#00a0a0"></span>Redirect</label>
+          <label class="status-dd-item"><input type="checkbox" value="delete"   checked onchange="atlasRenderTable()"><span class="dd-dot" style="background:#c86a5a"></span>Delete</label>
+          <label class="status-dd-item"><input type="checkbox" value="new"      checked onchange="atlasRenderTable()"><span class="dd-dot" style="background:#9a80e0"></span>New</label>
+          <label class="status-dd-item"><input type="checkbox" value="unset"    checked onchange="atlasRenderTable()"><span class="dd-dot" style="background:var(--text-muted)"></span>Unset</label>
+        </div>
+      </div>
+
+      <button class="filter-pill active" data-filter="all"    onclick="atlasSetFilter('all', this)">All</button>
+      <button class="filter-pill"        data-filter="red"    onclick="atlasSetFilter('red', this)">🚩</button>
+      <button class="filter-pill"        data-filter="yellow" onclick="atlasSetFilter('yellow', this)">⚠️</button>
+      <button class="filter-pill"        data-filter="green"  onclick="atlasSetFilter('green', this)">🟢</button>
+
+      <span class="toolbar-count" id="toolbar-count"></span>
+      <button class="enrich-btn" onclick="atlasShowAddUrls()">+ Add URLs</button>
+      <button class="enrich-btn" onclick="atlasShowWorkbench()">⚙ Workbench</button>
+      <button class="enrich-btn" onclick="atlasStartEnrich()">+ Enrich</button>
+      <button class="enrich-btn" onclick="atlasConfirmRebuild()" title="Rebuild inventory from crawl — resets all rows">↺ Rebuild</button>
+      <div class="view-toggle">
+        <button class="vt-btn active" id="vt-table" title="Table view" onclick="atlasSetView('table')">☰</button>
+        <button class="vt-btn"        id="vt-card"  title="Card view"  onclick="atlasSetView('card')">⊞</button>
+      </div>
+    </div>
+
+    <!-- Enrich progress bar -->
+    <div class="enrich-bar-wrap" id="enrich-bar-wrap">
+      <div class="enrich-bar-track"><div class="enrich-bar-fill" id="enrich-bar-fill" style="width:0%"></div></div>
+      <span class="enrich-label" id="enrich-label">Enriching…</span>
+      <button class="enrich-cancel" onclick="atlasStopEnrich()">✕ cancel</button>
+    </div>
+
+    <!-- Table view -->
+    <div class="inv-table-wrap" id="inv-table-wrap">
+      <table id="inv-table">
+        <thead>
+          <tr>
+            <th class="col-flag"></th>
+            <th class="col-status">Status</th>
+            <th class="col-url sortable" onclick="atlasSort('url')">URL</th>
+            <th class="col-title">Title</th>
+            <th class="col-sect sortable" onclick="atlasSort('section')">Section</th>
+            <th class="col-wc sortable"   onclick="atlasSort('wordCount')">Words</th>
+            <th class="col-read sortable" onclick="atlasSort('readability')">Read.</th>
+            <th class="col-meta">Meta desc.</th>
+            <th class="col-type">Type</th>
+            <th class="col-notes">Notes</th>
+          </tr>
+        </thead>
+        <tbody id="inv-tbody"></tbody>
+      </table>
+      <div id="inv-empty" class="empty-state" style="display:none">
+        <div class="empty-icon">🗺</div>
+        <div class="empty-title">No rows match your filters</div>
+        <div class="empty-sub">Try adjusting the search or filter pills above</div>
+      </div>
+    </div>
+
+    <!-- Card view -->
+    <div class="inv-table-wrap" id="inv-card-wrap" style="display:none">
+      <div class="card-grid" id="inv-card-grid"></div>
+    </div>
+
+  </div><!-- /atlas-page-inventory -->
+
+
+  <!-- ══════════════════════════════════════════
+       EXPORT PAGE
+  ══════════════════════════════════════════ -->
+  <div class="atlas-page" id="atlas-page-export">
+    <div class="page-hd">
+      <div class="page-hd-title">Export</div>
+      <div class="page-hd-sub" id="export-sub">—</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total pages</div>
+        <div class="stat-val" id="exp-total">0</div>
+        <div class="stat-sub" id="exp-total-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Assigned</div>
+        <div class="stat-val" id="exp-assigned">0</div>
+        <div class="stat-sub" id="exp-assigned-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Flagged</div>
+        <div class="stat-val" id="exp-flagged">0</div>
+        <div class="stat-sub" id="exp-flagged-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">For redirect</div>
+        <div class="stat-val" id="exp-redirect">0</div>
+        <div class="stat-sub">ready for Waypoint</div>
+      </div>
+    </div>
+
+    <div class="breakdown" id="exp-breakdown"></div>
+
+    <hr class="section-divider" />
+    <div class="section-label-sm">Export to</div>
+
+    <div class="export-grid">
+      <div class="export-card">
+        <div class="export-card-title">↓ CSV</div>
+        <div class="export-card-desc">Full inventory as a spreadsheet. All columns, one row per URL.</div>
+        <div class="export-card-meta" id="exp-csv-meta">—</div>
+        <button class="btn btn-primary" onclick="atlasExportCSV()">Download .csv</button>
+      </div>
+      <div class="export-card">
+        <div class="export-card-title">🧭 Send to Waypoint</div>
+        <div class="export-card-desc">Passes redirect-flagged URLs as the old-site URL list.</div>
+        <div class="export-card-meta" id="exp-waypoint-meta">—</div>
+        <button class="btn" id="btn-send-waypoint" onclick="atlasSendToWaypoint()">Open in Waypoint →</button>
+      </div>
+      <div class="export-card">
+        <div class="export-card-title">📋 Send to Charter</div>
+        <div class="export-card-desc">Passes all dispositions as structured task seeds.</div>
+        <div class="export-card-meta" id="exp-charter-meta">—</div>
+        <button class="btn" disabled title="Charter not yet built" style="opacity:0.4;cursor:not-allowed;">Coming soon</button>
+      </div>
+    </div>
+
+    <div class="options-card">
+      <div class="options-title">CSV options</div>
+      <label class="option-row"><input type="checkbox" id="csv-opt-unset"  checked /> Include unset rows</label>
+      <label class="option-row"><input type="checkbox" id="csv-opt-flags"  checked /> Include flag state (🚩 / ⚠️ / 🟢)</label>
+      <label class="option-row"><input type="checkbox" id="csv-opt-notes"  checked /> Include notes column</label>
+    </div>
+
+  </div><!-- /atlas-page-export -->
+
+  <!-- Footer -->
+  <footer>
+    <span class="footer-text">🗺 // Atlas // ✦ Alchemy suite</span>
+  </footer>
+
+  <!-- Status cycle popup -->
+  <div class="status-popup" id="status-popup"></div>
+
+  <!-- Add URLs modal -->
+  <div class="atlas-modal-overlay" id="add-urls-overlay" onclick="if(event.target===this)atlasHideAddUrls()">
+    <div class="atlas-modal">
+      <div class="atlas-modal-hd">
+        <span class="atlas-modal-title">Add URLs</span>
+        <button class="atlas-modal-close" onclick="atlasHideAddUrls()">✕</button>
+      </div>
+      <div class="atlas-modal-body">
+        <div class="card-help" style="margin-bottom:0.75rem;">Paste additional URLs to append to the inventory. Duplicates are ignored.</div>
+        <textarea class="inp" id="add-urls-input" placeholder="https://example.com/new-page&#10;https://example.com/another&#10;…" style="height:120px;margin-bottom:0.75rem;"></textarea>
+        <div class="upload-zone" onclick="document.getElementById('add-urls-file').click()">
+          Drop a .txt, .csv or sitemap.xml — or click to browse
+        </div>
+        <input type="file" id="add-urls-file" accept=".txt,.csv,.xml" onchange="atlasHandleAddUrlsFile(this)" style="display:none" />
+      </div>
+      <div class="atlas-modal-footer">
+        <button class="btn" onclick="atlasHideAddUrls()">Cancel</button>
+        <button class="btn btn-primary" onclick="atlasCommitAddUrls()">Add to inventory →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workbench modal -->
+  <div class="atlas-modal-overlay" id="wb-overlay" onclick="if(event.target===this)atlasHideWorkbench()">
+    <div class="atlas-modal">
+      <div class="atlas-modal-hd">
+        <span class="atlas-modal-title">Workbench</span>
+        <button class="atlas-modal-close" onclick="atlasHideWorkbench()">✕</button>
+      </div>
+      <div class="atlas-modal-body">
+        <div class="card-help" style="margin-bottom:0.75rem;">Flag thresholds — Atlas highlights rows where values fall below these limits.</div>
+        <div class="wb-row">
+          <span class="wb-label">Minimum word count</span>
+          <input class="wb-input" type="number" id="thresh-words" value="300" min="0" onchange="atlasApplyFlags()" />
+          <span class="wb-unit">words</span>
+        </div>
+        <div class="wb-row">
+          <span class="wb-label">Minimum readability score</span>
+          <input class="wb-input" type="number" id="thresh-read" value="60" min="0" max="100" onchange="atlasApplyFlags()" />
+          <span class="wb-unit">/ 100</span>
+        </div>
+        <div class="wb-row">
+          <span class="wb-label">Minimum meta description length</span>
+          <input class="wb-input" type="number" id="thresh-meta" value="120" min="0" onchange="atlasApplyFlags()" />
+          <span class="wb-unit">chars</span>
+        </div>
+      </div>
+      <div class="atlas-modal-footer">
+        <button class="btn btn-primary" onclick="atlasApplyFlags();atlasRenderTable();atlasHideWorkbench();">Apply</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /atlas-wrap -->
+
+<script>
+(function() {
+/* ═══════════════════════════════════════════════════════
+   ATLAS — v0.1.0
+   Content inventory for the Alchemy suite
+═══════════════════════════════════════════════════════ */
+
+const PROXY = 'https://scoutproxy.libertyhphillips.workers.dev/fetch?url=';
+
+/* ── State ── */
+let A = {
+  project:    null,
+  rows:       [],       // AtlasRow[]
+  sortCol:    null,
+  sortDir:    'asc',
+  filterFlag: 'all',
+  view:       'table',
+  enrichStop: false,
+};
+
+/* AtlasRow shape:
+  { id, url, httpStatus, depth, section, title,
+    wordCount, readability, metaDesc,
+    disposition, contentType, notes,
+    flagState,   // 'red' | 'yellow' | 'green' | null
+    autoFlags,   // string[] — computed
+    isNew        // placeholder row
+  }
+*/
+
+const DISPOSITIONS = ['keep','rewrite','merge','redirect','delete','new','unset'];
+const CONTENT_TYPES = ['Page','Post','Landing page','Product','Category','PDF','Other'];
+
+/* ── Init (called by Alchemy shell) ── */
+function atlasInit(project) {
+  A.project = project;
+  A.rows = [];
+
+  /* Restore saved inventory from project */
+  atlasRestoreFromProject();
+
+  /* If no saved rows but crawl exists, auto-build */
+  if (!A.rows.length && project.crawl && project.crawl.results && project.crawl.results.length) {
+    atlasBuildFromFoundry();
+    return;
+  }
+
+  atlasRenderTable();
+  atlasUpdateExport();
+  atlasShowPage('inventory');
+}
+
+/* ── Page switching ── */
+function atlasShowPage(name) {
+  document.querySelectorAll('.atlas-page').forEach(function(p) { p.classList.remove('active'); });
+  const page = document.getElementById('atlas-page-' + name);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('.atlas-tabnav .nav-tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.page === name);
+  });
+  if (name === 'export') atlasUpdateExport();
+}
+
+/* ── Build from Foundry ── */
+function atlasBuildFromFoundry() {
+  const p = A.project;
+  if (!p || !p.crawl || !p.crawl.results || !p.crawl.results.length) return;
+
+  /* Scout saves a single-URL audit: { url, raw: { readability, og, ... } }
+     Map it by URL so we can look up data per crawl row */
+  const scoutData = (p.toolData && p.toolData.scout) || null;
+  const scoutMap  = {};
+  if (scoutData && scoutData.url && scoutData.raw) {
+    const raw = scoutData.raw;
+    scoutMap[scoutData.url] = {
+      wordCount:   (raw.readability && raw.readability.words)   || null,
+      readability: (raw.readability && raw.readability.fre)     || null,
+      metaDesc:    (raw.og && raw.og.descText !== undefined)    ? raw.og.descText : null,
+    };
+  }
+
+  A.rows = p.crawl.results.map(function(r, i) {
+    const s = scoutMap[r.url] || null;
+    const row = atlasBlankRow(r.url);
+    row.id         = 'r_' + i;
+    row.httpStatus = r.status || null;
+    row.depth      = r.depth || 0;
+    row.section    = r.section || getSection(r.url);
+    row.title      = r.title || null;
+    if (s) {
+      row.wordCount   = s.wordCount;
+      row.readability = s.readability;
+      row.metaDesc    = s.metaDesc;
+    }
+    return row;
+  });
+
+  atlasApplyFlags();
+  atlasSave();
+  atlasRenderTable();
+  atlasUpdateExport();
+  atlasShowPage('inventory');
+}
+
+/* ── Blank row factory ── */
+function atlasBlankRow(url) {
+  return {
+    id: 'r_' + Date.now() + Math.random(),
+    url, httpStatus: null, depth: 0, section: '/',
+    title: null, wordCount: null, readability: null, metaDesc: null,
+    disposition: 'unset', contentType: null, notes: '',
+    flagState: null, autoFlags: [], isNew: false,
+  };
+}
+
+/* ── Auto-flag computation ── */
+function atlasApplyFlags() {
+  const wThresh = parseInt(document.getElementById('thresh-words').value) || 300;
+  const rThresh = parseInt(document.getElementById('thresh-read').value)  || 60;
+  const mThresh = parseInt(document.getElementById('thresh-meta').value)  || 120;
+
+  A.rows.forEach(row => {
+    const flags = [];
+    if (!row.isNew) {
+      if (!row.title)      flags.push('no title');
+      if (row.wordCount  !== null && row.wordCount   < wThresh) flags.push('low word count');
+      if (row.readability !== null && row.readability < rThresh) flags.push('low readability');
+      if (row.metaDesc === null)                  flags.push('missing meta');
+      else if (row.metaDesc !== null && row.metaDesc.length < mThresh) flags.push('short meta');
+    }
+    row.autoFlags = flags;
+    if (flags.length && !row.flagState) row.flagState = 'red';
+    if (!flags.length && row.flagState === 'red') row.flagState = null;
+  });
+}
+
+/* ── Restore from project ── */
+function atlasRestoreFromProject() {
+  const saved = A.project && A.project.toolData && A.project.toolData.atlas;
+  if (!saved || !saved.rows) return;
+  A.rows = saved.rows;
+  const thresh = saved.thresholds || {};
+  if (thresh.words) document.getElementById('thresh-words').value = thresh.words;
+  if (thresh.read)  document.getElementById('thresh-read').value  = thresh.read;
+  if (thresh.meta)  document.getElementById('thresh-meta').value  = thresh.meta;
+}
+
+/* ── Save to project ── */
+function atlasSave() {
+  if (!A.project) return;
+  if (!A.project.toolData) A.project.toolData = {};
+  A.project.toolData.atlas = {
+    rows: A.rows,
+    thresholds: {
+      words: parseInt(document.getElementById('thresh-words').value) || 300,
+      read:  parseInt(document.getElementById('thresh-read').value)  || 60,
+      meta:  parseInt(document.getElementById('thresh-meta').value)  || 120,
+    },
+    savedAt: new Date().toISOString(),
+  };
+  if (typeof onToolEvent === 'function') {
+    onToolEvent('tool:save', { tool: 'atlas', data: A.project.toolData.atlas });
+  }
+}
+
+/* ── Sorting ── */
+function atlasSort(col) {
+  if (A.sortCol === col) { A.sortDir = A.sortDir === 'asc' ? 'desc' : 'asc'; }
+  else { A.sortCol = col; A.sortDir = 'asc'; }
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.getAttribute('onclick') && th.getAttribute('onclick').includes(col)) {
+      th.classList.add('sort-' + A.sortDir);
+    }
+  });
+  atlasRenderTable();
+}
+
+function atlasSortedRows(rows) {
+  if (!A.sortCol) return rows;
+  return [...rows].sort((a, b) => {
+    let av = a[A.sortCol], bv = b[A.sortCol];
+    if (av === null || av === undefined) av = A.sortDir === 'asc' ? Infinity : -Infinity;
+    if (bv === null || bv === undefined) bv = A.sortDir === 'asc' ? Infinity : -Infinity;
+    if (typeof av === 'string') return A.sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    return A.sortDir === 'asc' ? av - bv : bv - av;
+  });
+}
+
+/* ── Filter ── */
+function atlasSetFilter(filter, btn) {
+  A.filterFlag = filter;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  atlasRenderTable();
+}
+
+function atlasGetStatusFilter() {
+  const checks = document.querySelectorAll('#status-dd-menu input[type=checkbox]');
+  const active = new Set();
+  checks.forEach(c => { if (c.checked) active.add(c.value); });
+  return active;
+}
+
+function atlasFilteredRows() {
+  const search = (document.getElementById('inv-search').value || '').toLowerCase();
+  const statuses = atlasGetStatusFilter();
+  return atlasSortedRows(A.rows).filter(row => {
+    if (!statuses.has(row.disposition)) return false;
+    if (A.filterFlag === 'red'    && row.flagState !== 'red')    return false;
+    if (A.filterFlag === 'yellow' && row.flagState !== 'yellow') return false;
+    if (A.filterFlag === 'green'  && row.flagState !== 'green')  return false;
+    if (search) {
+      const haystack = (row.url + ' ' + (row.title || '') + ' ' + row.notes).toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+/* ── Render table ── */
+function atlasRenderTable() {
+  const rows = atlasFilteredRows();
+  const tbody = document.getElementById('inv-tbody');
+  const empty = document.getElementById('inv-empty');
+  const count = document.getElementById('toolbar-count');
+  const totalFlagged = A.rows.filter(r => r.flagState === 'red' || r.flagState === 'yellow').length;
+  count.textContent = A.rows.length + ' pages · ' + totalFlagged + ' flagged';
+
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+    if (A.view === 'card') atlasRenderCards([]);
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(row => atlasRowHTML(row)).join('');
+  if (A.view === 'card') atlasRenderCards(rows);
+}
+
+function atlasRowHTML(row) {
+  const fp = row.flagState ? '<span class="flag-pill" data-state="' + row.flagState + '" data-id="' + row.id + '" onclick="atlasCycleFlag(this)" title="Click to cycle: red → yellow → green">' + flagEmoji(row.flagState) + '</span>' : '';
+  const dp = '<span class="dp dp-' + row.disposition + '" data-id="' + row.id + '" onclick="atlasOpenStatusPopup(this, event)">' + cap(row.disposition) + '</span>';
+
+  const urlCell   = row.isNew ? '<em style="color:var(--text-muted)">placeholder</em>' : esc(row.url);
+  const titleCell = row.title ? esc(row.title) : '<span class="cell-flag">no title !</span>';
+  const sectCell  = esc(row.section || '—');
+  const wcCell    = row.wordCount   !== null ? (row.wordCount < parseInt(document.getElementById('thresh-words').value || 300) ? '<span class="cell-flag-num">' + row.wordCount.toLocaleString() + '</span>' : row.wordCount.toLocaleString()) : '<span class="cell-muted">—</span>';
+  const rdCell    = row.readability !== null ? (row.readability < parseInt(document.getElementById('thresh-read').value || 60)  ? '<span class="cell-flag-num">' + row.readability + '</span>' : row.readability) : '<span class="cell-muted">—</span>';
+
+  let metaCell;
+  if (row.metaDesc === null) {
+    metaCell = '<span class="cell-flag">missing !</span>';
+  } else {
+    const mLen = row.metaDesc.length;
+    const mThresh = parseInt(document.getElementById('thresh-meta').value || 120);
+    metaCell = mLen < mThresh ? '<span class="cell-flag-num">' + mLen + ' ch</span>' : '<span class="cell-muted">' + mLen + ' ch</span>';
+  }
+
+  const typeCell  = row.contentType ? esc(row.contentType) : '<span class="cell-muted">—</span>';
+  const notesCell = '<span class="notes-cell cell-muted" data-id="' + row.id + '" onclick="atlasEditNotes(this)">' + (row.notes ? esc(row.notes) : '—') + '</span>';
+
+  return '<tr data-id="' + row.id + '">' +
+    '<td class="col-flag">' + fp + '</td>' +
+    '<td class="col-status">' + dp + '</td>' +
+    '<td class="col-url cell-url" title="' + esc(row.url) + '">' + urlCell + '</td>' +
+    '<td class="col-title">' + titleCell + '</td>' +
+    '<td class="col-sect cell-muted" style="font-size:0.65rem">' + sectCell + '</td>' +
+    '<td class="col-wc">' + wcCell + '</td>' +
+    '<td class="col-read">' + rdCell + '</td>' +
+    '<td class="col-meta">' + metaCell + '</td>' +
+    '<td class="col-type cell-muted" style="font-size:0.65rem">' + typeCell + '</td>' +
+    '<td class="col-notes">' + notesCell + '</td>' +
+    '</tr>';
+}
+
+/* ── Card render ── */
+function atlasRenderCards(rows) {
+  const grid = document.getElementById('inv-card-grid');
+  if (!rows.length) { grid.innerHTML = ''; return; }
+  grid.innerHTML = rows.map(row => {
+    const hasFlag = row.flagState === 'red' || row.flagState === 'yellow';
+    const fpEl = row.flagState ? '<span class="flag-pill" data-state="' + row.flagState + '" data-id="' + row.id + '" onclick="atlasCycleFlag(this)">' + flagEmoji(row.flagState) + '</span>' : '';
+    const chipHTML = row.autoFlags.map(f => '<span class="flag-chip">' + f + '</span>').join('');
+    const wThresh = parseInt(document.getElementById('thresh-words').value || 300);
+    const rThresh = parseInt(document.getElementById('thresh-read').value  || 60);
+    const wcClass = (row.wordCount !== null && row.wordCount < wThresh) ? 'flag' : '';
+    const rdClass = (row.readability !== null && row.readability < rThresh) ? 'flag' : '';
+    return '<div class="inv-card' + (hasFlag ? ' has-flag' : '') + '">' +
+      '<div class="inv-card-top">' +
+        '<div>' +
+          '<div class="inv-card-title">' + (row.title ? esc(row.title) : '<em style="color:var(--text-muted)">no title</em>') + '</div>' +
+          '<div class="inv-card-url">' + (row.isNew ? '<em>placeholder</em>' : esc(row.url)) + '</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">' +
+          fpEl +
+          '<span class="dp dp-' + row.disposition + '" data-id="' + row.id + '" onclick="atlasOpenStatusPopup(this, event)">' + cap(row.disposition) + '</span>' +
+        '</div>' +
+      '</div>' +
+      (row.autoFlags.length ? '<div class="inv-card-flags">' + chipHTML + '</div>' : '') +
+      '<div class="inv-card-meta">' +
+        (row.wordCount !== null ? '<div class="icm-item"><span class="icm-label">words</span><span class="icm-val ' + wcClass + '">' + row.wordCount.toLocaleString() + '</span></div>' : '') +
+        (row.readability !== null ? '<div class="icm-item"><span class="icm-label">read.</span><span class="icm-val ' + rdClass + '">' + row.readability + '</span></div>' : '') +
+        (row.contentType ? '<div class="icm-item"><span class="icm-label">type</span><span class="icm-val">' + esc(row.contentType) + '</span></div>' : '') +
+      '</div>' +
+      (row.notes ? '<div class="inv-card-notes">' + esc(row.notes) + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+/* ── View toggle ── */
+function atlasSetView(v) {
+  A.view = v;
+  document.getElementById('vt-table').classList.toggle('active', v === 'table');
+  document.getElementById('vt-card').classList.toggle('active',  v === 'card');
+  document.getElementById('inv-table-wrap').style.display = v === 'table' ? '' : 'none';
+  document.getElementById('inv-card-wrap').style.display  = v === 'card'  ? '' : 'none';
+  atlasRenderTable();
+}
+
+/* ── Flag cycle ── */
+function atlasCycleFlag(el) {
+  const states = ['red','yellow','green'];
+  const icons  = ['🚩','⚠️','🟢'];
+  const cur    = states.indexOf(el.dataset.state);
+  const next   = (cur + 1) % states.length;
+  el.dataset.state = states[next];
+  el.textContent   = icons[next];
+  const row = A.rows.find(r => r.id === el.dataset.id);
+  if (row) { row.flagState = states[next]; atlasSave(); }
+}
+
+function flagEmoji(state) {
+  return state === 'red' ? '🚩' : state === 'yellow' ? '⚠️' : '🟢';
+}
+
+/* ── Status popup ── */
+function atlasOpenStatusPopup(el, e) {
+  e.stopPropagation();
+  const popup = document.getElementById('status-popup');
+  if (!popup) return;
+  popup.innerHTML = DISPOSITIONS.map(d =>
+    '<div class="sp-item" onclick="atlasSetDisposition(\'' + el.dataset.id + '\',\'' + d + '\')">' +
+    '<span class="dp dp-' + d + '" style="pointer-events:none">' + cap(d) + '</span></div>'
+  ).join('');
+  popup.style.left = e.pageX + 'px';
+  popup.style.top  = e.pageY + 8 + 'px';
+  popup.classList.add('open');
+}
+
+function atlasSetDisposition(id, disposition) {
+  const row = A.rows.find(r => r.id === id);
+  if (row) { row.disposition = disposition; atlasSave(); atlasRenderTable(); }
+  document.getElementById('status-popup').classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+  const popup = document.getElementById('status-popup');
+  const menu  = document.getElementById('status-dd-menu');
+  if (popup && !e.target.closest('.status-popup')) popup.classList.remove('open');
+  if (menu  && !e.target.closest('#status-dd-wrap')) menu.classList.remove('open');
+});
+
+/* ── Status dropdown toggle ── */
+function atlasToggleStatusDd() {
+  document.getElementById('status-dd-menu').classList.toggle('open');
+}
+
+/* ── Inline notes edit ── */
+function atlasEditNotes(el) {
+  const id  = el.dataset.id;
+  const row = A.rows.find(r => r.id === id);
+  if (!row) return;
+  const inp = document.createElement('input');
+  inp.type  = 'text'; inp.className = 'notes-input';
+  inp.value = row.notes || '';
+  el.replaceWith(inp);
+  inp.focus();
+  const commit = () => {
+    row.notes = inp.value.trim();
+    atlasSave();
+    atlasRenderTable();
+  };
+  inp.addEventListener('blur',    commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = row.notes || ''; inp.blur(); } });
+}
+
+/* ── Enrich ── */
+let enrichAbort = false;
+function atlasStartEnrich() {
+  const rows = A.rows.filter(r => !r.isNew && r.wordCount === null);
+  if (!rows.length) { alert('Nothing to enrich — all rows already have data.'); return; }
+  enrichAbort = false;
+  const bar  = document.getElementById('enrich-bar-wrap');
+  const fill = document.getElementById('enrich-bar-fill');
+  const lbl  = document.getElementById('enrich-label');
+  bar.classList.add('visible');
+  (async () => {
+    for (let i = 0; i < rows.length; i++) {
+      if (enrichAbort) break;
+      const row = rows[i];
+      lbl.textContent = 'Enriching ' + (i + 1) + ' / ' + rows.length + ' — ' + row.url.replace(/^https?:\/\//, '').substring(0, 40);
+      fill.style.width = Math.round((i / rows.length) * 100) + '%';
+      try {
+        const res  = await fetch(PROXY + encodeURIComponent(row.url));
+        const data = await res.json();
+        const html = data.html || '';
+        const doc  = new DOMParser().parseFromString(html, 'text/html');
+        const h1   = doc.querySelector('h1');
+        if (!row.title) { const t = doc.querySelector('title'); if (t) row.title = t.textContent.trim(); }
+        const metaEl = doc.querySelector('meta[name="description"]');
+        if (metaEl) row.metaDesc = metaEl.getAttribute('content') || '';
+        const bodyText = doc.body ? doc.body.innerText || doc.body.textContent : '';
+        row.wordCount  = bodyText.trim().split(/\s+/).filter(Boolean).length;
+      } catch (e) { /* skip */ }
+    }
+    fill.style.width = '100%';
+    lbl.textContent = enrichAbort ? 'Cancelled.' : 'Enrich complete.';
+    setTimeout(() => bar.classList.remove('visible'), 2000);
+    atlasApplyFlags();
+    atlasSave();
+    atlasRenderTable();
+  })();
+}
+function atlasStopEnrich() { enrichAbort = true; }
+
+/* ── Export page ── */
+function atlasUpdateExport() {
+  if (!A.rows.length) return;
+  const project = A.project;
+  const sub = document.getElementById('export-sub');
+  if (project) sub.textContent = project.name + ' · ' + A.rows.length + ' pages';
+
+  const total    = A.rows.length;
+  const placeholders = A.rows.filter(r => r.isNew).length;
+  const assigned = A.rows.filter(r => r.disposition !== 'unset').length;
+  const pct      = Math.round((assigned / total) * 100);
+  const red    = A.rows.filter(r => r.flagState === 'red').length;
+  const yellow = A.rows.filter(r => r.flagState === 'yellow').length;
+  const green  = A.rows.filter(r => r.flagState === 'green').length;
+  const redirects = A.rows.filter(r => r.disposition === 'redirect').length;
+
+  document.getElementById('exp-total').textContent = total;
+  document.getElementById('exp-total-sub').textContent = placeholders ? 'including ' + placeholders + ' placeholder' + (placeholders > 1 ? 's' : '') : 'pages';
+  document.getElementById('exp-assigned').textContent = assigned;
+  document.getElementById('exp-assigned-sub').textContent = pct + '% — ' + (total - assigned) + ' unset';
+  document.getElementById('exp-flagged').textContent = red + yellow;
+  document.getElementById('exp-flagged-sub').textContent = '🚩 ' + red + ' · ⚠️ ' + yellow + ' · 🟢 ' + green;
+  document.getElementById('exp-redirect').textContent = redirects;
+  document.getElementById('exp-csv-meta').textContent = total + ' rows · 9 columns';
+  document.getElementById('exp-waypoint-meta').textContent = redirects + ' URLs · disposition = Redirect';
+
+  const assigned2 = A.rows.filter(r => r.disposition !== 'unset').length;
+  document.getElementById('exp-charter-meta').textContent = assigned2 + ' assigned rows · JSON';
+
+  const breakdown = document.getElementById('exp-breakdown');
+  const counts = {};
+  DISPOSITIONS.forEach(d => { counts[d] = A.rows.filter(r => r.disposition === d).length; });
+  const colMap = { keep:'#172a1c|#5aab72|#243d28', rewrite:'#2a1e0e|#c8963a|#4a3518', merge:'#0e1a2a|#5a8ac8|#1c3050', redirect:'#0a1a1a|#00a0a0|#103030', delete:'#1e0f0c|#c86a5a|#3a1a16', new:'#1a1030|#9a80e0|#2e1e50', unset:'var(--bg-input)|var(--text-muted)|var(--border)' };
+  breakdown.innerHTML = DISPOSITIONS.filter(d => counts[d]).map(d => {
+    const [bg, col, bd] = colMap[d].split('|');
+    return '<span class="bd-chip" style="background:' + bg + ';color:' + col + ';border:1px solid ' + bd + '">' + cap(d) + ' ' + counts[d] + '</span>';
+  }).join('');
+}
+
+/* ── CSV export ── */
+function atlasExportCSV() {
+  const inclUnset = document.getElementById('csv-opt-unset').checked;
+  const inclFlags = document.getElementById('csv-opt-flags').checked;
+  const inclNotes = document.getElementById('csv-opt-notes').checked;
+  const rows = A.rows.filter(r => inclUnset || r.disposition !== 'unset');
+  const headers = ['URL','Title','Section','Status','Words','Readability','Meta desc. length','Content type'];
+  if (inclFlags) headers.push('Flag');
+  if (inclNotes) headers.push('Notes');
+  const lines = [headers.join(',')];
+  rows.forEach(r => {
+    const cols = [
+      csvCell(r.url), csvCell(r.title || ''), csvCell(r.section || ''),
+      csvCell(r.disposition), r.wordCount !== null ? r.wordCount : '',
+      r.readability !== null ? r.readability : '',
+      r.metaDesc !== null ? r.metaDesc.length : '',
+      csvCell(r.contentType || ''),
+    ];
+    if (inclFlags) cols.push(r.flagState ? flagEmoji(r.flagState) : '');
+    if (inclNotes) cols.push(csvCell(r.notes || ''));
+    lines.push(cols.join(','));
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = (A.project ? A.project.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() : 'atlas') + '-inventory.csv';
+  a.click();
+}
+
+function csvCell(v) {
+  const s = String(v || '');
+  return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+/* ── Send to Waypoint ── */
+function atlasSendToWaypoint() {
+  const redirectUrls = A.rows.filter(r => r.disposition === 'redirect' && r.url).map(r => r.url);
+  if (!redirectUrls.length) { alert('No rows with disposition "Redirect" found.'); return; }
+  const encoded = btoa(redirectUrls.join('\n'));
+  const base = window.location.href.split('/Atlas')[0];
+  const url  = base + '/Waypoint/?oldurls=' + encoded;
+  window.open(url, '_blank');
+}
+
+/* ── Helpers ── */
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+function getSection(url) {
+  try { const p = new URL(url).pathname.split('/').filter(Boolean); return p.length ? '/' + p[0] : '/'; }
+  catch (e) { return '/'; }
+}
+
+/* ── Rebuild ── */
+function atlasConfirmRebuild() {
+  if (!confirm('Rebuild inventory from crawl? This will reset all rows and lose any dispositions, flags, and notes.')) return;
+  A.rows = [];
+  atlasBuildFromFoundry();
+}
+
+/* ── Add URLs modal ── */
+function atlasShowAddUrls() {
+  document.getElementById('add-urls-input').value = '';
+  document.getElementById('add-urls-overlay').classList.add('open');
+  setTimeout(function() { document.getElementById('add-urls-input').focus(); }, 50);
+}
+function atlasHideAddUrls() {
+  document.getElementById('add-urls-overlay').classList.remove('open');
+}
+function atlasHandleAddUrlsFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    let urls = [];
+    if (file.name.endsWith('.xml')) {
+      const matches = text.match(/<loc>(https?:\/\/[^<]+)<\/loc>/g) || [];
+      urls = matches.map(function(m) { return m.replace(/<\/?loc>/g, '').trim(); });
+    } else {
+      urls = text.split('\n').map(function(u) { return u.split(',')[0].trim(); }).filter(function(u) { return u.startsWith('http'); });
+    }
+    document.getElementById('add-urls-input').value = urls.join('\n');
+  };
+  reader.readAsText(file);
+}
+function atlasCommitAddUrls() {
+  const raw = document.getElementById('add-urls-input').value.trim();
+  if (!raw) { atlasHideAddUrls(); return; }
+  const existing = new Set(A.rows.map(function(r) { return r.url; }));
+  const newUrls = raw.split('\n').map(function(u) { return u.trim(); }).filter(function(u) { return u.startsWith('http') && !existing.has(u); });
+  if (!newUrls.length) { atlasHideAddUrls(); return; }
+  const startIdx = A.rows.length;
+  newUrls.forEach(function(url, i) {
+    const row = atlasBlankRow(url);
+    row.id      = 'r_' + (startIdx + i) + '_' + Date.now();
+    row.section = getSection(url);
+    A.rows.push(row);
+  });
+  atlasApplyFlags();
+  atlasSave();
+  atlasRenderTable();
+  atlasHideAddUrls();
+}
+
+/* ── Workbench modal ── */
+function atlasShowWorkbench() {
+  document.getElementById('wb-overlay').classList.add('open');
+}
+function atlasHideWorkbench() {
+  document.getElementById('wb-overlay').classList.remove('open');
+}
+
+/* ── Wire tab nav ── */
+document.querySelectorAll('.atlas-tabnav .nav-tab').forEach(function(t) {
+  t.addEventListener('click', function() { atlasShowPage(t.dataset.page); });
+});
+
+/* ── Expose to Alchemy shell ── */
+window.Atlas = { init: atlasInit };
+
+/* ── Expose onclick handlers to global scope ── */
+window.atlasShowPage        = atlasShowPage;
+window.atlasToggleStatusDd  = atlasToggleStatusDd;
+window.atlasSetFilter       = atlasSetFilter;
+window.atlasSetView         = atlasSetView;
+window.atlasSort            = atlasSort;
+window.atlasStartEnrich     = atlasStartEnrich;
+window.atlasStopEnrich      = atlasStopEnrich;
+window.atlasBuildFromFoundry= atlasBuildFromFoundry;
+window.atlasApplyFlags      = atlasApplyFlags;
+window.atlasCycleFlag       = atlasCycleFlag;
+window.atlasOpenStatusPopup = atlasOpenStatusPopup;
+window.atlasSetDisposition  = atlasSetDisposition;
+window.atlasEditNotes       = atlasEditNotes;
+window.atlasExportCSV       = atlasExportCSV;
+window.atlasSendToWaypoint  = atlasSendToWaypoint;
+window.atlasShowAddUrls     = atlasShowAddUrls;
+window.atlasHideAddUrls     = atlasHideAddUrls;
+window.atlasHandleAddUrlsFile = atlasHandleAddUrlsFile;
+window.atlasCommitAddUrls   = atlasCommitAddUrls;
+window.atlasShowWorkbench   = atlasShowWorkbench;
+window.atlasHideWorkbench   = atlasHideWorkbench;
+window.atlasRenderTable     = atlasRenderTable;
+window.atlasConfirmRebuild  = atlasConfirmRebuild;
+
+})();
+</script>
+
+</body>
+</html>
