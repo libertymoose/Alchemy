@@ -137,7 +137,6 @@
 
     /* ── Theme toggle (fixed, top-right — same as Waypoint) ── */
     .btn-theme { display: none; }
-    .btn-theme:hover { border-color: #008080; color: #008080; }
 
     /* ── Section cards (identical to Waypoint) ── */
     .section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
@@ -929,13 +928,12 @@ let nodeElemMap  = new Map();
 let dt           = { x:0, y:0, s:1 };
 let dragging     = false;
 let dragFrom     = { x:0, y:0 };
-let isDark       = true;
 let excludedCount = 0;
 let selectedDNode = null;
 let customLabels  = {};
 let currentLabelMode = 'slug';
 let nodeAnnotations = {};
-let nodeStatusTags  = {};  // url → 'keep' | 'merge' | 'redirect' | 'new' | 'delete'
+let nodeStatusTags  = {};
 let diagramSearchTerm = '';
 
 /* ── Clear ── */
@@ -983,12 +981,6 @@ function copyURLs() {
 }
 
 
-function toggleTheme() {
-  isDark = !isDark;
-  document.documentElement.classList.toggle('light', !isDark);
-  document.getElementById('btn-theme').textContent = isDark ? '🌙' : '☀️';
-  if (diagramTree) renderDiagram(null, false);
-}
 
 /* ═══════════════════════════════════════════
    Diagram colour theme
@@ -2529,7 +2521,7 @@ function exportSVGFile() {
   clone.querySelectorAll('.dnode').forEach(el => el.removeAttribute('class'));
 
   // ── 5. Add background rect ──
-  const bgFill = isDark ? '#0a0a0d' : '#e8e8e2';
+  const bgFill = document.documentElement.classList.contains('light') ? '#e8e8e2' : '#0a0a0d';
   const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   bg.setAttribute('x', minX - PAD); bg.setAttribute('y', minY - PAD);
   bg.setAttribute('width', contentW); bg.setAttribute('height', contentH);
@@ -2655,7 +2647,7 @@ function exportPNG() {
   clone.querySelectorAll('.dnode').forEach(el => el.removeAttribute('class'));
 
   // ── 5. Add background rect ──
-  const bgFill = isDark ? '#0a0a0d' : '#e8e8e2';
+  const bgFill = document.documentElement.classList.contains('light') ? '#e8e8e2' : '#0a0a0d';
   const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   bg.setAttribute('x',      minX - PAD);
   bg.setAttribute('y',      minY - PAD);
@@ -2846,7 +2838,6 @@ window.doExport         = doExport;
 window.openInScout      = openInScout;
 window.showModal        = showModal;
 window.closeModal       = closeModal;
-window.toggleTheme      = toggleTheme;
 window.clearCrawl       = clearCrawl;
 window.handleImportFile = handleImportFile;
 window.runImport        = runImport;

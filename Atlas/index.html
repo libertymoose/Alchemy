@@ -563,6 +563,7 @@
       <button class="enrich-btn" onclick="atlasShowAddUrls()">+ Add URLs</button>
       <button class="enrich-btn" onclick="atlasShowWorkbench()">⚙ Workbench</button>
       <button class="enrich-btn" onclick="atlasStartEnrich()">+ Enrich</button>
+      <button class="enrich-btn" onclick="atlasConfirmRebuild()" title="Rebuild inventory from crawl — resets all rows">↺ Rebuild</button>
       <div class="view-toggle">
         <button class="vt-btn active" id="vt-table" title="Table view" onclick="atlasSetView('table')">☰</button>
         <button class="vt-btn"        id="vt-card"  title="Card view"  onclick="atlasSetView('card')">⊞</button>
@@ -808,10 +809,17 @@ function atlasBuildFromFoundry() {
   const p = A.project;
   if (!p || !p.crawl || !p.crawl.results || !p.crawl.results.length) return;
 
+  /* Scout saves a single-URL audit: { url, raw: { readability, og, ... } }
+     Map it by URL so we can look up data per crawl row */
   const scoutData = (p.toolData && p.toolData.scout) || null;
   const scoutMap  = {};
-  if (scoutData && scoutData.pages) {
-    scoutData.pages.forEach(function(pg) { scoutMap[pg.url] = pg; });
+  if (scoutData && scoutData.url && scoutData.raw) {
+    const raw = scoutData.raw;
+    scoutMap[scoutData.url] = {
+      wordCount:   (raw.readability && raw.readability.words)   || null,
+      readability: (raw.readability && raw.readability.fre)     || null,
+      metaDesc:    (raw.og && raw.og.descText !== undefined)    ? raw.og.descText : null,
+    };
   }
 
   A.rows = p.crawl.results.map(function(r, i) {
@@ -823,9 +831,9 @@ function atlasBuildFromFoundry() {
     row.section    = r.section || getSection(r.url);
     row.title      = r.title || null;
     if (s) {
-      row.wordCount   = s.wordCount || null;
-      row.readability = s.readability || null;
-      row.metaDesc    = s.metaDesc || null;
+      row.wordCount   = s.wordCount;
+      row.readability = s.readability;
+      row.metaDesc    = s.metaDesc;
     }
     return row;
   });
@@ -1251,6 +1259,13 @@ function getSection(url) {
   catch (e) { return '/'; }
 }
 
+/* ── Rebuild ── */
+function atlasConfirmRebuild() {
+  if (!confirm('Rebuild inventory from crawl? This will reset all rows and lose any dispositions, flags, and notes.')) return;
+  A.rows = [];
+  atlasBuildFromFoundry();
+}
+
 /* ── Add URLs modal ── */
 function atlasShowAddUrls() {
   document.getElementById('add-urls-input').value = '';
@@ -1335,12 +1350,7 @@ window.atlasCommitAddUrls   = atlasCommitAddUrls;
 window.atlasShowWorkbench   = atlasShowWorkbench;
 window.atlasHideWorkbench   = atlasHideWorkbench;
 window.atlasRenderTable     = atlasRenderTable;
-
-/* ── Standalone init (direct file open) ── */
-if (typeof onToolEvent === 'undefined') {
-  window.onToolEvent = function() {};
-  atlasShowPage('inventory');
-}
+window.atlasConfirmRebuild  = atlasConfirmRebuild;
 
 })();
 </script>

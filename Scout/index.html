@@ -137,8 +137,6 @@
     .nav-tab .nav-emoji { font-size: 1.25rem; line-height: 1; }
     .nav-tab:hover { color: var(--text-title); }
     .nav-tab.active { color: #008080; border-bottom-color: #008080; }
-    .btn-theme { display: none; } /* hidden when embedded in Alchemy — Alchemy owns the theme toggle */
-    .btn-theme:hover { border-color: #008080; color: #008080; }
 
     /* ── section cards (exact Waypoint pattern) ── */
     .section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
@@ -3059,7 +3057,6 @@ function init(project) {
 
 // ── Auto-save audit to project after completion ──
 function autoSaveAuditToProject() {
-  if (typeof window.onToolEvent !== 'function') return;
   if (!S.url || !S.raw || Object.keys(S.raw).length === 0) return;
   const data = gatherAudit();
   window.onToolEvent('tool:save', { tool: 'scout', payload: data });
@@ -3069,11 +3066,9 @@ function autoSaveAuditToProject() {
 const _saveFromExport = document.getElementById('btn-save-from-export');
 if (_saveFromExport) {
   _saveFromExport.addEventListener('click', () => {
-    if (typeof window.onToolEvent === 'function') {
-      window.onToolEvent('tool:save', { tool: 'scout', payload: { url: S.url, raw: S.raw } });
-      _saveFromExport.textContent = '✓ Saved';
-      setTimeout(() => { _saveFromExport.textContent = '↓ Save audit (.json)'; }, 2000);
-    }
+    window.onToolEvent('tool:save', { tool: 'scout', payload: { url: S.url, raw: S.raw } });
+    _saveFromExport.textContent = '✓ Saved';
+    setTimeout(() => { _saveFromExport.textContent = '↓ Save audit (.json)'; }, 2000);
   });
 }
 
