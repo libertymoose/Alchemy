@@ -137,8 +137,6 @@
     .nav-tab .nav-emoji { font-size: 1.25rem; line-height: 1; }
     .nav-tab:hover { color: var(--text-title); }
     .nav-tab.active { color: #008080; border-bottom-color: #008080; }
-    .btn-theme { display: none; } /* hidden when embedded in Alchemy — Alchemy owns the theme toggle */
-    .btn-theme:hover { border-color: #008080; color: #008080; }
 
     /* ── section cards (exact Waypoint pattern) ── */
     .section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
@@ -510,18 +508,15 @@
       <div class="page-heading-sub">Automated checks run on load — add your observations and findings to each section.</div>
     </div>
 
-    <!-- status bar — URL + timestamp only, no session controls (owned by Alchemy) -->
-    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
-      <span class="audit-url-flat" id="audit-url-pill">—</span>
-      <span id="audit-timestamp" style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--text-dim);"></span>
-      <div style="margin-left:auto;display:flex;gap:0.5rem;align-items:center;">
-        <button class="btn-session" id="btn-go-export">→ Export</button>
-      </div>
+    <!-- recrawl buttons — re-run all always shown after audit; retry failed only shown when errors exist -->
+    <div id="recrawl-bar" style="display:none;margin-bottom:0.5rem;align-items:center;justify-content:flex-end;gap:0.5rem;">
+      <button class="btn-session" id="btn-retry-failed" onclick="retryFailedChecks()" style="border-color:rgba(200,160,96,0.4);color:#c8a060;">↺ re-run failed checks</button>
+      <button class="btn-session" id="btn-rerun-all" onclick="startAudit(S.url, S.client).catch(e=>console.error(e))">↺ re-run crawl</button>
     </div>
 
-    <!-- run bar -->
-    <div class="section-card" id="run-bar" style="margin-bottom:1rem;display:none;">
-      <div class="card-body" style="padding:0.75rem 1rem;">
+    <!-- session + run bar -->
+    <div class="section-card" id="run-bar" style="margin-bottom:1rem;">
+      <div class="card-body" style="padding:0.55rem 1rem 0.6rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
           <span id="run-label" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:0.4rem;"><span id="run-tortoise" class="tortoise-emoji">🐢</span><span> Running checks…</span><span id="run-slow-msg" style="color:var(--text-muted);"></span></span>
           <div style="display:flex;gap:0.75rem;align-items:center;">
@@ -530,9 +525,16 @@
           </div>
         </div>
         <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
-        <div class="checks-grid" id="checks-grid"></div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:0.5rem;">
+          <div class="checks-grid" id="checks-grid" style="margin-top:0.65rem;flex:1;"></div>
+          <span id="audit-timestamp" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text-dim);white-space:nowrap;padding-bottom:0.15rem;flex-shrink:0;"></span>
+        </div>
       </div>
     </div>
+
+    <!-- hidden elements kept for JS compatibility -->
+    <span id="audit-url-pill" style="display:none;">—</span>
+    <span id="audit-client-label" style="display:none;"></span>
 
     <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-bottom:0.75rem;align-items:center;">
       <button class="btn-session" id="btn-draft-all" onclick="draftAll(this)" style="color:#008080;border-color:rgba(0,128,128,0.35);">✦ Draft all sections</button>
@@ -901,8 +903,8 @@ function toggleAcc(id) {
 }
 
 // ── export button (internal tab nav only) ──
-document.getElementById('btn-go-export').addEventListener('click',()=>{buildReport();switchPage('export');});
-document.getElementById('btn-back-to-audit').addEventListener('click',()=>switchPage('audit'));
+document.getElementById('btn-go-export')?.addEventListener('click',()=>{buildReport();switchPage('export');});
+document.getElementById('btn-back-to-audit')?.addEventListener('click',()=>switchPage('audit'));
 
 function norm(raw) {
   raw=raw.trim(); if(!raw.startsWith('http'))raw='https://'+raw;
@@ -913,34 +915,38 @@ async function startAudit(url, clientName) {
   S.url=norm(url); S.client=clientName||''; S.raw={};
   SECS.forEach(s=>{const ta=document.getElementById('nar-'+s);if(ta)ta.value='';});
   ['ux','content','perf','a11y','security','integrations'].forEach(s=>{const f=document.getElementById('fl-'+s);if(f)f.innerHTML='';});
-  document.getElementById('audit-url-pill').textContent=S.url;
-  document.getElementById('perf-auto').innerHTML='<div class="skeleton" style="height:70px;border-radius:5px;"></div>';
-  document.getElementById('a11y-auto').innerHTML='<div class="skeleton" style="height:50px;border-radius:5px;"></div>';
+  const _pill=document.getElementById('audit-url-pill'); if(_pill)_pill.textContent=S.url;
+  const _clientLbl=document.getElementById('audit-client-label'); if(_clientLbl)_clientLbl.textContent=S.client||'';
+  const _perfAuto=document.getElementById('perf-auto'); if(_perfAuto)_perfAuto.innerHTML='<div class="skeleton" style="height:70px;border-radius:5px;"></div>';
+  const _a11yAuto=document.getElementById('a11y-auto'); if(_a11yAuto)_a11yAuto.innerHTML='<div class="skeleton" style="height:50px;border-radius:5px;"></div>';
   S.raw.axe = undefined;
   S.raw.hreflang = undefined;
-  document.getElementById('security-auto').innerHTML='<div class="skeleton" style="height:90px;border-radius:5px;"></div>';
-  document.getElementById('integrations-auto').innerHTML='';
-  document.getElementById('content-auto').innerHTML='';
-  document.getElementById('og-auto').innerHTML='';
-  document.getElementById('ux-auto').innerHTML='';
-  document.getElementById('overview-auto').innerHTML='';
-  document.getElementById('ov-bars').innerHTML='';
-  document.getElementById('ov-depth').innerHTML='';
+  const _secAuto=document.getElementById('security-auto'); if(_secAuto)_secAuto.innerHTML='<div class="skeleton" style="height:90px;border-radius:5px;"></div>';
+  const _intAuto=document.getElementById('integrations-auto'); if(_intAuto)_intAuto.innerHTML='';
+  const _conAuto=document.getElementById('content-auto'); if(_conAuto)_conAuto.innerHTML='';
+  const _ogAuto=document.getElementById('og-auto'); if(_ogAuto)_ogAuto.innerHTML='';
+  const _uxAuto=document.getElementById('ux-auto'); if(_uxAuto)_uxAuto.innerHTML='';
+  const _ovAuto=document.getElementById('overview-auto'); if(_ovAuto)_ovAuto.innerHTML='';
+  const _ovBars=document.getElementById('ov-bars'); if(_ovBars)_ovBars.innerHTML='';
+  const _ovDepth=document.getElementById('ov-depth'); if(_ovDepth)_ovDepth.innerHTML='';
   var uxLinks=document.getElementById('ux-links-auto');if(uxLinks)uxLinks.remove();
   dcSet('dc-pages','—'); dcSet('dc-images','—');
   dcSet('dc-sitemap','—'); dcSet('dc-robots','—');
   dcSet('dc-canonical','—'); dcSet('dc-domain','—');
-  document.getElementById('overview-site-name').textContent='—';
-  document.getElementById('overview-site-url').textContent=S.url;
-  document.getElementById('audit-timestamp').textContent='running…';
+  const _siteName=document.getElementById('overview-site-name'); if(_siteName)_siteName.textContent='—';
+  const _siteUrl=document.getElementById('overview-site-url'); if(_siteUrl)_siteUrl.textContent=S.url;
+  const _ts=document.getElementById('audit-timestamp'); if(_ts)_ts.textContent='running…';
   var thumb=document.getElementById('ov-thumb');
-  thumb.innerHTML='<div class="ov-thumb-bar"></div><div class="ov-thumb-line" style="width:80%"></div><div class="ov-thumb-line" style="width:55%"></div>';
-  var img=document.createElement('img');
-  img.alt=''; img.style.cssText='width:100%;height:100%;object-fit:cover;object-position:top;display:block;position:absolute;top:0;left:0;border-radius:3px;';
-  thumb.style.position='relative';
-  img.onload=function(){thumb.innerHTML='';thumb.appendChild(img);};
-  img.src='https://image.thum.io/get/width/200/crop/130/'+S.url;
-  document.getElementById('run-bar').style.display='';
+  if(thumb){
+    thumb.innerHTML='<div class="ov-thumb-bar"></div><div class="ov-thumb-line" style="width:80%"></div><div class="ov-thumb-line" style="width:55%"></div>';
+    var img=document.createElement('img');
+    img.alt=''; img.style.cssText='width:100%;height:100%;object-fit:cover;object-position:top;display:block;position:absolute;top:0;left:0;border-radius:3px;';
+    thumb.style.position='relative';
+    img.onload=function(){thumb.innerHTML='';thumb.appendChild(img);};
+    img.src='https://image.thum.io/get/width/200/crop/130/'+S.url;
+  }
+  const _runBar=document.getElementById('run-bar'); // always visible — no display change needed
+  const _recrawlBar=document.getElementById('recrawl-bar'); if(_recrawlBar)_recrawlBar.style.display='none';
   switchPage('audit');
   await runChecks();
 }
@@ -992,8 +998,44 @@ const CHECKS=[
   {id:'axe',      label:'Accessibility+',    fn:runAxe          },
   {id:'hreflang', label:'Hreflang',          fn:runHreflang     },
 ];
+async function retryFailedChecks() {
+  // Find which check IDs currently have error pills
+  const failedIds = new Set(
+    [...document.querySelectorAll('.check-pill.error')].map(p => p.id.replace('cp-',''))
+  );
+  if(!failedIds.size) return;
+  const failedChecks = CHECKS.filter(c => failedIds.has(c.id));
+
+  // Hide recrawl bar while retrying
+  const recrawlBar = document.getElementById('recrawl-bar');
+  if(recrawlBar) recrawlBar.style.display = 'none';
+
+  // Re-run only failed checks
+  for(const check of failedChecks) {
+    pill(check.id, 'running');
+    try { await check.fn(); pill(check.id, 'done'); }
+    catch(e) { console.warn(check.id, e); pill(check.id, 'error', e.message||'Unknown error'); }
+  }
+
+  // Recount and update summary + recrawl bar
+  const errs = [...document.querySelectorAll('.check-pill.error')].length;
+  const doneCount = document.querySelectorAll('.check-pill.done').length;
+  const sumEl = document.getElementById('run-summary');
+  if(sumEl) {
+    if(errs) {
+      sumEl.innerHTML=`<span style="color:#008080">${doneCount} completed</span> · <span style="color:#c86a5a">${errs} failed</span>`;
+    } else {
+      sumEl.innerHTML=`<span style="color:#008080">All ${doneCount} scans complete</span>`;
+    }
+  }
+  if(recrawlBar) recrawlBar.style.display = 'flex';
+  const retryFailedBtn = document.getElementById('btn-retry-failed');
+  if(retryFailedBtn) retryFailedBtn.style.display = errs > 0 ? '' : 'none';
+  autoSaveAuditToProject();
+}
+
 async function runChecks() {
-  const g=document.getElementById('checks-grid'); g.innerHTML='';
+  const g=document.getElementById('checks-grid'); if(!g)return; g.innerHTML='';
   CHECKS.forEach(c=>{const p=document.createElement('div');p.className='check-pill';p.id='cp-'+c.id;p.innerHTML=`<span class="check-dot"></span>${c.label}`;g.appendChild(p);});
   setProgress(0);
   for(let i=0;i<CHECKS.length;i++){
@@ -1007,11 +1049,18 @@ async function runChecks() {
   const doneCount = document.querySelectorAll('.check-pill.done').length;
   const errCount = errs.length;
   const sumEl=document.getElementById('run-summary');
-  if(errCount){
-    sumEl.innerHTML=`<span style="color:#008080">${doneCount} completed</span> · <span style="color:#c86a5a">${errCount} failed</span>`;
-  } else {
-    sumEl.innerHTML=`<span style="color:#008080">All ${doneCount} scans complete</span>`;
+  if(sumEl){
+    if(errCount){
+      sumEl.innerHTML=`<span style="color:#008080">${doneCount} completed</span> · <span style="color:#c86a5a">${errCount} failed</span>`;
+    } else {
+      sumEl.innerHTML=`<span style="color:#008080">All ${doneCount} scans complete</span>`;
+    }
   }
+  // Show recrawl bar after audit completes; only show retry-failed if there were errors
+  const recrawlBar = document.getElementById('recrawl-bar');
+  const retryFailedBtn = document.getElementById('btn-retry-failed');
+  if(recrawlBar) recrawlBar.style.display = 'flex';
+  if(retryFailedBtn) retryFailedBtn.style.display = errCount > 0 ? '' : 'none';
   // Auto-save completed audit to project so it can be restored next time Scout loads
   autoSaveAuditToProject();
 }
@@ -1035,8 +1084,8 @@ function stopPsiSlowIndicator(){
 }
 function setProgress(done){
   const pct=Math.round(done/CHECKS.length*100);
-  document.getElementById('progress-bar-fill').style.width=pct+'%';
-  document.getElementById('run-pct').textContent=pct+'%';
+  const _pbf=document.getElementById('progress-bar-fill'); if(_pbf)_pbf.style.width=pct+'%';
+  const _rpct=document.getElementById('run-pct'); if(_rpct)_rpct.textContent=pct+'%';
   const tortoise=document.getElementById('run-tortoise');
   const label=document.getElementById('run-label');
   if(done>=CHECKS.length){
@@ -1045,7 +1094,7 @@ function setProgress(done){
     if(label){const spans=label.querySelectorAll('span');const t=spans[1];if(t)t.textContent=' Checks complete';}
     const now=new Date();
     const ts=now.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' at '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('audit-timestamp').textContent='audited '+ts;
+    const _ats=document.getElementById('audit-timestamp'); if(_ats)_ats.textContent='audited '+ts;
     S.raw._auditedAt=now.toISOString();
   }
 }
@@ -2671,14 +2720,14 @@ function renderFromRaw(){
       pill(c.id, hasDone?'done':'');
     });
     // set progress bar full
-    document.getElementById('progress-bar-fill').style.width='100%';
-    document.getElementById('run-pct').textContent='100%';
+    const _pbf2=document.getElementById('progress-bar-fill'); if(_pbf2)_pbf2.style.width='100%';
+    const _rpct2=document.getElementById('run-pct'); if(_rpct2)_rpct2.textContent='100%';
     const tortoise=document.getElementById('run-tortoise');
     if(tortoise){tortoise.textContent='✓';tortoise.style.animation='none';}
     const label=document.getElementById('run-label');
     if(label){const spans=label.querySelectorAll('span');const t=spans[1];if(t)t.textContent=' Loaded from saved session';}
   }
-  document.getElementById('run-bar').style.display='';
+  const _rb=document.getElementById('run-bar'); if(_rb)_rb.style.display='';
   // PSI
   if(r.psi_desktop||r.psi_mobile)renderPSI();
   // Security headers
@@ -2979,8 +3028,8 @@ function saveAuditFile(){
   S.history=S.history.filter(h=>h.url!==S.url);S.history.push(data);if(S.history.length>10)S.history=S.history.slice(-10);
   localStorage.setItem('scout-history',JSON.stringify(S.history));
 }
-document.getElementById('btn-save-from-export').addEventListener('click',saveAuditFile);
-document.getElementById('btn-copy-report-html').addEventListener('click',()=>{
+document.getElementById('btn-save-from-export')?.addEventListener('click',saveAuditFile);
+document.getElementById('btn-copy-report-html')?.addEventListener('click',()=>{
   const report=document.getElementById('view-report');
   if(!report||!report.innerHTML.trim()){alert('Refresh the preview first.');return;}
   const html='<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Scout Report — '+esc(S.url)+'</title>'
@@ -3003,13 +3052,11 @@ function init(project) {
     return;
   }
   // No saved audit — run fresh
-  switchPage('audit');
-  startAudit(project.url, project.name);
+  startAudit(project.url, project.name).catch(e => console.error('Scout startAudit error:', e));
 }
 
 // ── Auto-save audit to project after completion ──
 function autoSaveAuditToProject() {
-  if (typeof window.onToolEvent !== 'function') return;
   if (!S.url || !S.raw || Object.keys(S.raw).length === 0) return;
   const data = gatherAudit();
   window.onToolEvent('tool:save', { tool: 'scout', payload: data });
@@ -3019,11 +3066,9 @@ function autoSaveAuditToProject() {
 const _saveFromExport = document.getElementById('btn-save-from-export');
 if (_saveFromExport) {
   _saveFromExport.addEventListener('click', () => {
-    if (typeof window.onToolEvent === 'function') {
-      window.onToolEvent('tool:save', { tool: 'scout', payload: { url: S.url, raw: S.raw } });
-      _saveFromExport.textContent = '✓ Saved';
-      setTimeout(() => { _saveFromExport.textContent = '↓ Save audit (.json)'; }, 2000);
-    }
+    window.onToolEvent('tool:save', { tool: 'scout', payload: { url: S.url, raw: S.raw } });
+    _saveFromExport.textContent = '✓ Saved';
+    setTimeout(() => { _saveFromExport.textContent = '↓ Save audit (.json)'; }, 2000);
   });
 }
 
