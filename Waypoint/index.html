@@ -529,20 +529,23 @@
     }
     .waypoint-tabnav .nav-tab {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
       background: none;
       border: none;
       border-bottom: 2px solid transparent;
-      padding: 0.55rem 1.1rem 0.65rem;
+      padding: 0.5rem 1.25rem 0.65rem;
       cursor: pointer;
-      transition: color 0.12s, border-color 0.12s;
+      transition: color 0.15s;
       margin-bottom: -1px;
+      white-space: nowrap;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 0.35rem;
+      gap: 0.25rem;
+      line-height: 1;
     }
-    .waypoint-tabnav .nav-tab:hover { color: var(--text-body); }
+    .waypoint-tabnav .nav-tab:hover { color: var(--text-title); }
     .waypoint-tabnav .nav-tab.active { color: #008080; border-bottom-color: #008080; }
   </style>
 </head>
@@ -560,10 +563,7 @@
   <!-- ── PAGE: Redirect Mapper ── -->
   <div id="page-mapper">
 
-    <div class="page-heading">
-      <div class="page-heading-title">Mapper</div>
-      <div class="page-heading-sub">Cross-reference old and new URLs, confirm redirect destinations, and manage your full migration map.</div>
-    </div>
+  <!-- PAGE: Mapper -->
 
     <!-- Status bar — undo/redo + timestamp only -->
     <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
@@ -665,11 +665,7 @@
 
   <!-- ── PAGE: Analysis ── -->
   <div id="page-checker" class="hidden">
-    <div class="page-heading" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
-      <div>
-        <div class="page-heading-title">Analysis</div>
-        <div class="page-heading-sub">Inspect the logic of your redirect map — detect loops, chains, and merged destinations without hitting the live web.</div>
-      </div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:1rem;">
       <button class="btn-check" id="btn-run-all-analysis">Run all checks</button>
     </div>
 
@@ -743,10 +739,7 @@
   <!-- ── PAGE: Validator ── -->
   <div id="page-validator" class="hidden">
 
-    <div class="page-heading">
-      <div class="page-heading-title">Validator</div>
-      <div class="page-heading-sub">Runs a full QA check on your mapped redirects — loops, chains, duplicates, and status checks.</div>
-    </div>
+  <!-- PAGE: Validator -->
 
     <!-- Live Check card (moved from Analysis) -->
     <div class="section-card" style="margin-bottom:1rem;">
@@ -861,10 +854,7 @@
 
   <!-- ── PAGE: Diff ── -->
   <div id="page-diff" class="hidden">
-    <div class="page-heading">
-      <div class="page-heading-title">Diff</div>
-      <div class="page-heading-sub">Compare two redirect map exports — see what was added, removed, or changed between sessions.</div>
-    </div>
+  <!-- PAGE: Diff -->
 
     <div class="section-card" style="margin-bottom:1rem;">
       <div class="card-header">
