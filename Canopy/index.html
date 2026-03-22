@@ -526,20 +526,23 @@
     }
     .canopy-tabnav .nav-tab {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
       background: none;
       border: none;
       border-bottom: 2px solid transparent;
-      padding: 0.55rem 1.1rem 0.65rem;
+      padding: 0.5rem 1.25rem 0.65rem;
       cursor: pointer;
-      transition: color 0.12s, border-color 0.12s;
+      transition: color 0.15s;
       margin-bottom: -1px;
+      white-space: nowrap;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 0.35rem;
+      gap: 0.25rem;
+      line-height: 1;
     }
-    .canopy-tabnav .nav-tab:hover { color: var(--text-body); }
+    .canopy-tabnav .nav-tab:hover { color: var(--text-title); }
     .canopy-tabnav .nav-tab.active { color: #008080; border-bottom-color: #008080; }
   </style>
 </head>
@@ -559,10 +562,7 @@
        PAGE: Diagram
   ══════════════════════════════════════ -->
   <div id="page-diagram">
-    <div class="page-heading">
-      <div class="page-heading-title">Diagram</div>
-      <div class="page-heading-sub">Interactive sitemap tree — pan, zoom, and explore the structure.</div>
-    </div>
+  <!-- PAGE: Diagram -->
 
     <div id="diagram-empty" class="section-card">
       <div class="card-body" style="text-align:center;padding:3rem 1rem;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--text-muted);">
@@ -740,10 +740,7 @@
        PAGE: Export
   ══════════════════════════════════════ -->
   <div id="page-export" class="hidden">
-    <div class="page-heading">
-      <div class="page-heading-title">Export</div>
-      <div class="page-heading-sub">Download your sitemap in your preferred format.</div>
-    </div>
+  <!-- PAGE: Export -->
 
     <div class="section-card">
       <div class="card-header">
@@ -806,10 +803,7 @@
        PAGE: Diff
   ══════════════════════════════════════ -->
   <div id="page-diff" class="hidden">
-    <div class="page-heading">
-      <div class="page-heading-title">Diff</div>
-      <div class="page-heading-sub">Compare two Canopy crawls — see what pages were added, removed, or restructured.</div>
-    </div>
+  <!-- PAGE: Diff -->
 
     <div class="section-card" style="margin-bottom:1rem;">
       <div class="card-header">
