@@ -825,7 +825,6 @@
     /* ── page switching ── */
     .page { display: none; }
     .page.active { display: block; }
-    #page-projects.active { display: flex; flex-direction: column; min-height: calc(100vh - 60px); }
 
     /* ── tool content area ── */
     #page-tool {
@@ -922,28 +921,15 @@
     /* ── new project form ── */
     .new-project-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem 1.75rem; margin-bottom: 2rem; }
     .npf-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.1rem; }
+    .npf-fields { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.85rem; align-items: flex-end; }
     .npf-field { display: flex; flex-direction: column; gap: 0.3rem; }
     .npf-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
     .npf-input { background: var(--bg-input); border: 1px solid var(--border-soft); border-radius: 5px; padding: 0.55rem 0.85rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--text-body); outline: none; transition: border-color 0.15s; width: 100%; }
     .npf-input:focus { border-color: var(--teal); }
     .npf-input::placeholder { color: var(--text-dim); }
-    .npf-btn { background: var(--teal); border: none; color: #e0ddd8; border-radius: 5px; padding: 0.55rem 1.25rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: background 0.15s; white-space: nowrap; align-self: flex-end; min-width: 160px; text-align: center; }
+    .npf-btn { background: var(--teal); border: none; color: #e0ddd8; border-radius: 5px; padding: 0.55rem 1.25rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: background 0.15s; white-space: nowrap; align-self: flex-end; }
     .npf-btn:hover { background: var(--teal-bright); }
-    .npf-btn-stop { background: var(--err) !important; }
-    .npf-btn-stop:hover { background: #d97a6a !important; }
-    .npf-btn-ghost { background: var(--bg-card) !important; color: var(--text-body) !important; border: 1px solid var(--border) !important; }
-    .npf-btn-ghost:hover { border-color: var(--teal) !important; color: var(--teal) !important; }
     .npf-error { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--err); margin-top: 0.6rem; display: none; }
-    /* ── Projects page hero ── */
-    .proj-hero { text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 1rem 2.25rem; }
-    .proj-greeting { font-family: 'IBM Plex Mono', monospace; font-size: 1.25rem; font-weight: 600; color: var(--text-strong); letter-spacing: -0.02em; margin-bottom: 0.75rem; cursor: pointer; transition: opacity 0.15s; }
-    .proj-greeting:hover { opacity: 0.75; }
-    .proj-fact { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.8rem; color: var(--text-muted); max-width: 860px; margin: 0 auto; line-height: 1.75; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .proj-fact:hover { opacity: 0.75; }
-    /* ── Combined form layout ── */
-    .npf-row { display: flex; gap: 0.85rem; align-items: flex-end; }
-    .npf-row .npf-field { flex: 1; }
-    .npf-section-divider { border: none; border-top: 1px solid var(--border-soft); margin: 1.25rem 0; }
 
     /* ── project cards ── */
     .projects-section-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.85rem; }
@@ -997,8 +983,8 @@
 
     .card-header.accordion { cursor: pointer; user-select: none; }
     .card-header.accordion:hover .card-title { color: var(--text-strong); }
-    .accordion-toggle { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; color: var(--text-dim); flex-shrink: 0; transition: transform 0.25s ease, color 0.15s; display: inline-block; transform: rotate(-90deg); }
-    .card-header.accordion.open .accordion-toggle { transform: rotate(0deg); color: var(--teal); }
+    .accordion-toggle { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; color: var(--text-dim); flex-shrink: 0; transition: transform 0.25s ease, color 0.15s; display: inline-block; }
+    .card-header.accordion.open .accordion-toggle { transform: rotate(-90deg); color: var(--teal); }
     .accordion-body { overflow: hidden; transition: max-height 0.3s ease, opacity 0.25s ease; max-height: 0; opacity: 0; }
     .accordion-body.open { max-height: 700px; opacity: 1; }
     .accordion-help { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.72rem; color: var(--text-help); line-height: 1.5; display: none; }
@@ -1009,15 +995,6 @@
     .progress-fill.crawling { animation: barPulse 1.5s ease-in-out infinite; width: 100%; }
     @keyframes barPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-    /* ── Pill buttons (mode/proxy toggles) ── */
-    .pill-group { display: flex; gap: 0; }
-    .pill { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; padding: 0.28rem 0.75rem; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; background: none; transition: all 0.15s; }
-    .pill:first-child { border-radius: 99px 0 0 99px; }
-    .pill:last-child  { border-radius: 0 99px 99px 0; }
-    .pill + .pill { border-left: none; }
-    .pill:hover { color: var(--text-title); }
-    .pill.active { background: var(--teal); border-color: var(--teal); color: #e0ddd8; }
-    /* ── Filter pills (crawl results) ── */
     .fpill { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; padding: 0.25rem 0.65rem; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; background: none; transition: all 0.15s; }
     .fpill:first-child { border-radius: 3px 0 0 3px; }
     .fpill:last-child  { border-radius: 0 3px 3px 0; }
@@ -1186,7 +1163,7 @@
             </svg>
             <span class="nav-item-name">Atlas</span>
           </div>
-          <span class="nav-status ns-soon" id="ns-atlas">soon</span>
+          <span class="nav-status" id="ns-atlas"></span>
         </button>
 
         <button class="nav-item" id="nav-forge" onclick="loadTool('forge', this)">
@@ -1266,17 +1243,17 @@
       ══════════════════════════════════════ -->
       <div class="page" id="page-projects">
 
-        <!-- Hero greeting + fact -->
-        <div class="proj-hero">
-          <div id="proj-greeting" class="proj-greeting"></div>
-          <div id="proj-fact" class="proj-fact"></div>
+        <div class="page-hd">
+          <div>
+            <div class="page-hd-title">Projects</div>
+            <div class="page-hd-sub">Open an existing project or start a new one.</div>
+          </div>
         </div>
 
-        <!-- Combined new project + load form -->
+        <!-- New project form -->
         <div class="new-project-form">
-
           <div class="npf-title">New project</div>
-          <div class="npf-row">
+          <div class="npf-fields">
             <div class="npf-field">
               <label class="npf-label" for="npf-name">Project name</label>
               <input class="npf-input" id="npf-name" type="text" placeholder="e.g. Acme Corp Redesign" maxlength="80" spellcheck="false" />
@@ -1288,19 +1265,6 @@
             <button class="npf-btn" onclick="createProject()">Create project →</button>
           </div>
           <div class="npf-error" id="npf-error"></div>
-
-          <div class="npf-section-divider"></div>
-
-          <div class="npf-title">Load project</div>
-          <div class="npf-row">
-            <div class="npf-field" style="flex:1;">
-              <label class="npf-label" for="proj-load-input">Share link or project ID</label>
-              <input class="npf-input" id="proj-load-input" type="text" placeholder="Paste a link or fx_… ID" />
-            </div>
-            <button class="npf-btn" onclick="loadFromInput()">Load →</button>
-          </div>
-          <div class="npf-error" id="proj-load-error"></div>
-
         </div>
 
         <!-- Project list — populated by renderProjectsList() -->
@@ -1526,13 +1490,13 @@
               </div>
               <div class="tc-tagline">// content inventory</div>
             </div>
-            <span class="tc-badge tb-idle">not started</span>
+            <span class="tc-badge tb-idle" id="tc-atlas-badge">not started</span>
           </div>
-          <div class="tc-body">
-            <div class="tc-empty">No data yet — open Atlas to start the content inventory.</div>
+          <div class="tc-body" id="tc-atlas-body">
+            <div class="tc-empty">Catalogue every page — assign dispositions, surface flags, export to Waypoint.</div>
           </div>
           <div class="tc-footer">
-            <a class="tc-open-btn" href="#" target="_blank" rel="noopener">Open Atlas →</a>
+            <a class="tc-open-btn" onclick="openTool('atlas')" style="cursor:pointer;">Open Atlas →</a>
           </div>
         </div>
 
@@ -1659,8 +1623,8 @@
                 </div>
                 <div style="display:flex;gap:0.5rem;flex-shrink:0;">
                   <button class="npf-btn" id="btn-crawl-start" onclick="startCrawl()">Crawl site</button>
-                  <button class="npf-btn npf-btn-stop" id="btn-crawl-stop" onclick="stopCrawl()" style="display:none;">Stop</button>
-                  <button class="npf-btn npf-btn-ghost" id="btn-crawl-pause" onclick="togglePause()" style="display:none;">⏸ Pause</button>
+                  <button class="npf-btn" id="btn-crawl-stop" onclick="stopCrawl()" style="display:none;background:#c86a5a;">Stop</button>
+                  <button class="npf-btn" id="btn-crawl-pause" onclick="togglePause()" style="display:none;background:var(--bg-card);color:var(--text-body);border:1px solid var(--border);">⏸ Pause</button>
                 </div>
               </div>
               <div style="display:flex;align-items:flex-end;gap:0.75rem;flex-wrap:wrap;">
@@ -1718,7 +1682,7 @@
                 <div class="card-title">Workbench</div>
                 <div class="accordion-help">Advanced crawl options — filter out URLs you don't need before the crawl starts.</div>
               </div>
-              <span class="accordion-toggle" id="wb-toggle">▼</span>
+              <span class="accordion-toggle" id="wb-toggle">◀</span>
             </div>
             <div class="accordion-body" id="wb-body">
               <div class="card-body">
@@ -1766,10 +1730,6 @@
                 <span style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-stat);"><strong id="stat-blk" style="font-size:1.1rem;font-weight:600;margin-right:0.3rem;">0</strong>blocked</span>
                 <span style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-stat);display:none;" id="stat-excl-wrap"><strong id="stat-excl" style="font-size:1.1rem;font-weight:600;margin-right:0.3rem;">0</strong>excluded</span>
               </div>
-            </div>
-            <!-- Incomplete crawl warning -->
-            <div id="crawl-incomplete-banner" style="display:none;padding:0.6rem 1rem;background:#1a1008;border-bottom:1px solid #3a2808;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:#c8a060;">
-              ⚠ Crawl stopped early — these results are incomplete. Re-crawl the site to get the full picture.
             </div>
             <div class="card-body" style="padding:0.5rem 0.85rem;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.65rem;flex-wrap:wrap;gap:0.5rem;">
@@ -1879,17 +1839,11 @@ const HISTORY_KEY   = 'foundry_history_v1';
 /* ═══════════════════════════════════════════
    Tool registry
 ═══════════════════════════════════════════ */
-// Derive base path from shell location so tool paths always resolve correctly
-const _shellBase = (() => {
-  const p = location.pathname;
-  return p.endsWith('/') ? p : p.substring(0, p.lastIndexOf('/') + 1);
-})();
-
 const TOOL_REGISTRY = {
-  scout:    { name: 'Scout',    sub: '// website audit',      path: _shellBase + 'Scout/index.html',    available: true  },
-  canopy:   { name: 'Canopy',   sub: '// site structure',     path: _shellBase + 'Canopy/index.html',   available: true  },
-  waypoint: { name: 'Waypoint', sub: '// redirect mapping',   path: _shellBase + 'Waypoint/index.html', available: true  },
-  atlas:    { name: 'Atlas',    sub: '// content inventory',  path: null,                  available: false },
+  scout:    { name: 'Scout',    sub: '// website audit',      path: 'Scout/index.html',    available: true  },
+  canopy:   { name: 'Canopy',   sub: '// site structure',     path: 'Canopy/index.html',   available: true  },
+  waypoint: { name: 'Waypoint', sub: '// redirect mapping',   path: 'Waypoint/index.html', available: true  },
+  atlas:    { name: 'Atlas',    sub: '// content inventory',  path: 'Atlas/index.html',    available: true  },
   forge:    { name: 'Forge',    sub: '// IA designer',        path: null,                  available: false },
   warden:   { name: 'Warden',   sub: '// launch validation',  path: null,                  available: false },
   charter:  { name: 'Charter',  sub: '// project roadmap',    path: null,                  available: false },
@@ -1918,7 +1872,7 @@ async function loadTool(key, navBtn) {
     return;
   }
 
-  // Guard: don't reload if already successfully loaded (activeTool is set below only on success)
+  // Guard: don't reload the same tool
   if (activeTool === key) {
     setNavActive(navBtn);
     showPage('tool', null);
@@ -1926,6 +1880,7 @@ async function loadTool(key, navBtn) {
   }
 
   setNavActive(navBtn);
+  activeTool = key;
 
   // Record openedAt
   const t = activeProject.tools[key];
@@ -1990,39 +1945,16 @@ async function loadTool(key, navBtn) {
       }
     }
 
-    // Call the tool's init function — ensure full project (with crawl.results) is passed
+    // Call the tool's init function with the active project
     const initFn = window[capitalize(key)];
     if (initFn && typeof initFn.init === 'function') {
-      // Try sessionStorage for full project first (has crawl.results)
-      let fullProject = activeProject;
-      try {
-        const cached = sessionStorage.getItem('proj_' + activeProject.id);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed && parsed.crawl && parsed.crawl.results) fullProject = parsed;
-        }
-      } catch {}
-      // If still no results, try fetching from Worker
-      if (!fullProject.crawl || !fullProject.crawl.results || !fullProject.crawl.results.length) {
-        try {
-          const fetched = await fetchProject(activeProject.id);
-          if (fetched && fetched.crawl && fetched.crawl.results) {
-            fullProject = fetched;
-            setProjectActive(fetched);
-            try { sessionStorage.setItem('proj_' + fetched.id, JSON.stringify(fetched)); } catch {}
-          }
-        } catch {}
-      }
-      initFn.init(fullProject);
+      initFn.init(activeProject);
     }
-
-    // Only mark as active after a successful load
-    activeTool = key;
 
   } catch (err) {
     loading.style.display = 'none';
-    activeTool = null; // reset so clicking again retries the fetch
-    mount.innerHTML = '<div style="padding:3rem 2rem;font-family:\'IBM Plex Mono\',monospace;font-size:0.78rem;color:var(--err);">Failed to load ' + meta.name + '. Make sure the file exists at ' + meta.path + '. <span style="opacity:0.6;">Click ' + meta.name + ' in the sidebar to try again.</span></div>';
+    console.error('loadTool error:', err);
+    mount.innerHTML = '<div style="padding:3rem 2rem;font-family:\'IBM Plex Mono\',monospace;font-size:0.78rem;color:var(--err);">Failed to load ' + meta.name + '. Make sure the file exists at ' + meta.path + '.<br><br><span style="opacity:0.6;font-size:0.68rem;">' + (err && err.message ? err.message : String(err)) + '</span></div>';
   }
 }
 
@@ -2049,7 +1981,7 @@ function onToolEvent(type, data) {
     const key = data.tool || activeTool;
     if (!key || !activeProject) return;
     if (!activeProject.toolData) activeProject.toolData = {};
-    activeProject.toolData[key] = data.payload;
+    activeProject.toolData[key] = data.payload || data.data || data;
     activeProject.updatedAt = new Date().toISOString();
     upsertHistoryEntry(activeProject);
     storeProject(activeProject).catch(() => {});
@@ -2166,7 +2098,6 @@ function exportAlchemyFile() {
 let isDark        = true;
 let activeProject = null;
 let crawlState    = { running: false, paused: false, queue: [], visited: new Set(), results: [], base: '' };
-let crawlStateProjectId = null; // tracks which project the in-memory crawlState belongs to
 let excludedCount = 0;
 let resultFilter  = 'all';
 let resultSearch  = '';
@@ -2195,7 +2126,7 @@ function showPage(name, navBtn) {
   // Reset activeTool if navigating away from a tool page
   if (name !== 'tool') activeTool = null;
 
-  if (name === 'projects') { renderProjectsList(); renderProjectsHero(); }
+  if (name === 'projects') renderProjectsList();
   if (name === 'overview') {
     renderOverview();
     if (activeProject) {
@@ -2573,11 +2504,30 @@ function renderOverview() {
 
   // Atlas summary
   const atlas = tools.atlas;
-  setText('ov-sc-atlas-n', atlas && atlas.complete ? '✓' : atlas && atlas.openedAt ? '→' : '—');
-  setText('ov-sc-atlas-meta', atlas && atlas.openedAt ? 'opened ' + formatDate(atlas.openedAt) : 'not opened');
+  const atlasData = activeProject.toolData && activeProject.toolData.atlas;
+  if (atlasData && atlasData.rows && atlasData.rows.length) {
+    const rows      = atlasData.rows;
+    const assigned  = rows.filter(r => r.disposition !== 'unset').length;
+    const flagged   = rows.filter(r => r.flagState === 'red' || r.flagState === 'yellow').length;
+    const pct       = Math.round((assigned / rows.length) * 100);
+    setText('ov-sc-atlas-n', rows.length);
+    setText('ov-sc-atlas-meta', pct + '% assigned · ' + flagged + ' flagged');
+    const body = document.getElementById('tc-atlas-body');
+    if (body) body.innerHTML = '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>' + rows.length + ' pages · ' + pct + '% assigned</div>' + (flagged ? '<div class="tc-finding-row"><div class="tf-bullet tb-warn"></div>' + flagged + ' flagged</div>' : '');
+  } else {
+    setText('ov-sc-atlas-n', atlas && atlas.complete ? '✓' : atlas && atlas.openedAt ? '→' : '—');
+    setText('ov-sc-atlas-meta', atlas && atlas.openedAt ? 'opened ' + formatDate(atlas.openedAt) : 'not opened');
+  }
+  // Atlas card badge
+  const atlasBadge = document.getElementById('tc-atlas-badge');
+  if (atlasBadge) {
+    if (atlas && atlas.complete) { atlasBadge.textContent = 'done'; atlasBadge.className = 'tc-badge tb-done'; }
+    else if (atlas && atlas.openedAt) { atlasBadge.textContent = 'in progress'; atlasBadge.className = 'tc-badge tb-active'; }
+    else { atlasBadge.textContent = 'not started'; atlasBadge.className = 'tc-badge tb-idle'; }
+  }
 
   /* ── Tool cards: clickable badge cycles state, open btn calls loadTool ── */
-  const hasCrawl = crawl && crawl.results && crawl.results.length > 0;
+  const hasCrawl = !!(crawl && crawl.results && crawl.results.length > 0 && crawl.totalUrls);
 
   ['scout','canopy','waypoint'].forEach(key => {
     const t       = tools[key];
@@ -2622,9 +2572,9 @@ function renderOverview() {
   });
 
   /* ── Canopy crawl stats (from project crawl data) ── */
-  if (hasCrawl) {
+  const hasCrawlResults = !!(crawl && crawl.results && crawl.results.length && crawl.totalUrls);
+  if (hasCrawlResults) {
     setText('ov-canopy-pages',    crawl.totalUrls.toLocaleString());
-    // sections and depth are derived at diagram-build time, so show what we have
     const sections = [...new Set(crawl.results.map(r => r.section))].length;
     const maxDepth = Math.max(...crawl.results.map(r => r.depth || 0));
     setText('ov-canopy-sections', sections);
@@ -2639,67 +2589,14 @@ function renderOverview() {
         (errCount > 0 ? '<div class="tc-finding-row"><div class="tf-bullet tb-warn"></div>' + errCount + ' error URLs</div>' : '') +
         '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>' + sections + ' sections · max depth ' + maxDepth + '</div>';
     }
-  }
-
-  /* ── Scout audit data (from project.toolData.scout) ── */
-  const scoutBody = document.getElementById('tc-scout-body');
-  if (scoutBody) {
-    const sd = p.toolData && p.toolData.scout;
-    if (sd && sd.raw && Object.keys(sd.raw).length > 0) {
-      const raw = sd.raw;
-
-      // PSI scores
-      const dp = raw.psi_desktop && raw.psi_desktop.lighthouseResult && raw.psi_desktop.lighthouseResult.categories;
-      const mp = raw.psi_mobile  && raw.psi_mobile.lighthouseResult  && raw.psi_mobile.lighthouseResult.categories;
-      const dPerf = dp ? Math.round((dp.performance && dp.performance.score || 0) * 100) : null;
-      const mPerf = mp ? Math.round((mp.performance && mp.performance.score || 0) * 100) : null;
-      const dA11y = dp ? Math.round((dp.accessibility && dp.accessibility.score || 0) * 100) : null;
-      const mA11y = mp ? Math.round((mp.accessibility && mp.accessibility.score || 0) * 100) : null;
-
-      // Security grade
-      const secResults = raw.secResults || [];
-      const secPassed  = secResults.filter(x => x.present).length;
-      const secGrade   = secPassed >= 6 ? 'A' : secPassed >= 5 ? 'B' : secPassed >= 4 ? 'C' : secPassed >= 2 ? 'D' : secResults.length ? 'F' : null;
-      const secCl      = secGrade === 'A' || secGrade === 'B' ? 'ts-ok' : secGrade === 'C' ? 'ts-warn' : secGrade ? 'ts-err' : '';
-
-      // Findings count by severity
-      const findings  = sd.findings || [];
-      const critical  = findings.filter(f => f.sev === 'crit' || f.sev === 'high').length;
-      const medium    = findings.filter(f => f.sev === 'mid').length;
-
-      // Score colour helper
-      function scoreClass(s) { return s === null ? '' : s >= 90 ? 'ts-ok' : s >= 50 ? 'ts-warn' : 'ts-err'; }
-
-      let html = '<div class="tc-stat-row">';
-      if (dPerf !== null) html += '<div class="tc-stat ' + scoreClass(dPerf) + '"><strong>' + dPerf + '</strong>perf desktop</div>';
-      if (mPerf !== null) html += '<div class="tc-stat ' + scoreClass(mPerf) + '"><strong>' + mPerf + '</strong>perf mobile</div>';
-      if (secGrade)       html += '<div class="tc-stat ' + secCl + '"><strong>' + secGrade + '</strong>security</div>';
-      html += '</div>';
-
-      if (dA11y !== null || mA11y !== null) {
-        html += '<div class="tc-stat-row" style="margin-top:0.4rem;">';
-        if (dA11y !== null) html += '<div class="tc-stat ' + scoreClass(dA11y) + '"><strong>' + dA11y + '</strong>a11y desktop</div>';
-        if (mA11y !== null) html += '<div class="tc-stat ' + scoreClass(mA11y) + '"><strong>' + mA11y + '</strong>a11y mobile</div>';
-        html += '</div>';
-      }
-
-      html += '<div class="tc-finding-row" style="margin-top:0.5rem;">';
-      if (critical > 0) {
-        html += '<div class="tf-bullet tb-warn"></div>' + critical + ' high/critical finding' + (critical !== 1 ? 's' : '');
-      } else if (findings.length > 0) {
-        html += '<div class="tf-bullet tb-ok"></div>No critical findings';
-      } else {
-        html += '<div class="tf-bullet" style="background:var(--teal);width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:1px;"></div>Audit complete';
-      }
-      html += '</div>';
-      if (medium > 0) {
-        html += '<div class="tc-finding-row"><div class="tf-bullet" style="background:var(--border-soft);width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:1px;"></div>' + medium + ' medium finding' + (medium !== 1 ? 's' : '') + '</div>';
-      }
-
-      scoutBody.innerHTML = html;
-    } else {
-      scoutBody.innerHTML = '<div class="tc-empty">Open Scout to run an audit — results will appear here.</div>';
-    }
+  } else {
+    setText('ov-canopy-pages',    '—');
+    setText('ov-canopy-sections', '—');
+    setText('ov-canopy-depth',    '—');
+    const bar = document.getElementById('ov-canopy-bar');
+    if (bar) bar.style.width = '0%';
+    const findingsEl = document.getElementById('ov-canopy-findings');
+    if (findingsEl) findingsEl.innerHTML = '<div class="tc-empty">No crawl data yet — open Canopy after running a crawl.</div>';
   }
 }
 
@@ -2730,7 +2627,7 @@ function updateTopbar() {
 
 function copyProjectLink() {
   if (!activeProject) return;
-  let link = 'https://libertymoose.github.io/Alchemy/?project=' + activeProject.id;
+  let link = 'https://elleiana.github.io/Alchemy/?project=' + activeProject.id;
   if (activeTool) link += '&tool=' + activeTool;
   navigator.clipboard.writeText(link).then(() => {
     const btn = document.getElementById('topbar-share-btn');
@@ -2797,47 +2694,6 @@ function renderCrawlPage() {
   if (wbHeader && !wbHeader.classList.contains('open')) {
     wbHeader.classList.add('open');
     wbBody.classList.add('open');
-  }
-
-  // If a crawl isn't currently running but we have saved results, restore them
-  // Only restore if crawlState doesn't already belong to this project (avoids wiping a live crawl)
-  const saved = activeProject.crawl;
-  const crawlBelongsHere = crawlStateProjectId === activeProject.id;
-  if (!crawlState.running && saved && saved.results && saved.results.length && !crawlBelongsHere) {
-    crawlStateProjectId = activeProject.id;
-    crawlState.results = saved.results.map(r => ({
-      url: r.url, ok: r.ok, status: r.status,
-      statusText: r.statusText, depth: r.depth,
-      section: r.section, title: r.title || ''
-    }));
-    showResults();
-    updateStats();
-    renderResults();
-
-    // Re-enable action buttons
-    const saveBtn    = document.getElementById('btn-save-crawl');
-    const copyBtn    = document.getElementById('btn-copy-urls');
-    if (saveBtn) { saveBtn.disabled = false; }
-    if (copyBtn) { copyBtn.disabled = false; copyBtn.style.opacity = '1'; copyBtn.style.pointerEvents = ''; }
-
-    // Show incomplete banner if crawl was stopped mid-way
-    const banner = document.getElementById('crawl-incomplete-banner');
-    if (banner) banner.style.display = saved.status === 'stopped' ? '' : 'none';
-
-    const statusEl = document.getElementById('save-crawl-msg');
-    if (statusEl) statusEl.textContent = '';
-
-    // Restore the progress bar label
-    const statusText = document.getElementById('crawl-status-text');
-    if (statusText) {
-      if (saved.status === 'stopped') {
-        statusText.textContent = 'stopped — ' + saved.totalUrls + ' URL' + (saved.totalUrls !== 1 ? 's' : '') + ' found (incomplete)';
-      } else if (saved.status === 'complete') {
-        statusText.textContent = '✓ complete — ' + saved.totalUrls + ' URL' + (saved.totalUrls !== 1 ? 's' : '') + ' found';
-      } else if (saved.status === 'imported') {
-        statusText.textContent = '✓ ' + saved.totalUrls + ' URL' + (saved.totalUrls !== 1 ? 's' : '') + ' imported';
-      }
-    }
   }
 }
 
@@ -3001,7 +2857,6 @@ async function startCrawl() {
 
   excludedCount = 0;
   crawlState = { running: true, paused: false, queue: [startUrl], visited: new Set([startUrl]), results: [], base: origin };
-  crawlStateProjectId = activeProject.id;
   activeProject.crawl.startedAt = new Date().toISOString();
   updateSidebarPills();
 
@@ -3010,8 +2865,6 @@ async function startCrawl() {
   show('btn-crawl-pause');
   showResults();
   document.getElementById('result-rows').innerHTML = '';
-  const banner = document.getElementById('crawl-incomplete-banner');
-  if (banner) banner.style.display = 'none';
   show('crawl-progress-wrap');
   document.getElementById('crawl-progress-fill').classList.add('crawling');
   document.getElementById('snail-emoji').classList.add('crawling');
@@ -3089,9 +2942,6 @@ function stopCrawl() {
   document.getElementById('snail-emoji').classList.remove('crawling');
   const n = crawlState.results.length;
   setStatusText('stopped — ' + n + ' URL' + (n !== 1 ? 's' : '') + ' found');
-  // Show incomplete banner
-  const banner = document.getElementById('crawl-incomplete-banner');
-  if (banner && n > 0) banner.style.display = '';
   if (n > 0) {
     setEnabled('btn-save-crawl', true);
     setEnabled('btn-copy-urls', true);
@@ -3377,64 +3227,6 @@ const FACTS = [
   "You clearly know your stuff — most people would have given up and used a spreadsheet by now.",
 ];
 
-function renderProjectsHero() {
-  const g = document.getElementById('proj-greeting');
-  const f = document.getElementById('proj-fact');
-  if (g) {
-    g.textContent = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
-    g.onclick = () => { g.textContent = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]; };
-  }
-  if (f) {
-    f.textContent = FACTS[Math.floor(Math.random() * FACTS.length)];
-    f.onclick = () => { f.textContent = FACTS[Math.floor(Math.random() * FACTS.length)]; };
-  }
-}
-
-function loadFromInput() {
-  const input = document.getElementById('proj-load-input');
-  const errEl = document.getElementById('proj-load-error');
-  const raw   = (input.value || '').trim();
-  if (!raw) return;
-
-  errEl.style.display = 'none';
-
-  // Extract project ID from a full URL (?project=fx_xxx) or bare ID
-  let id = raw;
-  try {
-    const url = new URL(raw);
-    id = url.searchParams.get('project') || raw;
-  } catch { /* not a URL — treat as bare ID */ }
-
-  if (!id.startsWith('fx_')) {
-    errEl.textContent = 'Not a valid project ID or share link. IDs start with fx_.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  // Show loading state
-  const btn = input.nextElementSibling;
-  const origText = btn.textContent;
-  btn.textContent = 'Loading…';
-  btn.disabled = true;
-
-  fetchProject(id).then(project => {
-    if (!project) throw new Error('not found');
-    setProjectActive(project);
-    upsertHistoryEntry(project);
-    try { sessionStorage.setItem('proj_' + id, JSON.stringify(project)); } catch {}
-    input.value = '';
-    btn.textContent = origText;
-    btn.disabled = false;
-    const overviewBtn = document.querySelector('.nav-item[onclick*=\'overview\']');
-    showPage('overview', overviewBtn);
-  }).catch(() => {
-    btn.textContent = origText;
-    btn.disabled = false;
-    errEl.textContent = 'Project not found. Check the link and try again.';
-    errEl.style.display = 'block';
-  });
-}
-
 function renderEmptyState() {
   const g = document.getElementById('ov-greeting');
   const f = document.getElementById('ov-fact');
@@ -3466,9 +3258,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   `;
   document.head.appendChild(style);
 
-  // Render projects list and hero
+  // Seed demo data if localStorage is empty
+  seedDemoData();
+
+  // Render projects list
   renderProjectsList();
-  renderProjectsHero();
 
   // ── URL param boot ──
   // ?project=fx_xxx  → load that project
@@ -3495,8 +3289,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       showPage('overview', document.querySelector('.nav-item[onclick*="overview"]'));
     }
   } else {
-    // Normal boot — always land on Projects page, no project pre-selected
-    showPage('projects', document.getElementById('nav-projects'));
+    // Normal boot — land on overview (greeting state if no project, content if one exists)
+    const history = getHistory();
+    if (history.length) {
+      // Restore the most recently active project from localStorage
+      await loadProject(history[0].id);
+    } else {
+      showPage('overview', document.querySelector('.nav-item[onclick*="overview"]'));
+    }
   }
 
   // Handle browser back/forward
@@ -3515,6 +3315,126 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+/* ═══════════════════════════════════════════
+   Demo data seed — only runs if localStorage empty
+═══════════════════════════════════════════ */
+function seedDemoData() {
+  if (getHistory().length) return;
+
+  const now     = new Date();
+  const daysAgo = n => new Date(now - n * 864e5).toISOString();
+
+  function makeUrls(base, paths) {
+    return paths.map(p => ({
+      url: base + p,
+      ok: !p.includes('legacy') && !p.includes('old'),
+      status: (p.includes('legacy') || p.includes('old')) ? 404 : 200,
+      statusText: (p.includes('legacy') || p.includes('old')) ? '404' : '200',
+      depth: p.split('/').filter(Boolean).length,
+      section: '/' + (p.split('/').filter(Boolean)[0] || ''),
+      title: '',
+    }));
+  }
+
+  // ── Acme Corp — mid-project, Scout + Canopy done, Waypoint in progress
+  const acmePaths = [
+    '/','/about','/about/team','/about/careers','/about/history',
+    '/services','/services/web-design','/services/branding','/services/seo','/services/social-media',
+    '/work','/work/acme-rebrand','/work/green-energy-campaign','/work/retail-launch',
+    '/blog','/blog/category/seo','/blog/category/design','/blog/category/marketing',
+    '/blog/10-seo-tips','/blog/brand-refresh-guide','/blog/web-design-trends-2026',
+    '/blog/social-media-strategy','/blog/ux-best-practices','/blog/colour-theory',
+    '/contact','/contact/thank-you','/privacy-policy','/terms','/sitemap',
+    '/old-services','/legacy/home','/legacy/about',
+  ];
+  const acmeUrls = makeUrls('https://www.acmecorp.com', acmePaths);
+
+  const acme = {
+    id: 'fx_acme0001', name: 'Acme Corp Website Redesign', url: 'https://www.acmecorp.com',
+    createdAt: daysAgo(14), updatedAt: daysAgo(1),
+    crawl: {
+      status: 'complete', startedAt: daysAgo(14), completedAt: daysAgo(14),
+      settings: { concurrency: 3, maxDepth: 6, filters: { pagination: true, media: true, dev: true, query: false, hash: true, customPatterns: [] } },
+      totalUrls: acmeUrls.length, okUrls: acmeUrls.filter(r => r.ok).length, results: acmeUrls,
+    },
+    tools: {
+      scout:    { openedAt: daysAgo(13), complete: true  },
+      canopy:   { openedAt: daysAgo(12), complete: true  },
+      waypoint: { openedAt: daysAgo(10), complete: false },
+      atlas:    { openedAt: null,         complete: false },
+      forge:    { openedAt: null,         complete: false },
+      warden:   { openedAt: null,         complete: false },
+      charter:  { openedAt: null,         complete: false },
+    },
+  };
+
+  // ── BBC Good Food — further along, Waypoint complete too
+  const bbcPaths = [
+    '/','/recipes','/recipes/category/breakfast','/recipes/category/dinner',
+    '/recipes/category/desserts','/recipes/category/vegetarian','/recipes/category/vegan',
+    '/recipes/eggs-benedict','/recipes/chicken-tikka-masala','/recipes/victoria-sponge',
+    '/recipes/avocado-toast','/recipes/beef-bourguignon','/recipes/lemon-drizzle',
+    '/how-to','/how-to/knife-skills','/how-to/pastry-basics','/how-to/bread-making',
+    '/nutrition','/nutrition/guides','/nutrition/guides/protein',
+    '/news','/news/food-trends-2026','/news/restaurant-reviews',
+    '/about','/contact','/privacy','/terms','/advertise',
+    '/old-recipes','/legacy/index','/legacy/print-recipes',
+  ];
+  const bbcUrls = makeUrls('https://www.bbcgoodfood.com', bbcPaths);
+
+  const bbc = {
+    id: 'fx_bbc00002', name: 'BBC Good Food Migration', url: 'https://www.bbcgoodfood.com',
+    createdAt: daysAgo(44), updatedAt: daysAgo(3),
+    crawl: {
+      status: 'complete', startedAt: daysAgo(44), completedAt: daysAgo(44),
+      settings: { concurrency: 5, maxDepth: 8, filters: { pagination: true, media: true, dev: true, query: false, hash: true, customPatterns: [] } },
+      totalUrls: bbcUrls.length, okUrls: bbcUrls.filter(r => r.ok).length, results: bbcUrls,
+    },
+    tools: {
+      scout:    { openedAt: daysAgo(43), complete: true  },
+      canopy:   { openedAt: daysAgo(42), complete: true  },
+      waypoint: { openedAt: daysAgo(38), complete: true  },
+      atlas:    { openedAt: daysAgo(20), complete: false },
+      forge:    { openedAt: null,         complete: false },
+      warden:   { openedAt: null,         complete: false },
+      charter:  { openedAt: null,         complete: false },
+    },
+  };
+
+  // ── Veritas Legal — brand new, no crawl yet
+  const veritas = {
+    id: 'fx_verit003', name: 'Veritas Legal Group', url: 'https://www.veritaslegal.co.uk',
+    createdAt: daysAgo(3), updatedAt: daysAgo(3),
+    crawl: {
+      status: 'idle', startedAt: null, completedAt: null,
+      settings: { concurrency: 3, maxDepth: 6, filters: { pagination: true, media: true, dev: true, query: false, hash: true, customPatterns: [] } },
+      totalUrls: 0, okUrls: 0, results: [],
+    },
+    tools: {
+      scout: { openedAt: null, complete: false }, canopy:   { openedAt: null, complete: false },
+      waypoint: { openedAt: null, complete: false }, atlas: { openedAt: null, complete: false },
+      forge: { openedAt: null, complete: false },   warden: { openedAt: null, complete: false },
+      charter: { openedAt: null, complete: false },
+    },
+  };
+
+  // Save index to localStorage
+  saveHistory([
+    { id: acme.id,    name: acme.name,    url: acme.url,    createdAt: acme.createdAt,    totalUrls: acme.crawl.totalUrls,    okUrls: acme.crawl.okUrls,    tools: acme.tools    },
+    { id: bbc.id,     name: bbc.name,     url: bbc.url,     createdAt: bbc.createdAt,     totalUrls: bbc.crawl.totalUrls,     okUrls: bbc.crawl.okUrls,     tools: bbc.tools     },
+    { id: veritas.id, name: veritas.name, url: veritas.url, createdAt: veritas.createdAt, totalUrls: veritas.crawl.totalUrls, okUrls: veritas.crawl.okUrls, tools: veritas.tools },
+  ]);
+
+  // Cache full project objects in sessionStorage (survives page navigation, not required for Worker)
+  try {
+    sessionStorage.setItem('proj_' + acme.id,    JSON.stringify(acme));
+    sessionStorage.setItem('proj_' + bbc.id,     JSON.stringify(bbc));
+    sessionStorage.setItem('proj_' + veritas.id, JSON.stringify(veritas));
+  } catch {}
+
+  // Land on Overview with Acme loaded
+  setProjectActive(acme);
+}
 </script>
 </body>
 </html>
