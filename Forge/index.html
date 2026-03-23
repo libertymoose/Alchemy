@@ -7,1728 +7,1004 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    /* ── THEME ── */
     :root {
-      --bg:           #0a0a0d;
-      --bg-card:      #111114;
-      --bg-card-hd:   #0d0d10;
-      --bg-input:     #0d0d10;
-      --border:       #1e1e26;
-      --border-soft:  #1a1a22;
-      --border-inner: #161620;
-      --text:         #e0ddd8;
-      --text-strong:  #f0ece4;
-      --text-title:   #d0cdc8;
-      --text-muted:   #4a4a56;
-      --text-dim:     #333340;
-      --text-body:    #c0bbb4;
-      --text-help:    #404048;
-      --teal:         #008080;
-      --teal-bright:  #00a0a0;
-      --teal-dim:     rgba(0,128,128,0.1);
-      --ok:           #5aab72;
-      --ok-bg:        #172a1c;
-      --warn:         #c8963a;
-      --warn-bg:      #2a1e0e;
-      --err:          #c86a5a;
-      --err-bg:       #1e0f0c;
-      /* disposition colours */
-      --c-keep:     #5aab72;
-      --c-rewrite:  #c8963a;
-      --c-merge:    #5a8ac8;
-      --c-redirect: #00a0a0;
-      --c-delete:   #c86a5a;
-      --c-new:      #9a80e0;
+      --bg:#0a0a0d;--bg-card:#111114;--bg-card-hd:#0d0d10;--bg-input:#0d0d10;
+      --border:#1e1e26;--border-soft:#1a1a22;--border-inner:#161620;
+      --text:#e0ddd8;--text-strong:#f0ece4;--text-title:#d0cdc8;--text-muted:#4a4a56;
+      --text-dim:#333340;--text-body:#c0bbb4;
+      --teal:#008080;--teal-bright:#00a0a0;--teal-dim:rgba(0,128,128,0.1);
+      --ok:#5aab72;--ok-bg:#172a1c;--warn:#c8963a;--warn-bg:#2a1e0e;
+      --err:#c86a5a;--err-bg:#1e0f0c;
+      --c-keep:#5aab72;--c-rewrite:#c8963a;--c-merge:#5a8ac8;
+      --c-redirect:#00a0a0;--c-delete:#c86a5a;--c-new:#9a80e0;
     }
     html.light {
-      --bg:           #e8e8e2;
-      --bg-card:      #f5f5f0;
-      --bg-card-hd:   #eeeee8;
-      --bg-input:     #e8e8e2;
-      --border:       #c8c8be;
-      --border-soft:  #d0d0c4;
-      --border-inner: #d8d8d0;
-      --text:         #0d0d12;
-      --text-strong:  #020208;
-      --text-title:   #141420;
-      --text-muted:   #666;
-      --text-dim:     #999;
-      --text-body:    #1e1e28;
-      --text-help:    #585858;
-      --ok-bg:        #c8e8d2;
-      --warn-bg:      #f0e4c8;
-      --err-bg:       #f0dcd8;
+      --bg:#e8e8e2;--bg-card:#f5f5f0;--bg-card-hd:#eeeee8;--bg-input:#e8e8e2;
+      --border:#c8c8be;--border-soft:#d0d0c4;--border-inner:#d8d8d0;
+      --text:#0d0d12;--text-strong:#020208;--text-title:#141420;--text-muted:#666;
+      --text-dim:#999;--text-body:#1e1e28;--ok-bg:#c8e8d2;--warn-bg:#f0e4c8;--err-bg:#f0dcd8;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{background:var(--bg);font-family:'IBM Plex Sans',sans-serif;color:var(--text);min-height:100vh}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#222230;border-radius:2px}
+    html.light ::-webkit-scrollbar-thumb{background:#b0b0a8}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
-    body {
-      background: var(--bg);
-      font-family: 'IBM Plex Sans', sans-serif;
-      color: var(--text);
-      min-height: 100vh;
-    }
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #222230; border-radius: 2px; }
-    html.light ::-webkit-scrollbar-thumb { background: #b0b0a8; }
+    .forge-wrap{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
-    /* ── LAYOUT ── */
-    .forge-wrap {
-      display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-    }
+    /* TAB NAV */
+    .forge-tabnav{display:flex;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0}
+    .forge-tabnav .nav-tab{font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:var(--text-muted);background:none;border:none;border-bottom:2px solid transparent;padding:0.5rem 1.25rem 0.65rem;cursor:pointer;transition:color 0.15s;margin-bottom:-1px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:0.25rem;line-height:1}
+    .forge-tabnav .nav-tab .nav-emoji{font-size:1.25rem;line-height:1}
+    .forge-tabnav .nav-tab:hover{color:var(--text-title)}
+    .forge-tabnav .nav-tab.active{color:var(--teal);border-bottom-color:var(--teal)}
 
-    /* ── TAB NAV ── */
-    .forge-tabnav {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 0;
-      padding: 0;
-      flex-shrink: 0;
-    }
-    .forge-tabnav .nav-tab {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      padding: 0.5rem 1.25rem 0.65rem;
-      cursor: pointer;
-      transition: color 0.15s;
-      margin-bottom: -1px;
-      white-space: nowrap;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.25rem;
-      line-height: 1;
-    }
-    .forge-tabnav .nav-tab .nav-emoji { font-size: 1.25rem; line-height: 1; }
-    .forge-tabnav .nav-tab:hover { color: var(--text-title); }
-    .forge-tabnav .nav-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+    /* PAGES */
+    .forge-page{display:none;flex:1;overflow:hidden}
+    .forge-page.active{display:flex;flex-direction:column}
+    #forge-page-export.active{display:block;overflow-y:auto;padding:1.75rem 2rem}
 
-    /* ── PAGES ── */
-    .forge-page { display: none; flex: 1; overflow-y: auto; }
-    .forge-page.active { display: flex; flex-direction: column; }
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:0.35rem;height:32px;padding:0 0.9rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-body);transition:border-color 0.15s,color 0.15s}
+    .btn:hover{border-color:var(--teal);color:var(--teal)}
+    .btn-primary{background:var(--teal);border-color:var(--teal);color:#fff}
+    .btn-primary:hover{background:var(--teal-bright);border-color:var(--teal-bright);color:#fff}
+    .btn:disabled{opacity:0.4;cursor:not-allowed}
+    .btn-sm{height:26px;padding:0 0.65rem;font-size:0.68rem}
+    .action-btn{height:26px;padding:0 0.7rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;border:1px solid var(--teal);background:transparent;color:var(--teal);cursor:pointer}
+    .action-btn:hover{background:var(--teal-dim)}
 
-    /* Builder page: no overflow on self — table handles it */
-    #forge-page-builder { padding: 0; overflow: hidden; }
-    #forge-page-builder.active { display: flex; }
+    /* INPUTS */
+    .inp{width:100%;height:34px;padding:0 0.75rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;background:var(--bg-input);border:1px solid var(--border-inner);border-radius:6px;color:var(--text)}
+    .inp:focus{outline:none;border-color:var(--teal)}
 
-    #forge-page-export { padding: 1.75rem 2rem; overflow-y: auto; }
-    #forge-page-export.active { display: block; }
+    /* TOOLBAR */
+    .forge-toolbar{display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;background:var(--bg)}
+    .forge-search{height:28px;width:200px;padding:0 0.7rem;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;background:var(--bg-input);border:1px solid var(--border-inner);border-radius:6px;color:var(--text)}
+    .forge-search:focus{outline:none;border-color:var(--teal)}
+    .toolbar-count{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--text-muted);white-space:nowrap;margin-left:auto}
+    .view-toggle{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+    .vt-btn{height:26px;padding:0 0.6rem;font-size:0.7rem;cursor:pointer;background:var(--bg-card);color:var(--text-muted);border:none;display:flex;align-items:center;font-family:'IBM Plex Mono',monospace;transition:background 0.1s,color 0.1s;gap:0.3rem}
+    .vt-btn.active{background:var(--bg-input);color:var(--teal)}
 
-    /* ── BUTTONS ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 0.35rem;
-      height: 32px; padding: 0 0.9rem;
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
-      border-radius: 6px; cursor: pointer; border: 1px solid var(--border);
-      background: var(--bg-card); color: var(--text-body);
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .btn:hover { border-color: var(--teal); color: var(--teal); }
-    .btn-primary { background: var(--teal); border-color: var(--teal); color: #fff; }
-    .btn-primary:hover { background: var(--teal-bright); border-color: var(--teal-bright); color: #fff; }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-sm { height: 26px; padding: 0 0.7rem; font-size: 0.68rem; }
+    /* EMPTY */
+    .forge-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:0.75rem;padding:3rem}
+    .forge-empty-icon{font-size:2.5rem;line-height:1}
+    .forge-empty-title{font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-weight:500;color:var(--text-title)}
+    .forge-empty-sub{font-size:0.78rem;color:var(--text-muted);text-align:center;max-width:340px;line-height:1.5}
 
-    /* ── INPUTS ── */
-    .inp {
-      width: 100%; height: 34px; padding: 0 0.75rem;
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
-      background: var(--bg-input); border: 1px solid var(--border-inner);
-      border-radius: 6px; color: var(--text);
-    }
-    .inp:focus { outline: none; border-color: var(--teal); }
-    textarea.inp { height: 90px; padding: 0.6rem 0.75rem; resize: none; }
-    .inp-inline {
-      background: var(--bg-input); border: 1px solid var(--teal);
-      border-radius: 4px; color: var(--text);
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
-      padding: 0 0.4rem; height: 26px;
-    }
-    .inp-inline:focus { outline: none; }
+    /* SUGGEST BANNER */
+    .suggest-banner{background:var(--warn-bg);border:1px solid rgba(200,150,58,0.25);border-radius:7px;padding:0.6rem 0.85rem;margin:0.5rem 1.25rem 0;display:flex;align-items:center;gap:0.75rem;flex-shrink:0}
+    .suggest-text{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--warn);flex:1;line-height:1.4}
+    .suggest-dismiss{background:none;border:none;color:var(--warn);cursor:pointer;font-size:0.8rem;opacity:0.7}
+    .suggest-dismiss:hover{opacity:1}
 
-    /* ── TOOLBAR ── */
-    .forge-toolbar {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.65rem 1.5rem; border-bottom: 1px solid var(--border);
-      flex-shrink: 0; flex-wrap: wrap; background: var(--bg);
-    }
-    .forge-search {
-      height: 28px; flex: 1; min-width: 160px; max-width: 260px; padding: 0 0.7rem;
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
-      background: var(--bg-input); border: 1px solid var(--border-inner);
-      border-radius: 6px; color: var(--text);
-    }
-    .forge-search:focus { outline: none; border-color: var(--teal); }
-    .toolbar-count {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
-      color: var(--text-muted); white-space: nowrap; margin-left: auto;
-    }
-    .view-toggle {
-      display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
-    }
-    .vt-btn {
-      height: 26px; width: 32px; font-size: 11px; cursor: pointer;
-      background: var(--bg-card); color: var(--text-muted); border: none;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'IBM Plex Mono', monospace;
-    }
-    .vt-btn.active { background: var(--bg-input); color: var(--text); }
-    .forge-action-btn {
-      height: 26px; padding: 0 0.7rem; border-radius: 6px;
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
-      border: 1px solid var(--teal); background: transparent; color: var(--teal); cursor: pointer;
-    }
-    .forge-action-btn:hover { background: var(--teal-dim); }
+    /* TREE VIEW */
+    .forge-tree-scroll{flex:1;overflow-y:auto;overflow-x:auto}
+    .forge-tree{padding:0.35rem 0 2rem;min-width:560px}
 
-    /* ── TABLE VIEW ── */
-    .forge-table-wrap {
-      flex: 1; overflow: auto;
-    }
-    table {
-      width: 100%; border-collapse: collapse;
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
-      table-layout: fixed;
-    }
-    thead th {
-      text-align: left; padding: 0.5rem 0.75rem;
-      font-size: 0.65rem; font-weight: 500; color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-      background: var(--bg-card-hd); position: sticky; top: 0; z-index: 10;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    tbody tr { border-bottom: 1px solid var(--border-inner); transition: background 0.1s; }
-    tbody tr:hover { background: var(--bg-card-hd); }
-    tbody tr.forge-row-dimmed { opacity: 0.3; }
-    tbody tr.forge-row-highlight td.col-label { color: var(--teal); }
-    td {
-      padding: 0.5rem 0.75rem; color: var(--text-body);
-      vertical-align: middle; overflow: hidden;
-      text-overflow: ellipsis; white-space: nowrap;
-    }
+    .tree-row{display:flex;align-items:center;height:30px;padding-right:0.75rem;transition:background 0.07s;cursor:default;position:relative}
+    .tree-row:hover{background:var(--bg-card-hd)}
+    .tree-row.drag-source{opacity:0.35}
+    .tree-row.tree-dimmed{opacity:0.28}
+    .tree-row.tree-highlight .row-label{color:var(--teal)}
 
-    /* Column widths */
-    .col-drag   { width: 28px; }
-    .col-indent { width: 32px; }
-    .col-type   { width: 70px; }
-    .col-label  { width: 22%; }
-    .col-slug   { width: 18%; }
-    .col-path   { width: 28%; }
-    .col-source { width: 90px; }
-    .col-notes  { width: 14%; }
-    .col-acts   { width: 80px; }
+    .tree-indent{display:flex;align-items:stretch;flex-shrink:0;height:30px}
+    .ti-spacer{width:18px;flex-shrink:0;position:relative}
+    .ti-spacer.has-line::before{content:'';position:absolute;left:9px;top:0;bottom:0;width:1px;background:var(--border-soft)}
+    .ti-branch{width:18px;flex-shrink:0;position:relative}
+    .ti-branch::before{content:'';position:absolute;left:9px;top:0;height:15px;width:1px;background:var(--border-soft)}
+    .ti-branch::after{content:'';position:absolute;left:9px;top:15px;width:9px;height:1px;background:var(--border-soft)}
+    .ti-branch.last-child::before{height:15px}
+    .ti-cont{width:18px;flex-shrink:0;position:relative}
+    .ti-cont.has-line::before{content:'';position:absolute;left:9px;top:0;bottom:0;width:1px;background:var(--border-soft)}
 
-    /* Drag handle */
-    .drag-handle {
-      color: var(--text-dim); cursor: grab; padding: 0 0.25rem;
-      font-size: 0.75rem; line-height: 1; user-select: none;
-    }
-    .drag-handle:hover { color: var(--text-muted); }
+    .row-toggle{width:15px;height:15px;flex-shrink:0;margin-right:4px;border:1px solid var(--border-soft);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-family:'IBM Plex Mono',monospace;color:var(--text-muted);cursor:pointer;background:var(--bg-input)}
+    .row-toggle:hover{border-color:var(--teal);color:var(--teal)}
+    .row-toggle-sp{width:19px;flex-shrink:0}
 
-    /* Indent indicator */
-    .indent-wrap {
-      display: flex; align-items: center; gap: 2px;
-    }
-    .indent-pip {
-      width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
-      background: var(--border-soft);
-    }
+    .drag-handle{color:var(--text-dim);cursor:grab;padding:0 4px 0 5px;font-size:0.7rem;user-select:none;flex-shrink:0}
+    .tree-row:hover .drag-handle{color:var(--text-muted)}
 
-    /* Type pill */
-    .type-pill {
-      display: inline-block; padding: 2px 6px; border-radius: 99px;
-      font-size: 0.62rem; font-weight: 500; cursor: pointer;
-      transition: opacity 0.15s; white-space: nowrap;
-    }
-    .type-pill:hover { opacity: 0.75; }
-    .type-page { background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal); }
-    .type-nav  { background: transparent; color: var(--text-muted); border: 1px dashed var(--text-dim); }
+    .type-pill{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;padding:1px 5px;border-radius:99px;cursor:pointer;flex-shrink:0;margin-right:5px;transition:opacity 0.12s}
+    .type-pill:hover{opacity:0.7}
+    .tp-page{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)}
+    .tp-nav{background:transparent;color:var(--text-muted);border:1px dashed var(--text-dim)}
 
-    /* Source pill (Atlas disposition) */
-    .src-pill {
-      display: inline-block; padding: 2px 7px; border-radius: 99px;
-      font-size: 0.62rem; font-weight: 500; white-space: nowrap;
-      border-left: 3px solid transparent;
-    }
-    .src-keep     { border-left-color: var(--c-keep);     color: var(--c-keep); }
-    .src-rewrite  { border-left-color: var(--c-rewrite);  color: var(--c-rewrite); }
-    .src-new      { border-left-color: var(--c-new);      color: var(--c-new); }
-    .src-merge    { border-left-color: var(--c-merge);    color: var(--c-merge); }
-    .src-redirect { border-left-color: var(--c-redirect); color: var(--c-redirect); }
-    .src-delete   { border-left-color: var(--c-delete);   color: var(--c-delete); }
-    .src-manual   { border-left-color: var(--text-dim);   color: var(--text-muted); }
+    .row-label{font-family:'IBM Plex Mono',monospace;font-size:0.74rem;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;min-width:0}
+    .row-label:hover{color:var(--teal)}
+    .row-label.ghost-lbl{color:var(--text-dim);font-style:italic}
 
-    /* Merge ghost row */
-    tbody tr.merge-ghost td {
-      color: var(--text-dim); font-style: italic;
-    }
-    tbody tr.merge-ghost td.col-label {
-      padding-left: 2rem;
-    }
-    tbody tr.merge-ghost { background: transparent; }
-    tbody tr.merge-ghost:hover { background: var(--bg-card-hd); }
+    .row-slug{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--text-muted);flex-shrink:0;margin:0 0.45rem;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
 
-    /* Row actions */
-    .row-acts {
-      display: flex; gap: 4px; opacity: 0;
-      transition: opacity 0.1s;
-    }
-    tbody tr:hover .row-acts { opacity: 1; }
-    .ra-btn {
-      width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border-inner);
-      background: var(--bg-card); color: var(--text-muted); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-family: 'IBM Plex Mono', monospace;
-      transition: border-color 0.1s, color 0.1s;
-    }
-    .ra-btn:hover { border-color: var(--teal); color: var(--teal); }
-    .ra-btn.ra-del:hover { border-color: var(--err); color: var(--err); }
+    .src-pill{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;padding:1px 5px;border-radius:99px;flex-shrink:0;margin-right:3px;white-space:nowrap}
+    .sp-keep{color:var(--c-keep);border:1px solid rgba(90,171,114,0.3);background:rgba(90,171,114,0.08)}
+    .sp-rewrite{color:var(--c-rewrite);border:1px solid rgba(200,150,58,0.3);background:rgba(200,150,58,0.08)}
+    .sp-new{color:var(--c-new);border:1px solid rgba(154,128,224,0.3);background:rgba(154,128,224,0.08)}
+    .sp-merge{color:var(--c-merge);border:1px solid rgba(90,138,200,0.3);background:rgba(90,138,200,0.08)}
+    .sp-redirect{color:var(--c-redirect);border:1px solid rgba(0,160,160,0.3);background:rgba(0,160,160,0.08)}
+    .sp-delete{color:var(--c-delete);border:1px solid rgba(200,106,90,0.3);background:rgba(200,106,90,0.08)}
 
-    /* Inline edit cell */
-    .label-cell { cursor: pointer; }
-    .label-cell:hover { color: var(--text); }
-    .slug-cell  { color: var(--text-muted); cursor: pointer; }
-    .slug-cell:hover { color: var(--text); }
-    .path-cell  { color: var(--text-dim); font-size: 0.65rem; }
-    .notes-cell { color: var(--text-muted); cursor: pointer; font-size: 0.68rem; }
-    .notes-cell:hover { color: var(--text); }
+    .group-badge{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;background:var(--warn-bg);color:var(--warn);border:1px solid rgba(200,150,58,0.3);border-radius:99px;padding:1px 5px;flex-shrink:0;margin-right:3px}
+    .child-count{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;background:var(--bg-input);color:var(--text-muted);border:1px solid var(--border-inner);border-radius:99px;padding:1px 5px;flex-shrink:0;margin-right:3px}
 
-    /* ── EMPTY STATE ── */
-    .forge-empty {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      flex: 1; gap: 0.75rem; padding: 3rem;
-    }
-    .forge-empty-icon { font-size: 2.5rem; line-height: 1; }
-    .forge-empty-title {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.9rem;
-      font-weight: 500; color: var(--text-title);
-    }
-    .forge-empty-sub { font-size: 0.78rem; color: var(--text-muted); text-align: center; max-width: 320px; line-height: 1.5; }
+    .row-acts{display:flex;gap:3px;opacity:0;flex-shrink:0}
+    .tree-row:hover .row-acts{opacity:1}
+    .ra-btn{width:20px;height:20px;border-radius:3px;border:1px solid var(--border-inner);background:var(--bg-card);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-family:'IBM Plex Mono',monospace;transition:border-color 0.1s,color 0.1s}
+    .ra-btn:hover{border-color:var(--teal);color:var(--teal)}
+    .ra-btn.ra-del:hover{border-color:var(--err);color:var(--err)}
 
-    /* ── TREE VIEW ── */
-    .forge-tree-wrap {
-      flex: 1; overflow: auto; padding: 1.5rem 2rem;
-    }
-    .tree-node {
-      display: flex; align-items: flex-start;
-      padding: 3px 0;
-    }
-    .tree-line-wrap {
-      display: flex; align-items: stretch; flex-shrink: 0;
-    }
-    .tree-line {
-      width: 20px; border-left: 1px solid var(--border-soft);
-      border-bottom: 1px solid var(--border-soft);
-      margin-bottom: 8px; flex-shrink: 0;
-    }
-    .tree-node-inner {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 3px 8px; border-radius: 5px;
-      border-left: 3px solid transparent;
-      flex: 1; min-width: 0;
-    }
-    .tree-node-inner:hover { background: var(--bg-card-hd); }
-    .tree-node-label {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;
-      color: var(--text); white-space: nowrap;
-    }
-    .tree-node-path {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
-      color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .tree-node-inner.type-nav-node {
-      border-left-color: var(--text-dim); border-left-style: dashed;
-    }
-    .tree-node-inner.type-page-node {
-      border-left-color: transparent;
-    }
-    /* src colours on tree nodes */
-    .tree-src-keep     { border-left-color: var(--c-keep) !important; }
-    .tree-src-rewrite  { border-left-color: var(--c-rewrite) !important; }
-    .tree-src-new      { border-left-color: var(--c-new) !important; }
-    .tree-src-merge    { border-left-color: var(--c-merge) !important; border-left-style: dashed !important; }
-    .tree-src-redirect { border-left-color: var(--c-redirect) !important; border-left-style: dashed !important; }
-    .tree-src-delete   { border-left-color: var(--c-delete) !important; border-left-style: dashed !important; }
-    .tree-node-merge-label {
-      font-size: 0.62rem; color: var(--text-dim); font-style: italic; margin-left: 0.25rem;
-    }
-    .tree-children { padding-left: 20px; }
+    /* KANBAN */
+    .forge-kanban-scroll{flex:1;overflow-x:auto;overflow-y:hidden;display:flex}
+    .forge-kanban{display:flex;gap:0.75rem;padding:0.85rem 1.25rem 2rem;align-items:flex-start}
+    .kb-col{flex:0 0 190px;display:flex;flex-direction:column;max-height:calc(100vh - 160px)}
+    .kb-col-hd{padding:0.4rem 0.5rem 0.35rem;border-bottom:1px solid var(--border-inner);margin-bottom:0.4rem;display:flex;align-items:center;gap:0.35rem}
+    .kb-col-name{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;color:var(--text-title);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .kb-col-count{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--text-dim)}
+    .kb-col-body{flex:1;overflow-y:auto;padding:0 2px}
+    .kb-add{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--text-dim);border:1px dashed var(--border-inner);border-radius:5px;padding:0.35rem;text-align:center;cursor:pointer;background:transparent;width:100%;margin-top:0.35rem;transition:border-color 0.12s,color 0.12s}
+    .kb-add:hover{border-color:var(--teal);color:var(--teal)}
+    .kb-card{background:var(--bg-card);border:1px solid var(--border);border-left:2px solid transparent;border-radius:5px;padding:0.4rem 0.55rem;margin-bottom:0.3rem;cursor:pointer;transition:border-color 0.1s}
+    .kb-card:hover{border-color:var(--border-soft)}
+    .kbc-keep{border-left-color:var(--c-keep)}
+    .kbc-rewrite{border-left-color:var(--c-rewrite)}
+    .kbc-new{border-left-color:var(--c-new)}
+    .kbc-merge{border-left-color:var(--c-merge)}
+    .kbc-redirect{border-left-color:var(--c-redirect)}
+    .kbc-delete{border-left-color:var(--c-delete)}
+    .kbc-nav{border-left-color:transparent;border-style:dashed}
+    .kbc-group{border-left-color:var(--warn)}
+    .kb-card-name{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+    .kb-card-slug{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text-muted)}
+    .kb-card-badges{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
+    .kb-card-ghost{font-style:italic;opacity:0.45}
 
-    /* ── MODALS ── */
-    .forge-modal-overlay {
-      display: none; position: fixed; inset: 0; z-index: 600;
-      background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
-    }
-    .forge-modal-overlay.open { display: flex; }
-    .forge-modal {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 10px; width: 500px; max-width: 95vw;
-      display: flex; flex-direction: column;
-    }
-    .forge-modal-hd {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border-inner);
-    }
-    .forge-modal-title {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
-      font-weight: 500; color: var(--text-title);
-    }
-    .forge-modal-close {
-      background: none; border: none; color: var(--text-muted);
-      cursor: pointer; font-size: 0.9rem; padding: 0.2rem;
-    }
-    .forge-modal-close:hover { color: var(--text); }
-    .forge-modal-body { padding: 1rem 1.1rem; }
-    .forge-modal-footer {
-      display: flex; justify-content: flex-end; gap: 0.5rem;
-      padding: 0.75rem 1.1rem; border-top: 1px solid var(--border-inner);
-    }
-    .modal-help {
-      font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.85rem; line-height: 1.5;
-    }
-    .modal-field { margin-bottom: 0.75rem; }
-    .modal-label {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
-      color: var(--text-muted); margin-bottom: 0.3rem; display: block;
-    }
-    .modal-hint {
-      font-size: 0.65rem; color: var(--text-dim); margin-top: 0.2rem;
-    }
+    /* MODALS */
+    .forge-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.6);align-items:center;justify-content:center}
+    .forge-overlay.open{display:flex}
+    .forge-modal{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;width:500px;max-width:95vw;display:flex;flex-direction:column;max-height:90vh}
+    .modal-hd{display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1.1rem;border-bottom:1px solid var(--border-inner);flex-shrink:0}
+    .modal-title{font-family:'IBM Plex Mono',monospace;font-size:0.82rem;font-weight:500;color:var(--text-title)}
+    .modal-close{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.9rem;padding:0.2rem}
+    .modal-close:hover{color:var(--text)}
+    .modal-body{padding:1rem 1.1rem;overflow-y:auto}
+    .modal-footer{display:flex;justify-content:flex-end;gap:0.5rem;padding:0.7rem 1.1rem;border-top:1px solid var(--border-inner);flex-shrink:0}
+    .modal-help{font-size:0.7rem;color:var(--text-muted);margin-bottom:0.8rem;line-height:1.5}
+    .modal-field{margin-bottom:0.7rem}
+    .modal-label{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:var(--text-muted);margin-bottom:0.28rem;display:block}
+    .modal-hint{font-size:0.6rem;color:var(--text-dim);margin-top:0.18rem}
 
-    /* Init modal option cards */
-    .init-options { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem; }
-    .init-opt {
-      border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem;
-      cursor: pointer; transition: border-color 0.15s, background 0.15s;
-      display: flex; align-items: flex-start; gap: 0.75rem;
-    }
-    .init-opt:hover { border-color: var(--teal); }
-    .init-opt.selected { border-color: var(--teal); background: var(--teal-dim); }
-    .init-opt-icon { font-size: 1.25rem; line-height: 1; flex-shrink: 0; margin-top: 2px; }
-    .init-opt-body {}
-    .init-opt-title {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;
-      font-weight: 500; color: var(--text-title); margin-bottom: 0.2rem;
-    }
-    .init-opt-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
+    .init-options{display:flex;flex-direction:column;gap:0.45rem;margin-top:0.45rem}
+    .init-opt{border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.9rem;cursor:pointer;transition:border-color 0.12s,background 0.12s;display:flex;align-items:flex-start;gap:0.65rem}
+    .init-opt:hover{border-color:var(--teal)}
+    .init-opt.selected{border-color:var(--teal);background:var(--teal-dim)}
+    .init-opt-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+    .init-opt-title{font-family:'IBM Plex Mono',monospace;font-size:0.73rem;font-weight:500;color:var(--text-title);margin-bottom:0.12rem}
+    .init-opt-desc{font-size:0.68rem;color:var(--text-muted);line-height:1.4}
 
-    /* Import filter checkboxes */
-    .import-filter { margin-top: 0.75rem; }
-    .import-filter-title {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
-      color: var(--text-muted); margin-bottom: 0.5rem;
-    }
-    .import-filter-opts {
-      display: flex; flex-wrap: wrap; gap: 0.4rem;
-    }
-    .import-filter-opt {
-      display: flex; align-items: center; gap: 0.35rem;
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
-      color: var(--text-body); padding: 3px 8px; border-radius: 99px;
-      border: 1px solid var(--border); cursor: pointer; user-select: none;
-      transition: border-color 0.15s;
-    }
-    .import-filter-opt input[type=checkbox] { accent-color: var(--teal); cursor: pointer; }
-    .ifo-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .filter-pills{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.45rem}
+    .filter-pill{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;padding:2px 7px;border-radius:99px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:0.28rem;user-select:none}
+    .filter-pill.fp-active{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+    .fp-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 
-    /* ── EXPORT PAGE ── */
-    .page-hd { margin-bottom: 1.5rem; }
-    .page-hd-title {
-      font-family: 'IBM Plex Mono', monospace; font-size: 1rem;
-      font-weight: 500; color: var(--text-strong);
-    }
-    .page-hd-sub {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
-      color: var(--text-muted); margin-top: 0.25rem;
-    }
-    .stats-row {
-      display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
-    }
-    .stat-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 8px; padding: 1rem 1.25rem; flex: 1; min-width: 120px;
-    }
-    .stat-label {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
-      color: var(--text-muted); margin-bottom: 0.4rem;
-    }
-    .stat-val {
-      font-family: 'IBM Plex Mono', monospace; font-size: 1.5rem;
-      font-weight: 600; color: var(--text-strong); line-height: 1;
-    }
-    .stat-sub {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem;
-      color: var(--text-dim); margin-top: 0.3rem;
-    }
-    .section-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
-    .section-label-sm {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
-      color: var(--text-muted); margin-bottom: 0.75rem;
-    }
-    .export-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1rem; margin-bottom: 1.5rem;
-    }
-    .export-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 8px; padding: 1.1rem 1.1rem 1rem;
-      display: flex; flex-direction: column; gap: 0.5rem;
-    }
-    .export-card-title {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem;
-      font-weight: 500; color: var(--text-title);
-    }
-    .export-card-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; flex: 1; }
-    .export-card-meta {
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--text-dim);
-    }
-    .breakdown {
-      display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;
-    }
-    .bd-item {
-      display: flex; align-items: center; gap: 0.4rem;
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
-      color: var(--text-muted);
-    }
-    .bd-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .type-btns{display:flex;gap:0.45rem}
+    .type-btn{height:28px;padding:0 0.7rem;font-family:'IBM Plex Mono',monospace;font-size:0.67rem;border-radius:5px;cursor:pointer;border:1px solid var(--border);background:var(--bg-input);color:var(--text-muted);transition:all 0.12s}
+    .type-btn.active{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+
+    /* EXPORT */
+    .page-hd{margin-bottom:1.4rem}
+    .page-hd-title{font-family:'IBM Plex Mono',monospace;font-size:1rem;font-weight:500;color:var(--text-strong)}
+    .page-hd-sub{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-muted);margin-top:0.2rem}
+    .stats-row{display:flex;gap:0.85rem;margin-bottom:1.35rem;flex-wrap:wrap}
+    .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.9rem 1.1rem;flex:1;min-width:100px}
+    .stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text-muted);margin-bottom:0.3rem}
+    .stat-val{font-family:'IBM Plex Mono',monospace;font-size:1.35rem;font-weight:600;color:var(--text-strong);line-height:1}
+    .stat-sub{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--text-dim);margin-top:0.25rem}
+    .section-divider{border:none;border-top:1px solid var(--border);margin:1.1rem 0}
+    .section-label{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--text-muted);margin-bottom:0.7rem}
+    .export-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0.85rem;margin-bottom:1.35rem}
+    .export-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.9rem 1rem;display:flex;flex-direction:column;gap:0.4rem}
+    .export-card-title{font-family:'IBM Plex Mono',monospace;font-size:0.76rem;font-weight:500;color:var(--text-title)}
+    .export-card-desc{font-size:0.68rem;color:var(--text-muted);line-height:1.4;flex:1}
+    .export-card-meta{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text-dim)}
+    .group-exp-opts{background:var(--bg-input);border:1px solid var(--border-inner);border-radius:6px;padding:0.7rem 0.8rem;margin-bottom:0.9rem}
+    .geo-title{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:var(--text-muted);margin-bottom:0.45rem}
+    .geo-opt{display:flex;align-items:flex-start;gap:0.45rem;margin-bottom:0.35rem;cursor:pointer}
+    .geo-opt input{accent-color:var(--teal);margin-top:2px;flex-shrink:0}
+    .geo-opt-label{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--text-body)}
+    .geo-opt-desc{font-size:0.62rem;color:var(--text-dim);margin-top:1px}
+
+    #forge-toast{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.45rem 0.9rem;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-body);z-index:800;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
   </style>
 </head>
 <body>
-
 <div class="forge-wrap">
 
-  <!-- ── TAB NAV ── -->
   <nav class="forge-tabnav">
-    <button class="nav-tab active" data-page="builder">
-      <span class="nav-emoji">🏗</span>Builder
-    </button>
-    <button class="nav-tab" data-page="export">
-      <span class="nav-emoji">📤</span>Export
-    </button>
+    <button class="nav-tab active" data-page="builder"><span class="nav-emoji">🏗</span>Builder</button>
+    <button class="nav-tab" data-page="export"><span class="nav-emoji">📤</span>Export</button>
   </nav>
 
-  <!-- ══════════════════════════════════════════
-       BUILDER PAGE
-  ══════════════════════════════════════════ -->
-  <div class="forge-page" id="forge-page-builder">
+  <!-- BUILDER -->
+  <div class="forge-page active" id="forge-page-builder">
 
-    <!-- Toolbar -->
+    <div class="suggest-banner" id="forge-suggest" style="display:none">
+      <span class="suggest-text" id="forge-suggest-text"></span>
+      <button class="btn btn-sm" onclick="forgeAcceptSuggest()">Group them →</button>
+      <button class="suggest-dismiss" onclick="forgeDismissSuggest()">✕</button>
+    </div>
+
     <div class="forge-toolbar" id="forge-toolbar" style="display:none">
       <input class="forge-search" type="text" id="forge-search" placeholder="Search pages…" oninput="forgeSearch(this.value)" />
-      <button class="forge-action-btn" onclick="forgeUndo()" title="Undo">↩ Undo</button>
-      <button class="forge-action-btn" onclick="forgeRedo()" title="Redo">↪ Redo</button>
-      <button class="forge-action-btn" onclick="forgeAddRootChild()">+ Add page</button>
-      <button class="forge-action-btn" onclick="forgeShowImportModal()">↓ Import</button>
+      <button class="action-btn" onclick="forgeUndo()">↩ Undo</button>
+      <button class="action-btn" onclick="forgeRedo()">↪ Redo</button>
+      <button class="action-btn" onclick="forgeAddRoot()">+ Add page</button>
+      <button class="action-btn" onclick="forgeShowImport()">↓ Import</button>
       <span class="toolbar-count" id="forge-count"></span>
       <div class="view-toggle">
-        <button class="vt-btn active" id="vt-table" title="Table view" onclick="forgeSetView('table')">☰</button>
-        <button class="vt-btn"        id="vt-tree"  title="Tree view"  onclick="forgeSetView('tree')">⌥</button>
+        <button class="vt-btn active" id="vt-tree"   onclick="forgeSetView('tree')">⌥ Tree</button>
+        <button class="vt-btn"        id="vt-kanban" onclick="forgeSetView('kanban')">⊞ Cols</button>
       </div>
     </div>
 
-    <!-- Table view -->
-    <div class="forge-table-wrap" id="forge-table-wrap" style="display:none">
-      <table id="forge-table">
-        <thead>
-          <tr>
-            <th class="col-drag"></th>
-            <th class="col-indent">Depth</th>
-            <th class="col-type">Type</th>
-            <th class="col-label">Label</th>
-            <th class="col-slug">Slug</th>
-            <th class="col-path">Full path</th>
-            <th class="col-source">Source</th>
-            <th class="col-notes">Notes</th>
-            <th class="col-acts"></th>
-          </tr>
-        </thead>
-        <tbody id="forge-tbody"></tbody>
-      </table>
-      <div id="forge-empty" class="forge-empty" style="display:none">
-        <div class="forge-empty-icon">🔨</div>
-        <div class="forge-empty-title">No pages yet</div>
-        <div class="forge-empty-sub">Add a page using the toolbar, or use Import to pull in content from Atlas or Canopy.</div>
-      </div>
-    </div>
+    <div class="forge-tree-scroll" id="forge-tree-wrap" style="display:none"><div class="forge-tree" id="forge-tree"></div></div>
+    <div class="forge-kanban-scroll" id="forge-kanban-wrap" style="display:none"><div class="forge-kanban" id="forge-kanban"></div></div>
 
-    <!-- Tree view -->
-    <div class="forge-tree-wrap" id="forge-tree-wrap" style="display:none">
-      <div id="forge-tree-root"></div>
-    </div>
-
-    <!-- Init screen -->
     <div class="forge-empty" id="forge-init-screen">
       <div class="forge-empty-icon">🔨</div>
       <div class="forge-empty-title">Design the new structure</div>
-      <div class="forge-empty-sub">Forge is where you design the new site IA — sections, pages, slugs, hierarchy. Start from scratch or import from Atlas or Canopy.</div>
+      <div class="forge-empty-sub">Build the new site IA from scratch, or import from Atlas or Canopy to start from the existing structure.</div>
       <button class="btn btn-primary" onclick="forgeShowInitModal()" style="margin-top:0.5rem">Get started →</button>
     </div>
+  </div>
 
-  </div><!-- /forge-page-builder -->
-
-
-  <!-- ══════════════════════════════════════════
-       EXPORT PAGE
-  ══════════════════════════════════════════ -->
+  <!-- EXPORT -->
   <div class="forge-page" id="forge-page-export">
-
     <div class="page-hd">
       <div class="page-hd-title">Export</div>
-      <div class="page-hd-sub" id="forge-export-sub">—</div>
+      <div class="page-hd-sub" id="exp-sub">—</div>
     </div>
-
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Total pages</div>
-        <div class="stat-val" id="exp-total">0</div>
-        <div class="stat-sub">incl. nav parents</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Exportable URLs</div>
-        <div class="stat-val" id="exp-urls">0</div>
-        <div class="stat-sub">non-merge rows</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Nav parents</div>
-        <div class="stat-val" id="exp-nav">0</div>
-        <div class="stat-sub">no page content</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Max depth</div>
-        <div class="stat-val" id="exp-depth">0</div>
-        <div class="stat-sub">levels</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">Total pages</div><div class="stat-val" id="exp-total">0</div><div class="stat-sub">excl. merge ghosts</div></div>
+      <div class="stat-card"><div class="stat-label">Grouped sets</div><div class="stat-val" id="exp-groups">0</div><div class="stat-sub">consolidated</div></div>
+      <div class="stat-card"><div class="stat-label">Nav parents</div><div class="stat-val" id="exp-nav">0</div><div class="stat-sub">no page content</div></div>
+      <div class="stat-card"><div class="stat-label">Max depth</div><div class="stat-val" id="exp-depth">0</div><div class="stat-sub">levels</div></div>
     </div>
-
-    <div class="breakdown" id="forge-exp-breakdown"></div>
-
+    <div class="group-exp-opts" id="exp-group-opts" style="display:none">
+      <div class="geo-title">For grouped items, export:</div>
+      <label class="geo-opt"><input type="radio" name="geo" id="geo-all" checked /><div><div class="geo-opt-label">All original paths</div><div class="geo-opt-desc">Every individual URL — e.g. all 200 blog post paths</div></div></label>
+      <label class="geo-opt"><input type="radio" name="geo" id="geo-parent" /><div><div class="geo-opt-label">Parent path only</div><div class="geo-opt-desc">Just /blog — individual posts excluded</div></div></label>
+    </div>
     <hr class="section-divider" />
-    <div class="section-label-sm">Export to</div>
-
+    <div class="section-label">Export to</div>
     <div class="export-grid">
       <div class="export-card">
         <div class="export-card-title">🧭 Send to Waypoint</div>
         <div class="export-card-desc">Passes all exportable paths as the new-site URL list in Waypoint's Mapper.</div>
-        <div class="export-card-meta" id="exp-waypoint-meta">—</div>
+        <div class="export-card-meta" id="exp-wp-meta">—</div>
         <button class="btn btn-primary" onclick="forgeSendToWaypoint()">Open in Waypoint →</button>
       </div>
       <div class="export-card">
         <div class="export-card-title">↓ CSV</div>
-        <div class="export-card-desc">Full structure as a spreadsheet. Path, label, depth, type, source, notes.</div>
+        <div class="export-card-desc">Full structure — path, label, depth, type, source, notes.</div>
         <div class="export-card-meta" id="exp-csv-meta">—</div>
         <button class="btn" onclick="forgeExportCSV()">Download .csv</button>
       </div>
       <div class="export-card">
         <div class="export-card-title">⎘ Copy paths</div>
-        <div class="export-card-desc">Copy all exportable paths to clipboard, one per line.</div>
+        <div class="export-card-desc">All exportable paths to clipboard, one per line.</div>
         <div class="export-card-meta" id="exp-copy-meta">—</div>
         <button class="btn" onclick="forgeCopyPaths()">Copy to clipboard</button>
       </div>
     </div>
+  </div>
 
-  </div><!-- /forge-page-export -->
-
-
-  <!-- ══════════════════════════════════════════
-       INIT MODAL
-  ══════════════════════════════════════════ -->
-  <div class="forge-modal-overlay" id="forge-init-overlay">
-    <div class="forge-modal" style="width:520px">
-      <div class="forge-modal-hd">
-        <span class="forge-modal-title">Start building</span>
-      </div>
-      <div class="forge-modal-body">
-        <div class="modal-help">Choose how to begin. You can always add more pages or import more content later.</div>
+  <!-- INIT MODAL -->
+  <div class="forge-overlay" id="forge-init-overlay">
+    <div class="forge-modal" style="width:510px">
+      <div class="modal-hd"><span class="modal-title">Start building</span></div>
+      <div class="modal-body">
+        <div class="modal-help">Choose how to begin. You can add more pages or import more content at any time.</div>
         <div class="init-options">
-          <div class="init-opt selected" id="init-opt-blank" onclick="forgeSelectInitOpt('blank')">
+          <div class="init-opt selected" id="init-blank" onclick="forgePickInit('blank')">
             <div class="init-opt-icon">✦</div>
-            <div class="init-opt-body">
-              <div class="init-opt-title">Start blank</div>
-              <div class="init-opt-desc">Begin with a single root (Home) node and build from scratch.</div>
-            </div>
+            <div><div class="init-opt-title">Start blank</div><div class="init-opt-desc">A single Home root. Build from scratch.</div></div>
           </div>
-          <div class="init-opt" id="init-opt-atlas" onclick="forgeSelectInitOpt('atlas')">
+          <div class="init-opt" id="init-atlas" onclick="forgePickInit('atlas')">
             <div class="init-opt-icon">🗺</div>
-            <div class="init-opt-body">
+            <div>
               <div class="init-opt-title">Import from Atlas</div>
-              <div class="init-opt-desc">Seed the structure from your content inventory. Keep, Rewrite, and New rows are included by default.</div>
-              <div class="import-filter" id="atlas-import-filter">
-                <div class="import-filter-title">Also include:</div>
-                <div class="import-filter-opts">
-                  <label class="import-filter-opt">
-                    <input type="checkbox" id="imp-merge"    /> <span class="ifo-dot" style="background:var(--c-merge)"></span> Merge
-                  </label>
-                  <label class="import-filter-opt">
-                    <input type="checkbox" id="imp-redirect" /> <span class="ifo-dot" style="background:var(--c-redirect)"></span> Redirect
-                  </label>
-                  <label class="import-filter-opt">
-                    <input type="checkbox" id="imp-delete"   /> <span class="ifo-dot" style="background:var(--c-delete)"></span> Delete
-                  </label>
-                </div>
+              <div class="init-opt-desc">Seed from your content inventory. Keep, Rewrite, and New included by default.</div>
+              <div class="filter-pills" id="atlas-init-pills" style="display:none">
+                <div class="filter-pill fp-active" data-disp="keep" onclick="forgeToggleInitPill(this)"><span class="fp-dot" style="background:var(--c-keep)"></span>Keep</div>
+                <div class="filter-pill fp-active" data-disp="rewrite" onclick="forgeToggleInitPill(this)"><span class="fp-dot" style="background:var(--c-rewrite)"></span>Rewrite</div>
+                <div class="filter-pill fp-active" data-disp="new" onclick="forgeToggleInitPill(this)"><span class="fp-dot" style="background:var(--c-new)"></span>New</div>
+                <div class="filter-pill" data-disp="merge" onclick="forgeToggleInitPill(this)"><span class="fp-dot" style="background:var(--c-merge)"></span>Merge</div>
+                <div class="filter-pill" data-disp="redirect" onclick="forgeToggleInitPill(this)"><span class="fp-dot" style="background:var(--c-redirect)"></span>Redirect</div>
+                <div class="filter-pill" data-disp="delete" onclick="forgeToggleInitPill(this)"><span class="fp-dot" style="background:var(--c-delete)"></span>Delete</div>
               </div>
             </div>
           </div>
-          <div class="init-opt" id="init-opt-canopy" onclick="forgeSelectInitOpt('canopy')">
+          <div class="init-opt" id="init-canopy" onclick="forgePickInit('canopy')">
             <div class="init-opt-icon">🌿</div>
-            <div class="init-opt-body">
-              <div class="init-opt-title">Import from Canopy</div>
-              <div class="init-opt-desc">Use the existing site structure as a starting skeleton. Edit from there.</div>
-            </div>
+            <div><div class="init-opt-title">Import from Canopy</div><div class="init-opt-desc">Use the existing site structure as a starting skeleton.</div></div>
           </div>
         </div>
-        <div id="init-no-data-warn" style="display:none;margin-top:0.75rem">
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--warn)">
-            ⚠ No <span id="init-warn-src"></span> data found in this project. Choose a different option or start blank.
-          </span>
-        </div>
+        <div id="init-warn" style="display:none;margin-top:0.7rem;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--warn)"></div>
       </div>
-      <div class="forge-modal-footer">
-        <button class="btn btn-primary" onclick="forgeCommitInit()">Begin →</button>
-      </div>
+      <div class="modal-footer"><button class="btn btn-primary" onclick="forgeCommitInit()">Begin →</button></div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       IMPORT MORE MODAL
-  ══════════════════════════════════════════ -->
-  <div class="forge-modal-overlay" id="forge-import-overlay" onclick="if(event.target===this)forgeHideImportModal()">
+  <!-- IMPORT MORE MODAL -->
+  <div class="forge-overlay" id="forge-import-overlay" onclick="if(event.target===this)forgeHideImport()">
     <div class="forge-modal">
-      <div class="forge-modal-hd">
-        <span class="forge-modal-title">Import pages</span>
-        <button class="forge-modal-close" onclick="forgeHideImportModal()">✕</button>
-      </div>
-      <div class="forge-modal-body">
-        <div class="modal-help">Add seed nodes from Atlas or Canopy. Duplicates (matching paths) are skipped.</div>
-        <div class="init-options" style="gap:0.5rem">
-          <div class="init-opt selected" id="more-opt-atlas" onclick="forgeSelectMoreOpt('atlas')">
-            <div class="init-opt-icon" style="font-size:1rem">🗺</div>
-            <div class="init-opt-body">
-              <div class="init-opt-title" style="font-size:0.75rem">From Atlas</div>
-            </div>
+      <div class="modal-hd"><span class="modal-title">Import pages</span><button class="modal-close" onclick="forgeHideImport()">✕</button></div>
+      <div class="modal-body">
+        <div class="modal-help">Add pages from Atlas or Canopy. Duplicates (matching slugs) are skipped.</div>
+        <div class="init-options" style="gap:0.35rem;margin-bottom:0.7rem">
+          <div class="init-opt selected" id="imp-src-atlas" onclick="forgePickImportSrc('atlas')" style="padding:0.55rem 0.8rem">
+            <div class="init-opt-icon" style="font-size:0.9rem">🗺</div>
+            <div><div class="init-opt-title" style="font-size:0.7rem">From Atlas</div></div>
           </div>
-          <div class="init-opt" id="more-opt-canopy" onclick="forgeSelectMoreOpt('canopy')">
-            <div class="init-opt-icon" style="font-size:1rem">🌿</div>
-            <div class="init-opt-body">
-              <div class="init-opt-title" style="font-size:0.75rem">From Canopy</div>
-            </div>
+          <div class="init-opt" id="imp-src-canopy" onclick="forgePickImportSrc('canopy')" style="padding:0.55rem 0.8rem">
+            <div class="init-opt-icon" style="font-size:0.9rem">🌿</div>
+            <div><div class="init-opt-title" style="font-size:0.7rem">From Canopy</div></div>
           </div>
         </div>
-        <div class="import-filter" style="margin-top:0.85rem">
-          <div class="import-filter-title">Include dispositions:</div>
-          <div class="import-filter-opts">
-            <label class="import-filter-opt"><input type="checkbox" id="more-keep"     checked /> <span class="ifo-dot" style="background:var(--c-keep)"></span> Keep</label>
-            <label class="import-filter-opt"><input type="checkbox" id="more-rewrite"  checked /> <span class="ifo-dot" style="background:var(--c-rewrite)"></span> Rewrite</label>
-            <label class="import-filter-opt"><input type="checkbox" id="more-new"      checked /> <span class="ifo-dot" style="background:var(--c-new)"></span> New</label>
-            <label class="import-filter-opt"><input type="checkbox" id="more-merge"           /> <span class="ifo-dot" style="background:var(--c-merge)"></span> Merge</label>
-            <label class="import-filter-opt"><input type="checkbox" id="more-redirect"        /> <span class="ifo-dot" style="background:var(--c-redirect)"></span> Redirect</label>
-            <label class="import-filter-opt"><input type="checkbox" id="more-delete"          /> <span class="ifo-dot" style="background:var(--c-delete)"></span> Delete</label>
-          </div>
+        <div class="modal-label">Include dispositions</div>
+        <div class="filter-pills" id="imp-filter-pills">
+          <div class="filter-pill fp-active" data-disp="keep"><span class="fp-dot" style="background:var(--c-keep)"></span>Keep</div>
+          <div class="filter-pill fp-active" data-disp="rewrite"><span class="fp-dot" style="background:var(--c-rewrite)"></span>Rewrite</div>
+          <div class="filter-pill fp-active" data-disp="new"><span class="fp-dot" style="background:var(--c-new)"></span>New</div>
+          <div class="filter-pill" data-disp="merge"><span class="fp-dot" style="background:var(--c-merge)"></span>Merge</div>
+          <div class="filter-pill" data-disp="redirect"><span class="fp-dot" style="background:var(--c-redirect)"></span>Redirect</div>
+          <div class="filter-pill" data-disp="delete"><span class="fp-dot" style="background:var(--c-delete)"></span>Delete</div>
         </div>
+        <div id="imp-warn" style="display:none;margin-top:0.7rem;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--warn)"></div>
       </div>
-      <div class="forge-modal-footer">
-        <button class="btn" onclick="forgeHideImportModal()">Cancel</button>
+      <div class="modal-footer">
+        <button class="btn" onclick="forgeHideImport()">Cancel</button>
         <button class="btn btn-primary" onclick="forgeCommitImport()">Import →</button>
       </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       ADD/EDIT PAGE MODAL
-  ══════════════════════════════════════════ -->
-  <div class="forge-modal-overlay" id="forge-edit-overlay" onclick="if(event.target===this)forgeHideEditModal()">
+  <!-- EDIT MODAL -->
+  <div class="forge-overlay" id="forge-edit-overlay" onclick="if(event.target===this)forgeHideEdit()">
     <div class="forge-modal">
-      <div class="forge-modal-hd">
-        <span class="forge-modal-title" id="edit-modal-title">Add page</span>
-        <button class="forge-modal-close" onclick="forgeHideEditModal()">✕</button>
+      <div class="modal-hd"><span class="modal-title" id="edit-title">Add page</span><button class="modal-close" onclick="forgeHideEdit()">✕</button></div>
+      <div class="modal-body">
+        <div class="modal-field"><label class="modal-label">Label</label><input class="inp" id="edit-label" type="text" placeholder="e.g. About Us" oninput="forgeEditLabelInput(this.value)" /></div>
+        <div class="modal-field"><label class="modal-label">Slug</label><input class="inp" id="edit-slug" type="text" placeholder="e.g. about-us" /><div class="modal-hint">Auto-generated from label. Edit independently if needed.</div></div>
+        <div class="modal-field"><label class="modal-label">Type</label><div class="type-btns"><button class="type-btn active" id="edit-type-page" onclick="forgeEditSetType('page')">Page</button><button class="type-btn" id="edit-type-nav" onclick="forgeEditSetType('nav')">Nav parent</button></div></div>
+        <div class="modal-field"><label class="modal-label">Notes <span style="color:var(--text-dim)">(optional)</span></label><input class="inp" id="edit-notes" type="text" placeholder="Any context…" /></div>
       </div>
-      <div class="forge-modal-body">
-        <div class="modal-field">
-          <label class="modal-label">Page label</label>
-          <input class="inp" type="text" id="edit-label" placeholder="e.g. About Us" oninput="forgeEditLabelInput(this.value)" />
-        </div>
-        <div class="modal-field">
-          <label class="modal-label">Slug</label>
-          <input class="inp" type="text" id="edit-slug" placeholder="e.g. about-us" />
-          <div class="modal-hint">Auto-generated from label. Edit independently if needed.</div>
-        </div>
-        <div class="modal-field">
-          <label class="modal-label">Type</label>
-          <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
-            <button class="btn btn-sm active" id="edit-type-page" onclick="forgeEditSetType('page')">Page</button>
-            <button class="btn btn-sm" id="edit-type-nav" onclick="forgeEditSetType('nav')">Nav parent</button>
-          </div>
-          <div class="modal-hint">Nav parents appear in navigation but may not have their own page content.</div>
-        </div>
-        <div class="modal-field">
-          <label class="modal-label">Notes <span style="color:var(--text-dim)">(optional)</span></label>
-          <input class="inp" type="text" id="edit-notes" placeholder="Any context…" />
-        </div>
-      </div>
-      <div class="forge-modal-footer">
-        <button class="btn" onclick="forgeHideEditModal()">Cancel</button>
-        <button class="btn btn-primary" id="edit-commit-btn" onclick="forgeCommitEdit()">Add page →</button>
+      <div class="modal-footer">
+        <button class="btn" onclick="forgeHideEdit()">Cancel</button>
+        <button class="btn btn-primary" id="edit-commit" onclick="forgeCommitEdit()">Add page →</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="forge-toast" style="
-    display:none; position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%);
-    background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
-    padding:0.5rem 1rem; font-family:'IBM Plex Mono',monospace; font-size:0.72rem;
-    color:var(--text-body); z-index:800; white-space:nowrap;
-    box-shadow:0 4px 16px rgba(0,0,0,0.4);
-  "></div>
+  <!-- GROUP MODAL -->
+  <div class="forge-overlay" id="forge-group-overlay" onclick="if(event.target===this)forgeHideGroupModal()">
+    <div class="forge-modal" style="width:430px">
+      <div class="modal-hd"><span class="modal-title" id="gm-title">Create group</span><button class="modal-close" onclick="forgeHideGroupModal()">✕</button></div>
+      <div class="modal-body">
+        <div class="modal-help" id="gm-help"></div>
+        <div class="modal-field"><label class="modal-label">Group label</label><input class="inp" id="group-label" type="text" placeholder="e.g. Blog posts" /></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="forgeHideGroupModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="forgeCommitGroup()">Create group →</button>
+      </div>
+    </div>
+  </div>
 
-</div><!-- /forge-wrap -->
+  <div id="forge-toast"></div>
+</div>
 
 <script>
 (function() {
-/* ═══════════════════════════════════════════════════════
-   FORGE — v0.1.0
-   IA design tool for the Alchemy suite
-═══════════════════════════════════════════════════════ */
-
-/* ── State ── */
+/* ════════════════════════════════════════
+   FORGE v0.2.0 — IA designer for Alchemy
+════════════════════════════════════════ */
 var F = {
-  project:         null,
-  rows:            [],    // ForgeRow[] — flat ordered array
-  view:            'table',
-  initialisedFrom: null,  // 'blank' | 'atlas' | 'canopy'
-  searchQuery:     '',
-  undoStack:       [],
-  redoStack:       [],
-  editTarget:      null,  // { mode: 'add-child'|'add-sibling'|'add-root'|'edit', refId, row }
-  editType:        'page',
-  initOptSelected: 'blank',
-  moreOptSelected: 'atlas',
-  _dragSrcId:      null,
+  project:null, rows:[], view:'tree', initSrc:'blank', importSrc:'atlas',
+  searchQuery:'', collapsed:{}, undoStack:[], redoStack:[],
+  editCtx:null, editType:'page', suggestCtx:null, groupCtx:null, dragId:null,
 };
 
-/* ForgeRow shape:
-  { id, parentId, order, label, slug, type, source, notes, isMergeGhost }
-  type:   'page' | 'nav'
-  source: 'keep'|'rewrite'|'new'|'merge'|'redirect'|'delete'|'manual'
-  isMergeGhost: true if this is a merge reference node (not exported)
-*/
+var GROUP_THRESHOLD = 8;
 
-/* ── Disposition colours map ── */
-var SRC_COLOURS = {
-  keep: '#5aab72', rewrite: '#c8963a', 'new': '#9a80e0',
-  merge: '#5a8ac8', redirect: '#00a0a0', 'delete': '#c86a5a', manual: ''
-};
-
-/* ─────────────────────────────────────────
-   INIT
-───────────────────────────────────────── */
+/* ── Init ── */
 function forgeInit(project) {
   F.project = project;
-  F.rows = [];
-  F.undoStack = [];
-  F.redoStack = [];
-
   var saved = project && project.toolData && project.toolData.forge;
   if (saved && saved.rows && saved.rows.length) {
     F.rows = saved.rows;
-    F.initialisedFrom = saved.initialisedFrom || 'blank';
-    forgeShowBuilderReady();
+    F.collapsed = saved.collapsed || {};
+    showBuilderReady();
   } else {
+    document.getElementById('forge-init-screen').style.display = 'flex';
     forgeShowInitModal();
   }
-
-  forgeUpdateExportPage();
+  forgeUpdateExport();
   forgeShowPage('builder');
 }
 
-/* ── Page switching ── */
 function forgeShowPage(name) {
   document.querySelectorAll('.forge-page').forEach(function(p) { p.classList.remove('active'); });
-  var page = document.getElementById('forge-page-' + name);
-  if (page) page.classList.add('active');
+  var pg = document.getElementById('forge-page-' + name);
+  if (pg) pg.classList.add('active');
   document.querySelectorAll('.forge-tabnav .nav-tab').forEach(function(t) {
     t.classList.toggle('active', t.dataset.page === name);
   });
-  if (name === 'export') forgeUpdateExportPage();
+  if (name === 'export') forgeUpdateExport();
 }
 
-/* ─────────────────────────────────────────
-   INIT MODAL
-───────────────────────────────────────── */
-function forgeShowInitModal() {
-  document.getElementById('forge-init-screen').style.display = 'flex';
-  document.getElementById('forge-toolbar').style.display = 'none';
-  document.getElementById('forge-table-wrap').style.display = 'none';
-  document.getElementById('forge-tree-wrap').style.display = 'none';
-  document.getElementById('forge-init-overlay').classList.add('open');
-  F.initOptSelected = 'blank';
-  forgeSelectInitOpt('blank');
-}
-
-function forgeSelectInitOpt(opt) {
-  F.initOptSelected = opt;
-  ['blank','atlas','canopy'].forEach(function(o) {
-    var el = document.getElementById('init-opt-' + o);
-    if (el) el.classList.toggle('selected', o === opt);
-  });
-  var warn = document.getElementById('init-no-data-warn');
-  warn.style.display = 'none';
-}
-
-function forgeCommitInit() {
-  var opt = F.initOptSelected;
-  var warn = document.getElementById('init-no-data-warn');
-  warn.style.display = 'none';
-
-  if (opt === 'atlas') {
-    var atlasRows = forgeGetAtlasRows();
-    if (!atlasRows.length) {
-      warn.style.display = 'block';
-      document.getElementById('init-warn-src').textContent = 'Atlas';
-      return;
-    }
-    F.rows = forgeRowsFromAtlas(atlasRows, {
-      merge:    document.getElementById('imp-merge').checked,
-      redirect: document.getElementById('imp-redirect').checked,
-      'delete': document.getElementById('imp-delete').checked,
-    });
-    F.initialisedFrom = 'atlas';
-  } else if (opt === 'canopy') {
-    var canopyRows = forgeGetCanopyRows();
-    if (!canopyRows.length) {
-      warn.style.display = 'block';
-      document.getElementById('init-warn-src').textContent = 'Canopy';
-      return;
-    }
-    F.rows = forgeRowsFromCanopy(canopyRows);
-    F.initialisedFrom = 'canopy';
-  } else {
-    F.rows = [forgeBlankRow(null, 'Home', 'home', 'page', 'manual', false)];
-    F.rows[0].slug = '';  /* root slug is empty */
-    F.initialisedFrom = 'blank';
-  }
-
-  document.getElementById('forge-init-overlay').classList.remove('open');
-  forgeSave();
-  forgeShowBuilderReady();
-}
-
-/* ─────────────────────────────────────────
-   BUILDER READY STATE
-───────────────────────────────────────── */
-function forgeShowBuilderReady() {
+function showBuilderReady() {
   document.getElementById('forge-init-screen').style.display = 'none';
   document.getElementById('forge-toolbar').style.display = 'flex';
-  if (F.view === 'table') {
-    document.getElementById('forge-table-wrap').style.display = 'flex';
-    document.getElementById('forge-tree-wrap').style.display = 'none';
-  } else {
-    document.getElementById('forge-table-wrap').style.display = 'none';
-    document.getElementById('forge-tree-wrap').style.display = 'block';
-  }
+  forgeSetView(F.view);
   forgeRender();
 }
 
-/* ─────────────────────────────────────────
-   IMPORT: Atlas
-───────────────────────────────────────── */
-function forgeGetAtlasRows() {
-  var p = F.project;
-  if (!p || !p.toolData || !p.toolData.atlas || !p.toolData.atlas.rows) return [];
-  return p.toolData.atlas.rows;
-}
-
-function forgeRowsFromAtlas(atlasRows, extra) {
-  /* Always include keep/rewrite/new; optionally merge/redirect/delete */
-  var baseDisps = ['keep', 'rewrite', 'new'];
-  var extraDisps = [];
-  if (extra.merge)    extraDisps.push('merge');
-  if (extra.redirect) extraDisps.push('redirect');
-  if (extra['delete']) extraDisps.push('delete');
-  var allDisps = baseDisps.concat(extraDisps);
-
-  var filtered = atlasRows.filter(function(r) {
-    return allDisps.indexOf(r.disposition) !== -1;
-  });
-
-  /* Group by section so siblings share a parent */
-  var sectionMap = {};  /* section path → parentId */
-  var result = [];
-
-  /* Root */
-  var root = forgeBlankRow(null, 'Home', '', 'page', 'manual', false);
-  result.push(root);
-
-  /* Build section parent nodes */
-  filtered.forEach(function(r) {
-    var section = r.section || '/';
-    if (section !== '/' && !sectionMap[section]) {
-      var sLabel = section.replace(/\//g, '').replace(/-/g, ' ');
-      sLabel = sLabel.charAt(0).toUpperCase() + sLabel.slice(1);
-      var sSlug = section.replace(/\//g, '');
-      var sRow = forgeBlankRow(root.id, sLabel, sSlug, 'nav', 'manual', false);
-      result.push(sRow);
-      sectionMap[section] = sRow.id;
-    }
-  });
-
-  /* Add page rows */
-  filtered.forEach(function(r) {
-    var isMergeGhost = r.disposition === 'merge';
-    var section = r.section || '/';
-    var parentId = sectionMap[section] || root.id;
-
-    var label = r.title || forgeSlugToLabel(forgePathToSlug(r.url));
-    var slug  = forgePathToSlug(r.url);
-
-    /* For merge ghosts: parent is the "merge target" row (rewrite/keep in same section).
-       We approximate by finding the first keep/rewrite row in same section, else use section parent */
-    if (isMergeGhost) {
-      var mergeTarget = result.find(function(row) {
-        return row.parentId === parentId &&
-          (row.source === 'keep' || row.source === 'rewrite') &&
-          !row.isMergeGhost;
-      });
-      if (mergeTarget) parentId = mergeTarget.id;
-    }
-
-    var row = forgeBlankRow(parentId, label, slug, 'page', r.disposition, isMergeGhost);
-    result.push(row);
-  });
-
-  return result;
-}
-
-/* ─────────────────────────────────────────
-   IMPORT: Canopy
-───────────────────────────────────────── */
-function forgeGetCanopyRows() {
-  var p = F.project;
-  if (!p || !p.crawl || !p.crawl.results) return [];
-  return p.crawl.results;
-}
-
-function forgeRowsFromCanopy(crawlResults) {
-  var result = [];
-  var root = forgeBlankRow(null, 'Home', '', 'page', 'manual', false);
-  result.push(root);
-
-  /* Build a map of URL → row id so we can parent correctly */
-  var urlMap = {};
-  urlMap['/'] = root.id;
-
-  /* Sort by depth ascending so parents always exist before children */
-  var sorted = crawlResults.slice().sort(function(a, b) {
-    return (a.depth || 0) - (b.depth || 0);
-  });
-
-  sorted.forEach(function(r) {
-    var slug = forgePathToSlug(r.url);
-    if (!slug) return; /* skip root */
-    var label = r.title || forgeSlugToLabel(slug);
-
-    /* Find parent URL */
-    var parts = r.url.replace(/https?:\/\/[^/]+/, '').replace(/\/$/, '').split('/').filter(Boolean);
-    var parentPath = parts.length > 1 ? '/' + parts.slice(0, -1).join('/') : '/';
-    var parentId = urlMap[parentPath] || root.id;
-
-    var row = forgeBlankRow(parentId, label, slug, 'page', 'manual', false);
-    result.push(row);
-
-    var path = '/' + parts.join('/');
-    urlMap[path] = row.id;
-  });
-
-  return result;
-}
-
-/* ─────────────────────────────────────────
-   IMPORT MORE MODAL
-───────────────────────────────────────── */
-function forgeShowImportModal() {
-  document.getElementById('forge-import-overlay').classList.add('open');
-  forgeSelectMoreOpt('atlas');
-}
-function forgeHideImportModal() {
-  document.getElementById('forge-import-overlay').classList.remove('open');
-}
-function forgeSelectMoreOpt(opt) {
-  F.moreOptSelected = opt;
-  ['atlas','canopy'].forEach(function(o) {
-    var el = document.getElementById('more-opt-' + o);
-    if (el) el.classList.toggle('selected', o === opt);
-  });
-}
-function forgeCommitImport() {
-  var opt = F.moreOptSelected;
-  var newRows = [];
-
-  if (opt === 'atlas') {
-    var atlasRows = forgeGetAtlasRows();
-    if (!atlasRows.length) { forgeToast('No Atlas data found in this project'); return; }
-    var extra = {
-      merge:    document.getElementById('more-merge').checked,
-      redirect: document.getElementById('more-redirect').checked,
-      'delete': document.getElementById('more-delete').checked,
-    };
-    var disp = ['keep','rewrite','new'];
-    if (extra.merge)    disp.push('merge');
-    if (extra.redirect) disp.push('redirect');
-    if (extra['delete']) disp.push('delete');
-    /* Filter to rows not already present */
-    var existingSlugs = new Set(F.rows.map(function(r) { return r.slug; }));
-    atlasRows.filter(function(r) { return disp.indexOf(r.disposition) !== -1; })
-      .forEach(function(r) {
-        var slug = forgePathToSlug(r.url);
-        if (!slug || existingSlugs.has(slug)) return;
-        var label = r.title || forgeSlugToLabel(slug);
-        var row = forgeBlankRow(forgeRootId(), label, slug, 'page', r.disposition, r.disposition === 'merge');
-        newRows.push(row);
-      });
-  } else {
-    var crawl = forgeGetCanopyRows();
-    if (!crawl.length) { forgeToast('No Canopy/crawl data found in this project'); return; }
-    var existingSlugs2 = new Set(F.rows.map(function(r) { return r.slug; }));
-    crawl.forEach(function(r) {
-      var slug = forgePathToSlug(r.url);
-      if (!slug || existingSlugs2.has(slug)) return;
-      var label = r.title || forgeSlugToLabel(slug);
-      var row = forgeBlankRow(forgeRootId(), label, slug, 'page', 'manual', false);
-      newRows.push(row);
-    });
-  }
-
-  if (!newRows.length) { forgeToast('No new pages to import (all already present)'); forgeHideImportModal(); return; }
-
-  forgeSnapshot();
-  F.rows = F.rows.concat(newRows);
-  forgeSave();
-  forgeRender();
-  forgeHideImportModal();
-  forgeToast(newRows.length + ' page' + (newRows.length === 1 ? '' : 's') + ' imported');
-}
-
-/* ─────────────────────────────────────────
-   ROW FACTORY & HELPERS
-───────────────────────────────────────── */
-function forgeBlankRow(parentId, label, slug, type, source, isMergeGhost) {
-  return {
-    id:           'fr_' + Date.now() + '_' + Math.floor(Math.random() * 9999),
-    parentId:     parentId || null,
-    label:        label || '',
-    slug:         slug !== undefined ? slug : forgeToSlug(label || ''),
-    type:         type || 'page',
-    source:       source || 'manual',
-    notes:        '',
-    isMergeGhost: !!isMergeGhost,
-  };
-}
-
-function forgeRootId() {
-  var root = F.rows.find(function(r) { return !r.parentId; });
-  return root ? root.id : null;
-}
-
-function forgeToSlug(label) {
-  return label.toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-');
-}
-
-function forgePathToSlug(url) {
-  try {
-    var path = url.replace(/https?:\/\/[^/]+/, '').replace(/\/$/, '');
-    var parts = path.split('/').filter(Boolean);
-    return parts[parts.length - 1] || '';
-  } catch (e) { return ''; }
-}
-
-function forgeSlugToLabel(slug) {
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
-}
-
-/* ─────────────────────────────────────────
-   PATH COMPUTATION
-───────────────────────────────────────── */
-function forgeComputePath(rowId) {
-  var parts = [];
-  var current = F.rows.find(function(r) { return r.id === rowId; });
-  while (current) {
-    if (current.slug) parts.unshift(current.slug);
-    if (!current.parentId) break;
-    current = F.rows.find(function(r) { return r.id === current.parentId; });
-  }
-  return '/' + parts.join('/');
-}
-
-function forgeGetDepth(rowId) {
-  var depth = 0;
-  var current = F.rows.find(function(r) { return r.id === rowId; });
-  while (current && current.parentId) {
-    depth++;
-    current = F.rows.find(function(r) { return r.id === current.parentId; });
-  }
-  return depth;
-}
-
-function forgeGetChildren(parentId) {
-  return F.rows.filter(function(r) { return r.parentId === parentId; });
-}
-
-/* ─────────────────────────────────────────
-   UNDO / REDO
-───────────────────────────────────────── */
-function forgeSnapshot() {
-  F.undoStack.push(JSON.stringify(F.rows));
-  if (F.undoStack.length > 50) F.undoStack.shift();
-  F.redoStack = [];
-}
-function forgeUndo() {
-  if (!F.undoStack.length) return;
-  F.redoStack.push(JSON.stringify(F.rows));
-  F.rows = JSON.parse(F.undoStack.pop());
-  forgeSave();
-  forgeRender();
-}
-function forgeRedo() {
-  if (!F.redoStack.length) return;
-  F.undoStack.push(JSON.stringify(F.rows));
-  F.rows = JSON.parse(F.redoStack.pop());
-  forgeSave();
-  forgeRender();
-}
-
-/* ─────────────────────────────────────────
-   RENDER — TABLE
-───────────────────────────────────────── */
-function forgeRender() {
-  forgeUpdateCount();
-  if (F.view === 'table') {
-    forgeRenderTable();
-  } else {
-    forgeRenderTree();
-  }
-}
-
-function forgeUpdateCount() {
-  var real = F.rows.filter(function(r) { return !r.isMergeGhost; }).length;
-  var count = document.getElementById('forge-count');
-  if (count) count.textContent = real + ' page' + (real === 1 ? '' : 's');
-}
-
-function forgeRenderTable() {
-  var tbody = document.getElementById('forge-tbody');
-  var empty = document.getElementById('forge-empty');
-  var q = (F.searchQuery || '').toLowerCase();
-
-  var displayRows = F.rows;
-
-  tbody.innerHTML = displayRows.map(function(row) {
-    var depth = forgeGetDepth(row.id);
-    var path  = forgeComputePath(row.id);
-    var dimmed = q && !(row.label.toLowerCase().includes(q) || path.includes(q));
-    var highlighted = q && (row.label.toLowerCase().includes(q) || path.includes(q));
-
-    /* Indent pips */
-    var pips = '';
-    for (var i = 0; i < depth; i++) pips += '<span class="indent-pip"></span>';
-    var indentHtml = '<div class="indent-wrap">' + pips + '</div>';
-
-    /* Type pill */
-    var typeClass = row.type === 'nav' ? 'type-nav' : 'type-page';
-    var typeLabel = row.type === 'nav' ? 'Nav' : 'Page';
-    var typePill = '<span class="type-pill ' + typeClass + '" data-id="' + esc(row.id) + '" onclick="forgeToggleType(this)">' + typeLabel + '</span>';
-
-    /* Source pill */
-    var srcPill = row.source && row.source !== 'manual'
-      ? '<span class="src-pill src-' + esc(row.source) + '">' + cap(row.source) + '</span>'
-      : '<span style="color:var(--text-dim);font-size:0.62rem">—</span>';
-
-    /* Label cell */
-    var labelClass = row.isMergeGhost ? 'label-cell' : 'label-cell';
-    var labelDisplay = row.isMergeGhost
-      ? '<span style="color:var(--text-dim)">↳ ' + esc(row.label) + '</span>'
-      : esc(row.label);
-
-    /* Slug cell */
-    var slugDisplay = row.slug ? ('/' + esc(row.slug)) : '<em style="color:var(--text-dim)">root</em>';
-
-    /* Path cell */
-    var pathDisplay = esc(path);
-
-    /* Notes */
-    var notesDisplay = row.notes
-      ? esc(row.notes)
-      : '<span style="color:var(--text-dim)">—</span>';
-
-    /* Row actions — merge ghosts get fewer actions */
-    var acts = row.isMergeGhost ? '' :
-      '<button class="ra-btn" title="Add child" data-id="' + esc(row.id) + '" onclick="forgeAddChild(\'' + esc(row.id) + '\')">+↓</button>' +
-      '<button class="ra-btn" title="Edit" data-id="' + esc(row.id) + '" onclick="forgeEditRow(\'' + esc(row.id) + '\')">✎</button>' +
-      '<button class="ra-btn ra-del" title="Delete" data-id="' + esc(row.id) + '" onclick="forgeDeleteRow(\'' + esc(row.id) + '\')">✕</button>';
-
-    var trClass = (dimmed ? ' class="forge-row-dimmed' : ' class="') +
-      (highlighted ? ' forge-row-highlight' : '') +
-      (row.isMergeGhost ? ' merge-ghost' : '') + '"';
-
-    return '<tr' + trClass + ' data-id="' + esc(row.id) + '">' +
-      '<td class="col-drag"><span class="drag-handle" draggable="true" data-id="' + esc(row.id) + '" ' +
-        'ondragstart="forgeDragStart(event,\'' + esc(row.id) + '\')" ' +
-        'ondragover="forgeDragOver(event)" ondrop="forgeDrop(event,\'' + esc(row.id) + '\')" ' +
-        'ondragend="forgeDragEnd(event)">⠿</span></td>' +
-      '<td class="col-indent">' + indentHtml + '</td>' +
-      '<td class="col-type">' + typePill + '</td>' +
-      '<td class="col-label ' + labelClass + '" data-id="' + esc(row.id) + '" onclick="forgeEditRow(\'' + esc(row.id) + '\')">' + labelDisplay + '</td>' +
-      '<td class="col-slug slug-cell" data-id="' + esc(row.id) + '" onclick="forgeEditRow(\'' + esc(row.id) + '\')">' + slugDisplay + '</td>' +
-      '<td class="col-path path-cell">' + pathDisplay + '</td>' +
-      '<td class="col-source">' + srcPill + '</td>' +
-      '<td class="col-notes notes-cell" data-id="' + esc(row.id) + '" onclick="forgeEditNotes(\'' + esc(row.id) + '\')">' + notesDisplay + '</td>' +
-      '<td class="col-acts"><div class="row-acts">' + acts + '</div></td>' +
-      '</tr>';
-  }).join('');
-
-  var realRows = F.rows.filter(function(r) { return !r.isMergeGhost; });
-  if (!realRows.length) {
-    empty.style.display = 'flex';
-  } else {
-    empty.style.display = 'none';
-  }
-}
-
-/* ─────────────────────────────────────────
-   RENDER — TREE
-───────────────────────────────────────── */
-function forgeRenderTree() {
-  var container = document.getElementById('forge-tree-root');
-  var roots = F.rows.filter(function(r) { return !r.parentId; });
-  container.innerHTML = roots.map(function(r) { return forgeTreeNodeHTML(r, 0); }).join('');
-}
-
-function forgeTreeNodeHTML(row, depth) {
-  var path = forgeComputePath(row.id);
-  var children = forgeGetChildren(row.id);
-
-  var srcClass = row.source && row.source !== 'manual' ? ' tree-src-' + row.source : '';
-  var typeClass = row.type === 'nav' ? ' type-nav-node' : ' type-page-node';
-  var mergeLabel = row.isMergeGhost ? '<span class="tree-node-merge-label">(merging into parent)</span>' : '';
-
-  var nodeHtml = '<div class="tree-node">';
-  /* Draw indent lines */
-  for (var i = 0; i < depth; i++) {
-    nodeHtml += '<div class="tree-line"></div>';
-  }
-  nodeHtml +=
-    '<div class="tree-node-inner' + typeClass + srcClass + '">' +
-      '<span class="tree-node-label">' + esc(row.label) + '</span>' +
-      '<span class="tree-node-path">' + esc(path) + '</span>' +
-      mergeLabel +
-    '</div>' +
-  '</div>';
-
-  if (children.length) {
-    nodeHtml += '<div class="tree-children">' +
-      children.map(function(c) { return forgeTreeNodeHTML(c, depth + 1); }).join('') +
-    '</div>';
-  }
-
-  return nodeHtml;
-}
-
-/* ─────────────────────────────────────────
-   VIEW TOGGLE
-───────────────────────────────────────── */
+/* ── View ── */
 function forgeSetView(v) {
   F.view = v;
-  document.getElementById('vt-table').classList.toggle('active', v === 'table');
-  document.getElementById('vt-tree').classList.toggle('active',  v === 'tree');
-  document.getElementById('forge-table-wrap').style.display = v === 'table' ? 'flex' : 'none';
-  document.getElementById('forge-tree-wrap').style.display  = v === 'tree'  ? 'block' : 'none';
+  document.getElementById('vt-tree').classList.toggle('active',   v==='tree');
+  document.getElementById('vt-kanban').classList.toggle('active', v==='kanban');
+  document.getElementById('forge-tree-wrap').style.display   = v==='tree'   ? 'block' : 'none';
+  document.getElementById('forge-kanban-wrap').style.display = v==='kanban' ? 'flex'  : 'none';
   forgeRender();
 }
 
-/* ─────────────────────────────────────────
-   SEARCH
-───────────────────────────────────────── */
-function forgeSearch(q) {
-  F.searchQuery = q;
-  forgeRenderTable();
+/* ── Init modal ── */
+function forgeShowInitModal() { document.getElementById('forge-init-overlay').classList.add('open'); forgePickInit('blank'); }
+
+function forgePickInit(src) {
+  F.initSrc = src;
+  ['blank','atlas','canopy'].forEach(function(s) { var el=document.getElementById('init-'+s); if(el) el.classList.toggle('selected',s===src); });
+  var pills = document.getElementById('atlas-init-pills');
+  if (pills) pills.style.display = src==='atlas' ? 'flex' : 'none';
+  document.getElementById('init-warn').style.display = 'none';
 }
 
-/* ─────────────────────────────────────────
-   ADD / EDIT ROWS
-───────────────────────────────────────── */
-function forgeAddRootChild() {
-  var rootId = forgeRootId();
-  forgeOpenEditModal('add-child', rootId, null);
-}
+function forgeToggleInitPill(el) { el.classList.toggle('fp-active'); }
 
-function forgeAddChild(parentId) {
-  forgeOpenEditModal('add-child', parentId, null);
-}
-
-function forgeEditRow(id) {
-  var row = F.rows.find(function(r) { return r.id === id; });
-  if (!row) return;
-  forgeOpenEditModal('edit', null, row);
-}
-
-function forgeEditNotes(id) {
-  var row = F.rows.find(function(r) { return r.id === id; });
-  if (!row) return;
-  forgeOpenEditModal('edit', null, row);
-}
-
-function forgeOpenEditModal(mode, refId, row) {
-  F.editTarget = { mode: mode, refId: refId, row: row };
-  F.editType = row ? row.type : 'page';
-
-  var isEdit = mode === 'edit';
-  document.getElementById('edit-modal-title').textContent = isEdit ? 'Edit page' : 'Add page';
-  document.getElementById('edit-label').value = row ? row.label : '';
-  document.getElementById('edit-slug').value  = row ? row.slug  : '';
-  document.getElementById('edit-notes').value = row ? row.notes : '';
-  document.getElementById('edit-commit-btn').textContent = isEdit ? 'Save changes' : 'Add page →';
-
-  forgeEditSetType(F.editType);
-  document.getElementById('forge-edit-overlay').classList.add('open');
-  setTimeout(function() { document.getElementById('edit-label').focus(); }, 50);
-}
-
-function forgeHideEditModal() {
-  document.getElementById('forge-edit-overlay').classList.remove('open');
-  F.editTarget = null;
-}
-
-function forgeEditLabelInput(val) {
-  /* Only auto-update slug if it hasn't been manually changed */
-  var slugEl = document.getElementById('edit-slug');
-  var existingLabel = F.editTarget && F.editTarget.row ? F.editTarget.row.label : '';
-  var existingSlug  = F.editTarget && F.editTarget.row ? F.editTarget.row.slug  : '';
-  var generatedFromExisting = forgeToSlug(existingLabel) === existingSlug;
-  if (!F.editTarget || !F.editTarget.row || generatedFromExisting) {
-    slugEl.value = forgeToSlug(val);
-  }
-}
-
-function forgeEditSetType(t) {
-  F.editType = t;
-  document.getElementById('edit-type-page').classList.toggle('active', t === 'page');
-  document.getElementById('edit-type-nav').classList.toggle('active',  t === 'nav');
-  document.getElementById('edit-type-page').style.borderColor = t === 'page' ? 'var(--teal)' : '';
-  document.getElementById('edit-type-nav').style.borderColor  = t === 'nav'  ? 'var(--teal)' : '';
-}
-
-function forgeCommitEdit() {
-  var label = document.getElementById('edit-label').value.trim();
-  var slug  = document.getElementById('edit-slug').value.trim();
-  var notes = document.getElementById('edit-notes').value.trim();
-
-  if (!label) {
-    document.getElementById('edit-label').focus();
-    return;
-  }
-  if (!slug) slug = forgeToSlug(label);
-
-  forgeSnapshot();
-
-  var t = F.editTarget;
-  if (t.mode === 'edit') {
-    var row = F.rows.find(function(r) { return r.id === t.row.id; });
-    if (row) {
-      row.label = label;
-      row.slug  = slug;
-      row.type  = F.editType;
-      row.notes = notes;
-    }
+function forgeCommitInit() {
+  var warn = document.getElementById('init-warn'); warn.style.display = 'none';
+  if (F.initSrc === 'atlas') {
+    var disps = activePills('atlas-init-pills');
+    var rows = getAtlasRows();
+    if (!rows.length) { warn.textContent='⚠ No Atlas data in this project.'; warn.style.display=''; return; }
+    F.rows = buildFromAtlas(rows, disps);
+  } else if (F.initSrc === 'canopy') {
+    var crawl = getCrawlRows();
+    if (!crawl.length) { warn.textContent='⚠ No crawl data in this project.'; warn.style.display=''; return; }
+    F.rows = buildFromCrawl(crawl);
   } else {
-    /* add-child */
-    var newRow = forgeBlankRow(t.refId, label, slug, F.editType, 'manual', false);
-    newRow.notes = notes;
-    F.rows.push(newRow);
+    F.rows = [mkRow(null,'Home','','page','manual')];
   }
-
-  forgeSave();
-  forgeRender();
-  forgeHideEditModal();
+  document.getElementById('forge-init-overlay').classList.remove('open');
+  forgeSave(); showBuilderReady(); forgeCheckSuggestions();
 }
 
-/* ─────────────────────────────────────────
-   DELETE
-───────────────────────────────────────── */
-function forgeDeleteRow(id) {
-  var row = F.rows.find(function(r) { return r.id === id; });
-  if (!row) return;
-
-  var children = forgeGetDescendants(id);
-  if (children.length) {
-    if (!confirm('Delete "' + row.label + '" and its ' + children.length + ' child page' + (children.length === 1 ? '' : 's') + '?')) return;
-  }
-
-  forgeSnapshot();
-  var toRemove = [id].concat(children.map(function(r) { return r.id; }));
-  F.rows = F.rows.filter(function(r) { return toRemove.indexOf(r.id) === -1; });
-  forgeSave();
-  forgeRender();
+function activePills(containerId) {
+  var a=[]; var el=document.getElementById(containerId); if(!el) return a;
+  el.querySelectorAll('.filter-pill.fp-active').forEach(function(p){a.push(p.dataset.disp);}); return a;
 }
 
-function forgeGetDescendants(id) {
-  var result = [];
-  var queue = forgeGetChildren(id);
-  while (queue.length) {
-    var next = queue.shift();
-    result.push(next);
-    forgeGetChildren(next.id).forEach(function(c) { queue.push(c); });
+/* ── Import more ── */
+function forgeShowImport() {
+  document.getElementById('forge-import-overlay').classList.add('open');
+  forgePickImportSrc('atlas');
+  document.querySelectorAll('#imp-filter-pills .filter-pill').forEach(function(p) {
+    var def = ['keep','rewrite','new'].indexOf(p.dataset.disp) !== -1;
+    p.classList.toggle('fp-active', def);
+    p.onclick = function() { p.classList.toggle('fp-active'); };
+  });
+  document.getElementById('imp-warn').style.display='none';
+}
+function forgeHideImport() { document.getElementById('forge-import-overlay').classList.remove('open'); }
+
+function forgePickImportSrc(src) {
+  F.importSrc = src;
+  ['atlas','canopy'].forEach(function(s) { var el=document.getElementById('imp-src-'+s); if(el) el.classList.toggle('selected',s===src); });
+}
+
+function forgeCommitImport() {
+  var warn=document.getElementById('imp-warn'); warn.style.display='none';
+  var disps = activePills('imp-filter-pills');
+  var existingSlugs = new Set(F.rows.map(function(r){return r.slug;}));
+  var newRows=[], rootId=getRootId();
+  if (F.importSrc==='atlas') {
+    var ar=getAtlasRows(); if(!ar.length){warn.textContent='⚠ No Atlas data.';warn.style.display='';return;}
+    ar.filter(function(r){return disps.indexOf(r.disposition)!==-1;}).forEach(function(r){
+      var slug=pathToSlug(r.url); if(!slug||existingSlugs.has(slug)) return;
+      var row=mkRow(rootId, r.title||slugToLabel(slug), slug,'page',r.disposition);
+      row.isMergeGhost = r.disposition==='merge';
+      newRows.push(row); existingSlugs.add(slug);
+    });
+  } else {
+    var cr=getCrawlRows(); if(!cr.length){warn.textContent='⚠ No crawl data.';warn.style.display='';return;}
+    cr.forEach(function(r){
+      var slug=pathToSlug(r.url); if(!slug||existingSlugs.has(slug)) return;
+      newRows.push(mkRow(rootId,r.title||slugToLabel(slug),slug,'page','manual')); existingSlugs.add(slug);
+    });
   }
+  if(!newRows.length){forgeToast('Nothing new to import');forgeHideImport();return;}
+  snapshot(); F.rows=F.rows.concat(newRows);
+  forgeSave(); forgeRender(); forgeHideImport();
+  forgeToast(newRows.length+' page'+(newRows.length===1?'':'s')+' imported');
+  forgeCheckSuggestions();
+}
+
+/* ── Data sources ── */
+function getAtlasRows(){ var p=F.project; return(p&&p.toolData&&p.toolData.atlas&&p.toolData.atlas.rows)||[]; }
+function getCrawlRows(){ var p=F.project; return(p&&p.crawl&&p.crawl.results)||[]; }
+
+function buildFromAtlas(atlasRows, disps) {
+  var result=[]; var root=mkRow(null,'Home','','page','manual'); result.push(root);
+  var secMap={};
+  var filtered=atlasRows.filter(function(r){return disps.indexOf(r.disposition)!==-1;});
+  filtered.forEach(function(r){
+    var sec=r.section||'/';
+    if(sec!=='/'&&!secMap[sec]){
+      var slug=sec.replace(/\//g,'');
+      var sr=mkRow(root.id,slugToLabel(slug),slug,'nav','manual');
+      result.push(sr); secMap[sec]=sr.id;
+    }
+  });
+  filtered.forEach(function(r){
+    var sec=r.section||'/'; var parentId=secMap[sec]||root.id;
+    var isMerge=r.disposition==='merge';
+    if(isMerge){
+      var t=result.find(function(x){return x.parentId===parentId&&(x.source==='keep'||x.source==='rewrite')&&!x.isMergeGhost;});
+      if(t) parentId=t.id;
+    }
+    var slug=pathToSlug(r.url); var label=r.title||slugToLabel(slug);
+    var row=mkRow(parentId,label,slug,'page',r.disposition);
+    row.isMergeGhost=isMerge; result.push(row);
+  });
   return result;
 }
 
-/* ─────────────────────────────────────────
-   TOGGLE TYPE
-───────────────────────────────────────── */
-function forgeToggleType(el) {
-  var id = el.dataset.id;
-  var row = F.rows.find(function(r) { return r.id === id; });
-  if (!row) return;
-  forgeSnapshot();
-  row.type = row.type === 'nav' ? 'page' : 'nav';
-  forgeSave();
-  forgeRenderTable();
-}
-
-/* ─────────────────────────────────────────
-   DRAG AND DROP (reorder)
-───────────────────────────────────────── */
-function forgeDragStart(e, id) {
-  F._dragSrcId = id;
-  e.dataTransfer.effectAllowed = 'move';
-}
-function forgeDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-}
-function forgeDrop(e, targetId) {
-  e.preventDefault();
-  if (!F._dragSrcId || F._dragSrcId === targetId) return;
-
-  /* Don't allow dropping onto own descendant */
-  var descendants = forgeGetDescendants(F._dragSrcId).map(function(r) { return r.id; });
-  if (descendants.indexOf(targetId) !== -1) return;
-
-  forgeSnapshot();
-
-  /* Reparent: dragged row becomes sibling of target (same parent) */
-  var targetRow = F.rows.find(function(r) { return r.id === targetId; });
-  var srcRow    = F.rows.find(function(r) { return r.id === F._dragSrcId; });
-  if (!targetRow || !srcRow) return;
-
-  srcRow.parentId = targetRow.parentId;
-
-  /* Reorder: move src to just before target in F.rows */
-  F.rows = F.rows.filter(function(r) { return r.id !== F._dragSrcId; });
-  var targetIdx = F.rows.findIndex(function(r) { return r.id === targetId; });
-  F.rows.splice(targetIdx, 0, srcRow);
-
-  forgeSave();
-  forgeRender();
-}
-function forgeDragEnd(e) {
-  F._dragSrcId = null;
-}
-
-/* ─────────────────────────────────────────
-   ADD ROOT LEVEL (from toolbar)
-───────────────────────────────────────── */
-function forgeAddRootLevel() {
-  forgeOpenEditModal('add-child', forgeRootId(), null);
-}
-
-/* ─────────────────────────────────────────
-   SAVE
-───────────────────────────────────────── */
-function forgeSave() {
-  if (!F.project) return;
-  if (!F.project.toolData) F.project.toolData = {};
-  F.project.toolData.forge = {
-    rows:            F.rows,
-    initialisedFrom: F.initialisedFrom,
-    savedAt:         new Date().toISOString(),
-  };
-  onToolEvent('tool:save', { tool: 'forge', payload: F.project.toolData.forge });
-}
-
-/* ─────────────────────────────────────────
-   EXPORT PAGE
-───────────────────────────────────────── */
-function forgeUpdateExportPage() {
-  var realRows = F.rows.filter(function(r) { return !r.isMergeGhost; });
-  var exportable = realRows.filter(function(r) { return r.type === 'page'; });
-  var navRows = realRows.filter(function(r) { return r.type === 'nav'; });
-  var maxDepth = realRows.reduce(function(max, r) {
-    return Math.max(max, forgeGetDepth(r.id));
-  }, 0);
-
-  var sub = document.getElementById('forge-export-sub');
-  if (sub) sub.textContent = F.initialisedFrom ? ('Initialised from ' + F.initialisedFrom) : '—';
-
-  var set = function(id, val) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
-
-  set('exp-total', realRows.length);
-  set('exp-urls', exportable.length);
-  set('exp-nav', navRows.length);
-  set('exp-depth', maxDepth);
-
-  /* Waypoint meta */
-  var wpMeta = document.getElementById('exp-waypoint-meta');
-  if (wpMeta) wpMeta.textContent = exportable.length + ' paths ready';
-
-  var csvMeta = document.getElementById('exp-csv-meta');
-  if (csvMeta) csvMeta.textContent = realRows.length + ' rows';
-
-  var copyMeta = document.getElementById('exp-copy-meta');
-  if (copyMeta) copyMeta.textContent = exportable.length + ' paths';
-
-  /* Breakdown by source */
-  var breakdown = document.getElementById('forge-exp-breakdown');
-  if (breakdown) {
-    var counts = {};
-    realRows.forEach(function(r) {
-      var s = r.source || 'manual';
-      counts[s] = (counts[s] || 0) + 1;
-    });
-    breakdown.innerHTML = Object.keys(counts).map(function(src) {
-      var col = SRC_COLOURS[src] || 'var(--text-muted)';
-      return '<div class="bd-item"><span class="bd-dot" style="background:' + col + '"></span>' + cap(src) + ': ' + counts[src] + '</div>';
-    }).join('');
-  }
-}
-
-function forgeExportableRows() {
-  return F.rows.filter(function(r) { return !r.isMergeGhost; });
-}
-
-function forgeSendToWaypoint() {
-  var paths = F.rows
-    .filter(function(r) { return !r.isMergeGhost; })
-    .map(function(r) { return forgeComputePath(r.id); });
-
-  if (!paths.length) { forgeToast('No pages to export'); return; }
-
-  if (!F.project.toolData) F.project.toolData = {};
-  if (!F.project.toolData.waypoint) F.project.toolData.waypoint = {};
-  F.project.toolData.waypoint.forgeNewUrls = paths;
-
-  onToolEvent('tool:save', { tool: 'forge', payload: F.project.toolData.forge });
-  onToolEvent('tool:navigate', { tool: 'waypoint' });
-}
-
-function forgeExportCSV() {
-  var rows = forgeExportableRows();
-  var lines = ['Path,Label,Depth,Type,Source,Notes'];
-  rows.forEach(function(r) {
-    var path  = forgeComputePath(r.id);
-    var depth = forgeGetDepth(r.id);
-    lines.push([
-      csvCell(path), csvCell(r.label), depth,
-      csvCell(r.type), csvCell(r.source || 'manual'), csvCell(r.notes)
-    ].join(','));
+function buildFromCrawl(crawlResults) {
+  var result=[]; var root=mkRow(null,'Home','','page','manual'); result.push(root);
+  var urlMap={'/':root.id};
+  crawlResults.slice().sort(function(a,b){return(a.depth||0)-(b.depth||0);}).forEach(function(r){
+    var slug=pathToSlug(r.url); if(!slug) return;
+    var label=r.title||slugToLabel(slug);
+    try {
+      var parts=r.url.replace(/https?:\/\/[^/]+/,'').replace(/\/$/,'').split('/').filter(Boolean);
+      var pp=parts.length>1?'/'+parts.slice(0,-1).join('/'):'/';
+      var parentId=urlMap[pp]||root.id;
+      var row=mkRow(parentId,label,slug,'page','manual');
+      result.push(row); urlMap['/'+parts.join('/')]=row.id;
+    } catch(e){}
   });
-  var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'forge-structure.csv';
-  a.click();
+  return result;
 }
 
-function forgeCopyPaths() {
-  var paths = F.rows
-    .filter(function(r) { return !r.isMergeGhost; })
-    .map(function(r) { return forgeComputePath(r.id); })
-    .join('\n');
-  navigator.clipboard.writeText(paths).then(function() {
-    forgeToast('Paths copied to clipboard');
-  }).catch(function(e) {
-    forgeToast('Copy failed — try a different browser');
+/* ── Suggest groups ── */
+function forgeCheckSuggestions() {
+  var best=null, bestCount=0;
+  F.rows.forEach(function(parent){
+    if(parent.isMergeGhost||parent.isGroup) return;
+    var ch=F.rows.filter(function(r){return r.parentId===parent.id&&!r.isMergeGhost&&!r.isGroup;});
+    if(ch.length>=GROUP_THRESHOLD&&ch.length>bestCount){best={parent:parent,children:ch};bestCount=ch.length;}
   });
+  if(!best){forgeDismissSuggest();return;}
+  F.suggestCtx={parentId:best.parent.id,childIds:best.children.map(function(c){return c.id;}),label:best.parent.label+' pages'};
+  var txt=document.getElementById('forge-suggest-text');
+  txt.textContent='"'+best.parent.label+'" has '+best.children.length+' child pages — consolidate them into a single group?';
+  document.getElementById('forge-suggest').style.display='flex';
 }
 
-/* ─────────────────────────────────────────
-   HELPERS
-───────────────────────────────────────── */
-function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function forgeAcceptSuggest() {
+  if(!F.suggestCtx) return;
+  F.groupCtx={ids:F.suggestCtx.childIds,parentId:F.suggestCtx.parentId};
+  document.getElementById('group-label').value=F.suggestCtx.label;
+  document.getElementById('gm-help').textContent=F.suggestCtx.childIds.length+' pages consolidated into one group row. Always reversible.';
+  document.getElementById('gm-title').textContent='Create group';
+  forgeDismissSuggest();
+  document.getElementById('forge-group-overlay').classList.add('open');
 }
-function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
-function csvCell(v) {
-  var s = String(v || '');
-  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-    return '"' + s.replace(/"/g, '""') + '"';
+
+function forgeDismissSuggest() { F.suggestCtx=null; document.getElementById('forge-suggest').style.display='none'; }
+
+/* ── Group modal ── */
+function forgeHideGroupModal() { document.getElementById('forge-group-overlay').classList.remove('open'); F.groupCtx=null; }
+
+function forgeCommitGroup() {
+  if(!F.groupCtx) return;
+  var label=document.getElementById('group-label').value.trim();
+  if(!label){document.getElementById('group-label').focus();return;}
+  snapshot();
+  var ctx=F.groupCtx;
+  var groupIds=ctx.ids.map(function(id){var r=F.rows.find(function(x){return x.id===id;});return r?r.slug:null;}).filter(Boolean);
+  var srcs=ctx.ids.map(function(id){var r=F.rows.find(function(x){return x.id===id;});return r?r.source:'manual';});
+  var parent=F.rows.find(function(r){return r.id===ctx.parentId;});
+  var slug=(parent?parent.slug+'-group':toSlug(label));
+  var gr=mkRow(ctx.parentId,label,slug,'page',srcs[0]||'manual');
+  gr.isGroup=true; gr.groupIds=groupIds; gr.groupSource=srcs[0]||'manual';
+  var firstIdx=F.rows.findIndex(function(r){return r.id===ctx.ids[0];});
+  F.rows=F.rows.filter(function(r){return ctx.ids.indexOf(r.id)===-1;});
+  if(firstIdx<0||firstIdx>=F.rows.length) F.rows.push(gr); else F.rows.splice(firstIdx,0,gr);
+  forgeSave(); forgeRender(); forgeHideGroupModal();
+  forgeToast('Group created — '+groupIds.length+' pages consolidated');
+}
+
+function forgeUngroupRow(id) {
+  var group=F.rows.find(function(r){return r.id===id;}); if(!group||!group.isGroup) return;
+  snapshot();
+  var idx=F.rows.findIndex(function(r){return r.id===id;});
+  var restored=(group.groupIds||[]).map(function(slug){return mkRow(group.parentId,slugToLabel(slug),slug,'page',group.groupSource||'manual');});
+  F.rows.splice(idx,1,...restored);
+  forgeSave(); forgeRender();
+  forgeToast('Ungrouped — '+restored.length+' pages restored');
+  forgeCheckSuggestions();
+}
+
+/* ── Helpers ── */
+function mkRow(parentId,label,slug,type,source){
+  return{id:'fr_'+Date.now()+'_'+Math.floor(Math.random()*99999),parentId:parentId||null,
+    label:label||'',slug:slug!==undefined?slug:toSlug(label||''),type:type||'page',
+    source:source||'manual',notes:'',isMergeGhost:false,isGroup:false,groupIds:null,groupSource:null};
+}
+function getRootId(){var r=F.rows.find(function(x){return!x.parentId;});return r?r.id:null;}
+function getChildren(pid){return F.rows.filter(function(r){return r.parentId===pid;});}
+function getDepth(id){var d=0,cur=F.rows.find(function(r){return r.id===id;});while(cur&&cur.parentId){d++;cur=F.rows.find(function(r){return r.id===cur.parentId;});}return d;}
+function getDescendants(id){var res=[],q=getChildren(id).slice();while(q.length){var n=q.shift();res.push(n);getChildren(n.id).forEach(function(c){q.push(c);});}return res;}
+function isLastChild(id){var r=F.rows.find(function(x){return x.id===id;});if(!r||!r.parentId)return false;var s=getChildren(r.parentId);return s.indexOf(r)===s.length-1;}
+function isAncestorOf(anc,desc){var cur=F.rows.find(function(r){return r.id===desc;});while(cur&&cur.parentId){if(cur.parentId===anc)return true;cur=F.rows.find(function(r){return r.id===cur.parentId;});}return false;}
+function toSlug(s){return(s||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-').replace(/-+/g,'-');}
+function pathToSlug(url){try{var p=url.replace(/https?:\/\/[^/]+/,'').replace(/\/$/,'').split('/').filter(Boolean);return p[p.length-1]||'';}catch(e){return '';}}
+function slugToLabel(s){return(s||'').replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});}
+function computePath(id){var parts=[],cur=F.rows.find(function(r){return r.id===id;});while(cur){if(cur.slug)parts.unshift(cur.slug);if(!cur.parentId)break;cur=F.rows.find(function(r){return r.id===cur.parentId;});}return'/'+parts.join('/');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
+function csv(v){var s=String(v||'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
+function forgeToast(msg){var el=document.getElementById('forge-toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},2500);}
+
+/* ── Undo/redo ── */
+function snapshot(){F.undoStack.push(JSON.stringify({rows:F.rows,collapsed:F.collapsed}));if(F.undoStack.length>50)F.undoStack.shift();F.redoStack=[];}
+function forgeUndo(){if(!F.undoStack.length)return;F.redoStack.push(JSON.stringify({rows:F.rows,collapsed:F.collapsed}));var s=JSON.parse(F.undoStack.pop());F.rows=s.rows;F.collapsed=s.collapsed||{};forgeSave();forgeRender();}
+function forgeRedo(){if(!F.redoStack.length)return;F.undoStack.push(JSON.stringify({rows:F.rows,collapsed:F.collapsed}));var s=JSON.parse(F.redoStack.pop());F.rows=s.rows;F.collapsed=s.collapsed||{};forgeSave();forgeRender();}
+
+/* ── Search ── */
+function forgeSearch(q){F.searchQuery=q;forgeRender();}
+
+/* ── Render ── */
+function forgeRender(){updateCount();if(F.view==='tree')renderTree();else renderKanban();}
+function updateCount(){
+  var real=F.rows.filter(function(r){return!r.isMergeGhost;});
+  var groups=real.filter(function(r){return r.isGroup;});
+  var el=document.getElementById('forge-count');
+  if(el){var t=real.length+' page'+(real.length===1?'':'s');if(groups.length)t+=' · '+groups.length+' group'+(groups.length===1?'':'s');el.textContent=t;}
+}
+
+/* ── TREE RENDER ── */
+function renderTree(){
+  var c=document.getElementById('forge-tree');
+  var q=(F.searchQuery||'').toLowerCase();
+  var roots=F.rows.filter(function(r){return!r.parentId;});
+  c.innerHTML=roots.map(function(r){return treeNode(r,[],q);}).join('');
+}
+
+function treeNode(row, ancestorLines, q) {
+  var depth=ancestorLines.length;
+  var allCh=getChildren(row.id);
+  var isCollapsed=!!F.collapsed[row.id];
+  var isMatch=q&&(row.label.toLowerCase().includes(q)||(row.slug||'').includes(q));
+  var hasMatch=isMatch||allCh.some(function(c){return descendantMatches(c,q);});
+  if(q&&!hasMatch&&!row.isMergeGhost) return '';
+
+  /* indent */
+  var ind='';
+  for(var i=0;i<depth;i++){
+    if(i===depth-1){
+      var last=isLastChild(row.id);
+      ind+='<div class="ti-branch'+(last?' last-child':'')+'"></div>';
+    } else {
+      ind+='<div class="ti-'+(i===depth-1?'branch':'cont')+(ancestorLines[i]?' has-line':'')+'"></div>';
+    }
   }
-  return s;
+
+  /* toggle */
+  var tog=allCh.length
+    ?'<div class="row-toggle" onclick="forgeToggleCollapse(\''+row.id+'\')">'+(isCollapsed?'+':'−')+'</div>'
+    :'<div class="row-toggle-sp"></div>';
+
+  /* type pill */
+  var tpill='';
+  if(!row.isMergeGhost&&!row.isGroup){
+    var tc=row.type==='nav'?'tp-nav':'tp-page';
+    tpill='<span class="type-pill '+tc+'" onclick="forgeToggleType(\''+row.id+'\')" title="Click to toggle">'+(row.type==='nav'?'Nav':'Page')+'</span>';
+  }
+
+  /* label */
+  var lblCls=row.isMergeGhost?'row-label ghost-lbl':'row-label';
+  var lblPfx=row.isMergeGhost?'↳ ':'';
+  var lblClick=!row.isMergeGhost?' onclick="forgeEditRow(\''+row.id+'\')"':'';
+
+  /* slug */
+  var slugHtml=row.slug?'/'+esc(row.slug):'<em style="color:var(--text-dim)">root</em>';
+
+  /* badges */
+  var badges='';
+  if(row.isGroup) badges='<span class="group-badge">×'+(row.groupIds?row.groupIds.length:'?')+'</span>';
+  else if(row.source&&row.source!=='manual') badges='<span class="src-pill sp-'+row.source+'">'+cap(row.source)+'</span>';
+  if(isCollapsed&&allCh.length) badges+='<span class="child-count">'+allCh.length+' hidden</span>';
+
+  /* actions */
+  var acts='';
+  if(!row.isMergeGhost){
+    if(!row.isGroup) acts+='<div class="ra-btn" title="Add child" onclick="forgeAddChild(\''+row.id+'\')">+</div>';
+    if(row.isGroup)  acts+='<div class="ra-btn" title="Ungroup" onclick="forgeUngroupRow(\''+row.id+'\')">⊞</div>';
+    acts+='<div class="ra-btn" title="Edit" onclick="forgeEditRow(\''+row.id+'\')">✎</div>';
+    if(!row.isGroup&&allCh.length===0) acts+='<div class="ra-btn ra-del" title="Delete" onclick="forgeDeleteRow(\''+row.id+'\')">✕</div>';
+  }
+
+  var dimmed=q&&!isMatch&&!allCh.some(function(c){return descendantMatches(c,q);});
+
+  var rowHtml='<div class="tree-row'+(dimmed?' tree-dimmed':'')+(isMatch?' tree-highlight':'')+'"'+
+    ' data-id="'+row.id+'" draggable="true"'+
+    ' ondragstart="fDragStart(event,\''+row.id+'\')"'+
+    ' ondragover="fDragOver(event)"'+
+    ' ondrop="fDrop(event,\''+row.id+'\')"'+
+    ' ondragend="fDragEnd()"'+
+    '>'+
+    '<div class="tree-indent">'+ind+'</div>'+
+    tog+
+    '<span class="drag-handle">⠿</span>'+
+    tpill+
+    '<span class="'+lblCls+'"'+lblClick+'>'+lblPfx+esc(row.label)+'</span>'+
+    '<span class="row-slug">'+slugHtml+'</span>'+
+    badges+
+    '<div class="row-acts">'+acts+'</div>'+
+    '</div>';
+
+  var chHtml='';
+  if(allCh.length&&!isCollapsed){
+    var linesForCh=ancestorLines.concat([!isLastChild(row.id)]);
+    chHtml=allCh.map(function(c){return treeNode(c,linesForCh,q);}).join('');
+  }
+  return rowHtml+chHtml;
 }
 
-function forgeToast(msg) {
-  var el = document.getElementById('forge-toast');
-  el.textContent = msg;
-  el.style.display = 'block';
-  setTimeout(function() { el.style.display = 'none'; }, 2500);
+function descendantMatches(row, q){
+  if(!q) return true;
+  if(row.label.toLowerCase().includes(q)||(row.slug||'').includes(q)) return true;
+  return getChildren(row.id).some(function(c){return descendantMatches(c,q);});
 }
 
-/* ─────────────────────────────────────────
-   WIRE TAB NAV
-───────────────────────────────────────── */
-document.querySelectorAll('.forge-tabnav .nav-tab').forEach(function(t) {
-  t.addEventListener('click', function() { forgeShowPage(t.dataset.page); });
-});
+function forgeToggleCollapse(id){
+  if(F.collapsed[id]) delete F.collapsed[id]; else F.collapsed[id]=true;
+  forgeSave(); renderTree();
+}
 
-/* ─────────────────────────────────────────
-   EXPOSE TO ALCHEMY SHELL
-───────────────────────────────────────── */
-window.Forge = { init: forgeInit };
+/* ── KANBAN RENDER ── */
+function renderKanban(){
+  var c=document.getElementById('forge-kanban');
+  var root=F.rows.find(function(r){return!r.parentId;});
+  if(!root){c.innerHTML='';return;}
+  var topLevel=getChildren(root.id);
+  var navSections=topLevel.filter(function(r){return r.type==='nav';});
+  var rootPages=topLevel.filter(function(r){return r.type==='page'&&!r.isMergeGhost;});
+  var html='';
+  /* site column */
+  html+=kbCol('Site',[root],root.id);
+  /* per nav section */
+  navSections.forEach(function(sec){html+=kbCol(sec.label,getChildren(sec.id),sec.id);});
+  /* loose root pages */
+  if(rootPages.length) html+=kbCol('Root pages',rootPages,root.id);
+  c.innerHTML=html;
+}
 
-/* ── Expose onclick handlers ── */
-window.forgeShowPage         = forgeShowPage;
-window.forgeSetView          = forgeSetView;
-window.forgeSearch           = forgeSearch;
-window.forgeUndo             = forgeUndo;
-window.forgeRedo             = forgeRedo;
-window.forgeAddRootChild     = forgeAddRootChild;
-window.forgeAddChild         = forgeAddChild;
-window.forgeEditRow          = forgeEditRow;
-window.forgeEditNotes        = forgeEditNotes;
-window.forgeDeleteRow        = forgeDeleteRow;
-window.forgeToggleType       = forgeToggleType;
-window.forgeDragStart        = forgeDragStart;
-window.forgeDragOver         = forgeDragOver;
-window.forgeDrop             = forgeDrop;
-window.forgeDragEnd          = forgeDragEnd;
-window.forgeSelectInitOpt    = forgeSelectInitOpt;
-window.forgeCommitInit       = forgeCommitInit;
-window.forgeShowInitModal    = forgeShowInitModal;
-window.forgeShowImportModal  = forgeShowImportModal;
-window.forgeHideImportModal  = forgeHideImportModal;
-window.forgeSelectMoreOpt    = forgeSelectMoreOpt;
-window.forgeCommitImport     = forgeCommitImport;
-window.forgeHideEditModal    = forgeHideEditModal;
-window.forgeEditLabelInput   = forgeEditLabelInput;
-window.forgeEditSetType      = forgeEditSetType;
-window.forgeCommitEdit       = forgeCommitEdit;
-window.forgeSendToWaypoint   = forgeSendToWaypoint;
-window.forgeExportCSV        = forgeExportCSV;
-window.forgeCopyPaths        = forgeCopyPaths;
-window.forgeRenderTable      = forgeRenderTable;
+function kbCol(title,rows,parentId){
+  var cards=rows.map(function(row){
+    var sc='';
+    if(row.isGroup) sc='kbc-group';
+    else if(row.type==='nav') sc='kbc-nav';
+    else if(row.source&&row.source!=='manual') sc='kbc-'+row.source;
+    var badges='';
+    if(row.isGroup) badges+='<span class="group-badge">×'+(row.groupIds?row.groupIds.length:'?')+'</span>';
+    else if(row.source&&row.source!=='manual') badges+='<span class="src-pill sp-'+row.source+'">'+cap(row.source)+'</span>';
+    var ch=getChildren(row.id);
+    if(ch.length&&!row.isGroup) badges+='<span class="child-count">'+ch.length+' child'+(ch.length===1?'':'ren')+'</span>';
+    return'<div class="kb-card '+sc+(row.isMergeGhost?' kb-card-ghost':'')+'" onclick="forgeEditRow(\''+row.id+'\')" title="'+esc(computePath(row.id))+'">'+
+      '<div class="kb-card-name">'+esc(row.label)+'</div>'+
+      '<div class="kb-card-slug">/'+esc(row.slug)+'</div>'+
+      (badges?'<div class="kb-card-badges">'+badges+'</div>':'')+
+      '</div>';
+  }).join('');
+  return'<div class="kb-col">'+
+    '<div class="kb-col-hd"><span class="kb-col-name">'+esc(title)+'</span><span class="kb-col-count">'+rows.length+'</span></div>'+
+    '<div class="kb-col-body">'+cards+'</div>'+
+    '<button class="kb-add" onclick="forgeAddChild(\''+parentId+'\')">+ Add page</button>'+
+    '</div>';
+}
+
+/* ── Drag & Drop ── */
+function fDragStart(e,id){F.dragId=id;e.dataTransfer.effectAllowed='move';setTimeout(function(){var el=document.querySelector('[data-id="'+id+'"]');if(el)el.classList.add('drag-source');},0);}
+function fDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';}
+function fDrop(e,targetId){
+  e.preventDefault();
+  if(!F.dragId||F.dragId===targetId) return;
+  if(isAncestorOf(F.dragId,targetId)) return;
+  snapshot();
+  var src=F.rows.find(function(r){return r.id===F.dragId;});
+  var tgt=F.rows.find(function(r){return r.id===targetId;});
+  if(!src||!tgt) return;
+  src.parentId=tgt.parentId;
+  F.rows=F.rows.filter(function(r){return r.id!==F.dragId;});
+  var idx=F.rows.findIndex(function(r){return r.id===targetId;});
+  F.rows.splice(idx,0,src);
+  forgeSave(); forgeRender(); F.dragId=null;
+}
+function fDragEnd(){F.dragId=null;document.querySelectorAll('.drag-source').forEach(function(el){el.classList.remove('drag-source');});}
+
+/* ── Add / Edit / Delete ── */
+function forgeAddRoot(){openEdit('add-child',getRootId(),null);}
+function forgeAddChild(pid){openEdit('add-child',pid,null);}
+function forgeEditRow(id){var r=F.rows.find(function(x){return x.id===id;});if(r)openEdit('edit',null,r);}
+
+function openEdit(mode,refId,row){
+  F.editCtx={mode:mode,refId:refId,row:row}; F.editType=row?row.type:'page';
+  var isEdit=mode==='edit';
+  document.getElementById('edit-title').textContent=isEdit?'Edit page':'Add page';
+  document.getElementById('edit-label').value=row?row.label:'';
+  document.getElementById('edit-slug').value=row?row.slug:'';
+  document.getElementById('edit-notes').value=row?row.notes:'';
+  document.getElementById('edit-commit').textContent=isEdit?'Save changes':'Add page →';
+  forgeEditSetType(F.editType);
+  document.getElementById('forge-edit-overlay').classList.add('open');
+  setTimeout(function(){document.getElementById('edit-label').focus();},50);
+}
+function forgeHideEdit(){document.getElementById('forge-edit-overlay').classList.remove('open');F.editCtx=null;}
+
+function forgeEditLabelInput(val){
+  var el=document.getElementById('edit-slug');
+  var exLabel=F.editCtx&&F.editCtx.row?F.editCtx.row.label:'';
+  var exSlug=F.editCtx&&F.editCtx.row?F.editCtx.row.slug:'';
+  if(!F.editCtx||!F.editCtx.row||exSlug===toSlug(exLabel)||exSlug==='') el.value=toSlug(val);
+}
+function forgeEditSetType(t){
+  F.editType=t;
+  document.getElementById('edit-type-page').classList.toggle('active',t==='page');
+  document.getElementById('edit-type-nav').classList.toggle('active',t==='nav');
+}
+function forgeCommitEdit(){
+  var label=document.getElementById('edit-label').value.trim();
+  var slug=document.getElementById('edit-slug').value.trim()||toSlug(label);
+  var notes=document.getElementById('edit-notes').value.trim();
+  if(!label){document.getElementById('edit-label').focus();return;}
+  snapshot();
+  var t=F.editCtx;
+  if(t.mode==='edit'){
+    var r=F.rows.find(function(x){return x.id===t.row.id;});
+    if(r){r.label=label;r.slug=slug;r.type=F.editType;r.notes=notes;}
+  } else {
+    var nr=mkRow(t.refId,label,slug,F.editType,'manual'); nr.notes=notes; F.rows.push(nr);
+  }
+  forgeSave(); forgeRender(); forgeHideEdit();
+}
+function forgeDeleteRow(id){
+  var r=F.rows.find(function(x){return x.id===id;}); if(!r) return;
+  var desc=getDescendants(id);
+  if(desc.length&&!confirm('Delete "'+r.label+'" and its '+desc.length+' child page'+(desc.length===1?'':'s')+'?')) return;
+  snapshot();
+  var toRm=[id].concat(desc.map(function(x){return x.id;}));
+  F.rows=F.rows.filter(function(x){return toRm.indexOf(x.id)===-1;});
+  forgeSave(); forgeRender();
+}
+function forgeToggleType(id){
+  var r=F.rows.find(function(x){return x.id===id;}); if(!r) return;
+  snapshot(); r.type=r.type==='nav'?'page':'nav'; forgeSave(); forgeRender();
+}
+
+/* ── Save ── */
+function forgeSave(){
+  if(!F.project) return;
+  if(!F.project.toolData) F.project.toolData={};
+  F.project.toolData.forge={rows:F.rows,collapsed:F.collapsed,savedAt:new Date().toISOString()};
+  onToolEvent('tool:save',{tool:'forge',payload:F.project.toolData.forge});
+}
+
+/* ── Export ── */
+function forgeUpdateExport(){
+  var real=F.rows.filter(function(r){return!r.isMergeGhost;});
+  var groups=real.filter(function(r){return r.isGroup;});
+  var navs=real.filter(function(r){return r.type==='nav';});
+  var maxD=real.reduce(function(m,r){return Math.max(m,getDepth(r.id));},0);
+  set('exp-sub',F.project?F.project.name:'—');
+  set('exp-total',real.length); set('exp-groups',groups.length);
+  set('exp-nav',navs.length); set('exp-depth',maxD);
+  var ep=getExportPaths(true);
+  set('exp-wp-meta',ep.length+' paths');
+  set('exp-csv-meta',real.length+' rows');
+  set('exp-copy-meta',ep.length+' paths');
+  var go=document.getElementById('exp-group-opts');
+  if(go) go.style.display=groups.length?'':'none';
+}
+
+function getExportPaths(allGroupPaths){
+  var paths=[];
+  F.rows.filter(function(r){return!r.isMergeGhost;}).forEach(function(r){
+    if(r.isGroup){
+      if(allGroupPaths&&r.groupIds&&r.groupIds.length){
+        var par=F.rows.find(function(p){return p.id===r.parentId;});
+        var pp=par?computePath(par.id):'';
+        r.groupIds.forEach(function(slug){paths.push((pp==='/'?'':pp)+'/'+slug);});
+      } else { paths.push(computePath(r.id)); }
+    } else { paths.push(computePath(r.id)); }
+  });
+  return paths;
+}
+
+function geoChoice(){var el=document.getElementById('geo-all');return el&&el.checked?'all':'parent';}
+
+function forgeSendToWaypoint(){
+  var paths=getExportPaths(geoChoice()==='all');
+  if(!paths.length){forgeToast('No pages to export');return;}
+  if(!F.project.toolData) F.project.toolData={};
+  if(!F.project.toolData.waypoint) F.project.toolData.waypoint={};
+  F.project.toolData.waypoint.forgeNewUrls=paths;
+  onToolEvent('tool:save',{tool:'forge',payload:F.project.toolData.forge});
+  onToolEvent('tool:navigate',{tool:'waypoint'});
+}
+
+function forgeExportCSV(){
+  var useAll=geoChoice()==='all';
+  var lines=['Path,Label,Depth,Type,Source,Notes,Group'];
+  F.rows.filter(function(r){return!r.isMergeGhost;}).forEach(function(r){
+    var path=computePath(r.id),depth=getDepth(r.id);
+    if(r.isGroup&&useAll&&r.groupIds){
+      var par=F.rows.find(function(p){return p.id===r.parentId;});
+      var pp=par?computePath(par.id):'';
+      r.groupIds.forEach(function(slug){lines.push([csv((pp==='/'?'':pp)+'/'+slug),csv(slugToLabel(slug)),depth,'page',csv(r.groupSource||'manual'),'',csv(r.label)].join(','));});
+    } else {
+      lines.push([csv(path),csv(r.label),depth,r.type,csv(r.source||'manual'),csv(r.notes),r.isGroup?'yes':''].join(','));
+    }
+  });
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));a.download='forge-structure.csv';a.click();
+}
+
+function forgeCopyPaths(){
+  navigator.clipboard.writeText(getExportPaths(geoChoice()==='all').join('\n'))
+    .then(function(){forgeToast('Paths copied');}).catch(function(){forgeToast('Copy failed');});
+}
+
+function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
+/* ── Wire ── */
+document.querySelectorAll('.forge-tabnav .nav-tab').forEach(function(t){t.addEventListener('click',function(){forgeShowPage(t.dataset.page);});});
+
+/* ── Expose ── */
+window.Forge={init:forgeInit};
+window.forgeShowPage=forgeShowPage; window.forgeSetView=forgeSetView; window.forgeSearch=forgeSearch;
+window.forgeUndo=forgeUndo; window.forgeRedo=forgeRedo; window.forgeAddRoot=forgeAddRoot;
+window.forgeAddChild=forgeAddChild; window.forgeEditRow=forgeEditRow; window.forgeDeleteRow=forgeDeleteRow;
+window.forgeToggleType=forgeToggleType; window.forgeToggleCollapse=forgeToggleCollapse;
+window.forgeUngroupRow=forgeUngroupRow; window.forgeShowInitModal=forgeShowInitModal;
+window.forgePickInit=forgePickInit; window.forgeToggleInitPill=forgeToggleInitPill;
+window.forgeCommitInit=forgeCommitInit; window.forgeShowImport=forgeShowImport;
+window.forgeHideImport=forgeHideImport; window.forgePickImportSrc=forgePickImportSrc;
+window.forgeCommitImport=forgeCommitImport; window.forgeHideEdit=forgeHideEdit;
+window.forgeEditLabelInput=forgeEditLabelInput; window.forgeEditSetType=forgeEditSetType;
+window.forgeCommitEdit=forgeCommitEdit; window.forgeHideGroupModal=forgeHideGroupModal;
+window.forgeCommitGroup=forgeCommitGroup; window.forgeAcceptSuggest=forgeAcceptSuggest;
+window.forgeDismissSuggest=forgeDismissSuggest; window.forgeSendToWaypoint=forgeSendToWaypoint;
+window.forgeExportCSV=forgeExportCSV; window.forgeCopyPaths=forgeCopyPaths;
+window.fDragStart=fDragStart; window.fDragOver=fDragOver; window.fDrop=fDrop; window.fDragEnd=fDragEnd;
 
 })();
 </script>
-
 </body>
 </html>
