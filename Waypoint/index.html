@@ -1072,6 +1072,25 @@ function snapshot() {
   if (history.stack.length > history.MAX) history.stack.shift();
   history.cursor = history.stack.length - 1;
   updateUndoButtons();
+  waypointSave();
+}
+
+/* ── Persist state to Alchemy project ── */
+let _waypointSaveTimer = null;
+function waypointSave() {
+  clearTimeout(_waypointSaveTimer);
+  _waypointSaveTimer = setTimeout(function() {
+    const payload = {
+      savedAt:  new Date().toISOString(),
+      oldInput: (document.getElementById('old-input') || {}).value || '',
+      newInput: (document.getElementById('new-input') || {}).value || '',
+      oldBase:  (document.getElementById('old-base')  || {}).value || '',
+      newBase:  (document.getElementById('new-base')  || {}).value || '',
+      rules:    state.rules,
+      rows:     state.rows,
+    };
+    window.onToolEvent('tool:save', { tool: 'waypoint', payload: payload });
+  }, 800);
 }
 
 function undo() {
@@ -3623,10 +3642,17 @@ document.querySelectorAll('.export-format-bar .pill').forEach(btn => {
 ═══════════════════════════════════════════ */
 function init(project) {
   requestAnimationFrame(() => {
-  // Make project name available to filename/export functions
   window._waypointProjectName = project.name || '';
 
-  // Pre-fill old URLs from Alchemy crawl results
+  // Restore previously saved state if available
+  const saved = project.toolData && project.toolData.waypoint;
+  if (saved && saved.rows && saved.rows.length) {
+    loadSessionData(saved);
+    // Restore new-input too (loadSessionData handles old-input via saved.oldInput)
+    return;
+  }
+
+  // Pre-fill old URLs from Alchemy crawl results (first open)
   const oldInput = document.getElementById('old-input');
   if (project.crawl && project.crawl.results && project.crawl.results.length) {
     const urls = project.crawl.results
@@ -3635,7 +3661,7 @@ function init(project) {
       .join('\n');
     if (oldInput) {
       oldInput.value = urls;
-      oldInput.readOnly = false; // editable — user can still tweak the list
+      oldInput.readOnly = false;
       const badge = document.getElementById('old-urls-badge');
       if (badge) badge.style.display = '';
     }
@@ -3647,16 +3673,11 @@ function init(project) {
     const btn = document.getElementById('btn-analyse');
     if (btn) btn.disabled = false;
   } else {
-    // No crawl data — leave input empty and editable for manual entry
-    if (oldInput) {
-      oldInput.value = '';
-      oldInput.readOnly = false;
-    }
+    if (oldInput) { oldInput.value = ''; oldInput.readOnly = false; }
     const countEl = document.getElementById('url-count');
     if (countEl) countEl.textContent = 'No crawl data — paste or upload old URLs above';
   }
 
-  // Start on Mapper tab
   switchPage('mapper');
   }); // defer until DOM is painted after Alchemy tool injection
 }
