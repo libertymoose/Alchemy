@@ -2895,7 +2895,17 @@ async function startCrawl() {
       setQueueInfo(crawlState.queue.length + ' in queue');
       const result = await fetchPage(url);
       item.ok = result.ok; item.status = result.status; item.statusText = result.statusText;
-      if (result.html) { const m = result.html.match(/<title[^>]*>([^<]{1,80})<\/title>/i); if (m) item.title = m[1].trim(); }
+      if (result.html) {
+        const m = result.html.match(/<title[^>]*>([^<]{1,80})<\/title>/i); if (m) item.title = m[1].trim();
+        const md = result.html.match(/<meta[^>]+name=[\"']description[\"'][^>]+content=[\"']([^\"']{1,300})[\"']/i)
+                || result.html.match(/<meta[^>]+content=[\"']([^\"']{1,300})[\"'][^>]+name=[\"']description[\"']/i);
+        if (md) item.metaDesc = md[1].trim();
+        try {
+          const doc = new DOMParser().parseFromString(result.html, 'text/html');
+          const bodyText = doc.body ? (doc.body.innerText || doc.body.textContent || '') : '';
+          item.wordCount = bodyText.trim().split(/\s+/).filter(Boolean).length;
+        } catch (e) {}
+      }
       updateResultRow(item);
       updateStats();
       if (result.html && crawlState.running) {
@@ -3086,7 +3096,7 @@ async function saveCrawlToProject(redirectAfter) {
     },
     totalUrls: crawlState.results.length,
     okUrls:    ok,
-    results:   crawlState.results.map(r => ({ url: r.url, ok: r.ok, status: r.status, statusText: r.statusText, depth: r.depth, section: r.section, title: r.title || '' })),
+    results:   crawlState.results.map(r => ({ url: r.url, ok: r.ok, status: r.status, statusText: r.statusText, depth: r.depth, section: r.section, title: r.title || '', metaDesc: r.metaDesc || null, wordCount: r.wordCount || null })),
   };
   activeProject.updatedAt = new Date().toISOString();
 
