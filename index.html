@@ -1044,7 +1044,7 @@
     <div class="topbar-project" id="topbar-project-ctx">
       <div class="topbar-project-stack">
         <span class="topbar-project-name">Acme Corp Website Redesign</span>
-        <span class="topbar-domain">www.acmecorp.com</span>
+        <span class="topbar-domain"></span>
       </div>
       <div class="topbar-crawl-badge">
         <div class="crawl-dot"></div>
@@ -2099,11 +2099,18 @@ function showPage(name, navBtn) {
   const page = document.getElementById('page-' + name);
   if (page) page.classList.add('active');
 
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (navBtn) navBtn.classList.add('active');
+  // Always explicitly remove active from page-tool when not navigating to a tool
+  // — prevents .main:has(#page-tool.active) from zeroing out padding
+  if (name !== 'tool') {
+    const toolPage = document.getElementById('page-tool');
+    if (toolPage) toolPage.classList.remove('active');
+  }
 
-  // Reset activeTool if navigating away from a tool page
-  if (name !== 'tool') activeTool = null;
+  if (name !== 'tool') {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (navBtn) navBtn.classList.add('active');
+    activeTool = null;
+  }
 
   if (name === 'projects') renderProjectsList();
   if (name === 'overview') {
@@ -3248,9 +3255,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   `;
   document.head.appendChild(style);
 
-  // Seed demo data if localStorage is empty
-  seedDemoData();
-
   // Render projects list
   renderProjectsList();
 
@@ -3305,126 +3309,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-/* ═══════════════════════════════════════════
-   Demo data seed — only runs if localStorage empty
-═══════════════════════════════════════════ */
-function seedDemoData() {
-  if (getHistory().length) return;
-
-  const now     = new Date();
-  const daysAgo = n => new Date(now - n * 864e5).toISOString();
-
-  function makeUrls(base, paths) {
-    return paths.map(p => ({
-      url: base + p,
-      ok: !p.includes('legacy') && !p.includes('old'),
-      status: (p.includes('legacy') || p.includes('old')) ? 404 : 200,
-      statusText: (p.includes('legacy') || p.includes('old')) ? '404' : '200',
-      depth: p.split('/').filter(Boolean).length,
-      section: '/' + (p.split('/').filter(Boolean)[0] || ''),
-      title: '',
-    }));
-  }
-
-  // ── Acme Corp — mid-project, Scout + Canopy done, Waypoint in progress
-  const acmePaths = [
-    '/','/about','/about/team','/about/careers','/about/history',
-    '/services','/services/web-design','/services/branding','/services/seo','/services/social-media',
-    '/work','/work/acme-rebrand','/work/green-energy-campaign','/work/retail-launch',
-    '/blog','/blog/category/seo','/blog/category/design','/blog/category/marketing',
-    '/blog/10-seo-tips','/blog/brand-refresh-guide','/blog/web-design-trends-2026',
-    '/blog/social-media-strategy','/blog/ux-best-practices','/blog/colour-theory',
-    '/contact','/contact/thank-you','/privacy-policy','/terms','/sitemap',
-    '/old-services','/legacy/home','/legacy/about',
-  ];
-  const acmeUrls = makeUrls('https://www.acmecorp.com', acmePaths);
-
-  const acme = {
-    id: 'fx_acme0001', name: 'Acme Corp Website Redesign', url: 'https://www.acmecorp.com',
-    createdAt: daysAgo(14), updatedAt: daysAgo(1),
-    crawl: {
-      status: 'complete', startedAt: daysAgo(14), completedAt: daysAgo(14),
-      settings: { concurrency: 3, maxDepth: 6, filters: { pagination: true, media: true, dev: true, query: false, hash: true, customPatterns: [] } },
-      totalUrls: acmeUrls.length, okUrls: acmeUrls.filter(r => r.ok).length, results: acmeUrls,
-    },
-    tools: {
-      scout:    { openedAt: daysAgo(13), complete: true  },
-      canopy:   { openedAt: daysAgo(12), complete: true  },
-      waypoint: { openedAt: daysAgo(10), complete: false },
-      atlas:    { openedAt: null,         complete: false },
-      forge:    { openedAt: null,         complete: false },
-      warden:   { openedAt: null,         complete: false },
-      charter:  { openedAt: null,         complete: false },
-    },
-  };
-
-  // ── BBC Good Food — further along, Waypoint complete too
-  const bbcPaths = [
-    '/','/recipes','/recipes/category/breakfast','/recipes/category/dinner',
-    '/recipes/category/desserts','/recipes/category/vegetarian','/recipes/category/vegan',
-    '/recipes/eggs-benedict','/recipes/chicken-tikka-masala','/recipes/victoria-sponge',
-    '/recipes/avocado-toast','/recipes/beef-bourguignon','/recipes/lemon-drizzle',
-    '/how-to','/how-to/knife-skills','/how-to/pastry-basics','/how-to/bread-making',
-    '/nutrition','/nutrition/guides','/nutrition/guides/protein',
-    '/news','/news/food-trends-2026','/news/restaurant-reviews',
-    '/about','/contact','/privacy','/terms','/advertise',
-    '/old-recipes','/legacy/index','/legacy/print-recipes',
-  ];
-  const bbcUrls = makeUrls('https://www.bbcgoodfood.com', bbcPaths);
-
-  const bbc = {
-    id: 'fx_bbc00002', name: 'BBC Good Food Migration', url: 'https://www.bbcgoodfood.com',
-    createdAt: daysAgo(44), updatedAt: daysAgo(3),
-    crawl: {
-      status: 'complete', startedAt: daysAgo(44), completedAt: daysAgo(44),
-      settings: { concurrency: 5, maxDepth: 8, filters: { pagination: true, media: true, dev: true, query: false, hash: true, customPatterns: [] } },
-      totalUrls: bbcUrls.length, okUrls: bbcUrls.filter(r => r.ok).length, results: bbcUrls,
-    },
-    tools: {
-      scout:    { openedAt: daysAgo(43), complete: true  },
-      canopy:   { openedAt: daysAgo(42), complete: true  },
-      waypoint: { openedAt: daysAgo(38), complete: true  },
-      atlas:    { openedAt: daysAgo(20), complete: false },
-      forge:    { openedAt: null,         complete: false },
-      warden:   { openedAt: null,         complete: false },
-      charter:  { openedAt: null,         complete: false },
-    },
-  };
-
-  // ── Veritas Legal — brand new, no crawl yet
-  const veritas = {
-    id: 'fx_verit003', name: 'Veritas Legal Group', url: 'https://www.veritaslegal.co.uk',
-    createdAt: daysAgo(3), updatedAt: daysAgo(3),
-    crawl: {
-      status: 'idle', startedAt: null, completedAt: null,
-      settings: { concurrency: 3, maxDepth: 6, filters: { pagination: true, media: true, dev: true, query: false, hash: true, customPatterns: [] } },
-      totalUrls: 0, okUrls: 0, results: [],
-    },
-    tools: {
-      scout: { openedAt: null, complete: false }, canopy:   { openedAt: null, complete: false },
-      waypoint: { openedAt: null, complete: false }, atlas: { openedAt: null, complete: false },
-      forge: { openedAt: null, complete: false },   warden: { openedAt: null, complete: false },
-      charter: { openedAt: null, complete: false },
-    },
-  };
-
-  // Save index to localStorage
-  saveHistory([
-    { id: acme.id,    name: acme.name,    url: acme.url,    createdAt: acme.createdAt,    totalUrls: acme.crawl.totalUrls,    okUrls: acme.crawl.okUrls,    tools: acme.tools    },
-    { id: bbc.id,     name: bbc.name,     url: bbc.url,     createdAt: bbc.createdAt,     totalUrls: bbc.crawl.totalUrls,     okUrls: bbc.crawl.okUrls,     tools: bbc.tools     },
-    { id: veritas.id, name: veritas.name, url: veritas.url, createdAt: veritas.createdAt, totalUrls: veritas.crawl.totalUrls, okUrls: veritas.crawl.okUrls, tools: veritas.tools },
-  ]);
-
-  // Cache full project objects in sessionStorage (survives page navigation, not required for Worker)
-  try {
-    sessionStorage.setItem('proj_' + acme.id,    JSON.stringify(acme));
-    sessionStorage.setItem('proj_' + bbc.id,     JSON.stringify(bbc));
-    sessionStorage.setItem('proj_' + veritas.id, JSON.stringify(veritas));
-  } catch {}
-
-  // Land on Overview with Acme loaded
-  setProjectActive(acme);
-}
 </script>
 </body>
 </html>
