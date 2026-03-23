@@ -856,7 +856,7 @@ function atlasBuildFromFoundry() {
 
   /* Auto-enrich: if most rows are still missing word count (pre-enrichment crawl),
      start enriching automatically */
-  const missingData = A.rows.filter(function(r) { return !r.isNew && r.wordCount === null; }).length;
+  const missingData = A.rows.filter(function(r) { return !r.isNew && (r.wordCount == null || r.wordCount === 0); }).length;
   if (missingData > 1) {
     setTimeout(atlasStartEnrich, 400);
   }
@@ -1149,7 +1149,7 @@ function atlasEditNotes(el) {
 /* ── Recrawl / Enrich ── */
 let enrichAbort = false;
 function atlasStartEnrich() {
-  const rows = A.rows.filter(function(r) { return !r.isNew && r.wordCount === null; });
+  const rows = A.rows.filter(function(r) { return !r.isNew && (r.wordCount == null || r.wordCount === 0); });
   if (!rows.length) { alert('Nothing to recrawl — all rows already have data.'); return; }
   enrichAbort = false;
   const bar  = document.getElementById('enrich-bar-wrap');
@@ -1186,7 +1186,7 @@ function atlasStopEnrich() { enrichAbort = true; }
 
 /* ── Recrawl button ── */
 function atlasStartRecrawl() {
-  const missing = A.rows.filter(function(r) { return !r.isNew && r.wordCount === null; }).length;
+  const missing = A.rows.filter(function(r) { return !r.isNew && (r.wordCount == null || r.wordCount === 0); }).length;
   if (!missing) { alert('All rows already have data.'); return; }
   const msg = missing === A.rows.length
     ? 'Recrawl all ' + A.rows.length + ' pages to fetch words, meta descriptions, and readability?'
