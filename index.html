@@ -1963,7 +1963,6 @@ function onToolEvent(type, data) {
     if (!key || !activeProject) return;
     if (!activeProject.toolData) activeProject.toolData = {};
     activeProject.toolData[key] = data.payload || data.data || data;
-    console.log('[Alchemy] tool:save received for', key, '— keys:', Object.keys(activeProject.toolData[key] || {}));
     activeProject.updatedAt = new Date().toISOString();
     upsertHistoryEntry(activeProject);
     // Only persist to Worker if we have the full project (not just the lightweight history cache)
@@ -2400,13 +2399,12 @@ async function loadProject(id) {
   // Fetch full project from Worker in background
   fetchProject(id).then(project => {
     if (project) {
-      console.log('[Alchemy] Worker returned toolData:', JSON.stringify(project.toolData || null));
       setProjectActive(project);
       upsertHistoryEntry(project);
       try { sessionStorage.setItem('proj_' + id, JSON.stringify(project)); } catch (e) {}
       if (document.getElementById('page-overview').classList.contains('active')) renderOverview();
     }
-  }).catch((e) => { console.log('[Alchemy] Worker fetch failed:', e); });
+  }).catch(() => {});
 }
 
 function deleteProject(id) {
@@ -2481,6 +2479,58 @@ function renderOverview() {
   });
 
   /* ── Summary cards removed — info shown in tool cards below ── */
+
+  /* ── Scout card body ── */
+  const scoutData = activeProject.toolData && activeProject.toolData.scout;
+  const scoutBody = document.getElementById('tc-scout-body');
+  if (scoutBody) {
+    if (scoutData && scoutData.findings) {
+      const f = scoutData.findings;
+      const allFindings = [].concat(f.ux||[], f.content||[], f.perf||[], f.a11y||[], f.security||[], f.integrations||[]);
+      const high = allFindings.filter(x => x.lv === 'high').length;
+      const mid  = allFindings.filter(x => x.lv === 'mid').length;
+      const raw  = scoutData.raw || {};
+      let html = '';
+      // PSI scores
+      if (raw.psi) {
+        const d = raw.psi.desktop, m = raw.psi.mobile;
+        const cls = s => s >= 90 ? 'ts-ok' : s >= 50 ? 'ts-warn' : 'ts-err';
+        html += '<div class="tc-stat-row">';
+        if (d && d.performance !== undefined) html += '<div class="tc-stat ' + cls(d.performance) + '"><strong>' + d.performance + '</strong>perf desktop</div>';
+        if (m && m.performance !== undefined) html += '<div class="tc-stat ' + cls(m.performance) + '"><strong>' + m.performance + '</strong>perf mobile</div>';
+        if (d && d.seo          !== undefined) html += '<div class="tc-stat ' + cls(d.seo) + '"><strong>' + d.seo + '</strong>SEO</div>';
+        html += '</div>';
+      }
+      if (high) html += '<div class="tc-finding-row"><div class="tf-bullet tb-err"></div>' + high + ' high priority finding' + (high !== 1 ? 's' : '') + '</div>';
+      if (mid)  html += '<div class="tc-finding-row"><div class="tf-bullet tb-warn"></div>' + mid  + ' medium priority finding' + (mid  !== 1 ? 's' : '') + '</div>';
+      scoutBody.innerHTML = html || '<div class="tc-empty">Audit saved — open Scout to view results.</div>';
+    } else if (tools.scout && tools.scout.openedAt) {
+      scoutBody.innerHTML = '<div class="tc-empty">Audit in progress — save from Scout to see a summary here.</div>';
+    } else {
+      scoutBody.innerHTML = '<div class="tc-empty">Open Scout to run an audit — results will appear here.</div>';
+    }
+  }
+
+  /* ── Waypoint card body ── */
+  const wpData = activeProject.toolData && activeProject.toolData.waypoint;
+  const wpBody = document.getElementById('ov-waypoint-body');
+  if (wpBody) {
+    if (wpData && wpData.rows && wpData.rows.length) {
+      const rows   = wpData.rows;
+      const mapped = rows.filter(r => r.newUrl && r.newUrl.trim()).length;
+      const pct    = Math.round((mapped / rows.length) * 100);
+      const errors = rows.filter(r => r.status && r.status >= 400).length;
+      wpBody.outerHTML = '<div id="ov-waypoint-body">'
+        + '<div class="tc-stat-row"><div class="tc-stat ts-teal"><strong>' + rows.length + '</strong>redirects</div>'
+        + '<div class="tc-stat ' + (pct === 100 ? 'ts-ok' : 'ts-warn') + '"><strong>' + pct + '%</strong>mapped</div></div>'
+        + (errors ? '<div class="tc-finding-row"><div class="tf-bullet tb-err"></div>' + errors + ' URL error' + (errors !== 1 ? 's' : '') + '</div>' : '')
+        + '</div>';
+    } else if (tools.waypoint && tools.waypoint.openedAt) {
+      wpBody.textContent = 'Waypoint opened — save from Waypoint to see a summary here.';
+    } else {
+      wpBody.textContent = 'Open Waypoint after running a crawl to start mapping redirects.';
+    }
+  }
 
   // Atlas tool card body
   const atlas = tools.atlas;
