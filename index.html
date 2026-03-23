@@ -2479,6 +2479,9 @@ function renderOverview() {
     }
   });
 
+  /* ── debug: expose toolData shape ── */
+  if (p.toolData) console.log('[Alchemy] toolData:', JSON.stringify(p.toolData, null, 2));
+
   /* ── Summary cards removed — info shown in tool cards below ── */
 
   // Atlas tool card body
