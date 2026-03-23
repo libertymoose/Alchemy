@@ -2517,13 +2517,13 @@ function renderOverview() {
   if (wpBody) {
     if (wpData && wpData.rows && wpData.rows.length) {
       const rows   = wpData.rows;
-      const mapped = rows.filter(r => r.newUrl && r.newUrl.trim()).length;
+      const mapped = rows.filter(r => r.confirmed && r.confirmed.trim()).length;
       const pct    = Math.round((mapped / rows.length) * 100);
-      const errors = rows.filter(r => r.status && r.status >= 400).length;
+      const errors = rows.filter(r => r.destStatus && r.destStatus >= 400).length;
       wpBody.outerHTML = '<div id="ov-waypoint-body">'
         + '<div class="tc-stat-row"><div class="tc-stat ts-teal"><strong>' + rows.length + '</strong>redirects</div>'
         + '<div class="tc-stat ' + (pct === 100 ? 'ts-ok' : 'ts-warn') + '"><strong>' + pct + '%</strong>mapped</div></div>'
-        + (errors ? '<div class="tc-finding-row"><div class="tf-bullet tb-err"></div>' + errors + ' URL error' + (errors !== 1 ? 's' : '') + '</div>' : '')
+        + (errors ? '<div class="tc-finding-row"><div class="tf-bullet tb-err"></div>' + errors + ' destination error' + (errors !== 1 ? 's' : '') + '</div>' : '')
         + '</div>';
     } else if (tools.waypoint && tools.waypoint.openedAt) {
       wpBody.textContent = 'Waypoint opened — save from Waypoint to see a summary here.';
