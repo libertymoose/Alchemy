@@ -1864,7 +1864,10 @@ async function loadTool(key, navBtn) {
     t.openedAt = new Date().toISOString();
     activeProject.updatedAt = new Date().toISOString();
     upsertHistoryEntry(activeProject);
-    storeProject(activeProject).catch(() => {});
+    // Only persist if full project is loaded (not just lightweight history cache)
+    if (activeProject.crawl && activeProject.crawl.results && activeProject.crawl.results.length) {
+      storeProject(activeProject).catch(() => {});
+    }
     updateSidebarPills();
   }
 
@@ -2394,8 +2397,24 @@ async function loadProject(id) {
   // Fetch full project from Worker in background
   fetchProject(id).then(project => {
     if (project) {
+      // Merge any openedAt timestamps set during loading (before full project arrived)
+      if (activeProject && activeProject.tools) {
+        Object.keys(activeProject.tools).forEach(k => {
+          if (activeProject.tools[k] && activeProject.tools[k].openedAt && project.tools[k]) {
+            project.tools[k].openedAt = project.tools[k].openedAt || activeProject.tools[k].openedAt;
+          }
+        });
+      }
+      // Merge any toolData saved during loading
+      if (activeProject && activeProject.toolData) {
+        project.toolData = project.toolData || {};
+        Object.keys(activeProject.toolData).forEach(k => {
+          if (!project.toolData[k]) project.toolData[k] = activeProject.toolData[k];
+        });
+      }
       setProjectActive(project);
       upsertHistoryEntry(project);
+      storeProject(project).catch(() => {});
       try { sessionStorage.setItem('proj_' + id, JSON.stringify(project)); } catch (e) {}
       if (document.getElementById('page-overview').classList.contains('active')) renderOverview();
     }
