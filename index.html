@@ -1370,30 +1370,6 @@
       </div>
 
       <!-- Summary numbers — populated by renderOverview() -->
-      <div class="summary-row" id="ov-summary-row">
-        <div class="summary-card" id="ov-sc-crawl">
-          <div class="sc-label">URLs crawled</div>
-          <div class="sc-value" id="ov-sc-crawl-n">—</div>
-          <div class="sc-meta" id="ov-sc-crawl-meta">No crawl yet</div>
-          <div class="sc-bar-wrap"><div class="sc-bar-fill" id="ov-sc-crawl-bar" style="width:0%;"></div></div>
-        </div>
-        <div class="summary-card" id="ov-sc-scout">
-          <div class="sc-label">Scout</div>
-          <div class="sc-value" id="ov-sc-scout-n">—</div>
-          <div class="sc-meta" id="ov-sc-scout-meta">not opened</div>
-        </div>
-        <div class="summary-card" id="ov-sc-waypoint">
-          <div class="sc-label">Waypoint</div>
-          <div class="sc-value" id="ov-sc-waypoint-n">—</div>
-          <div class="sc-meta" id="ov-sc-waypoint-meta">not opened</div>
-        </div>
-        <div class="summary-card" id="ov-sc-atlas">
-          <div class="sc-label">Atlas</div>
-          <div class="sc-value" id="ov-sc-atlas-n">—</div>
-          <div class="sc-meta" id="ov-sc-atlas-meta">not opened</div>
-        </div>
-      </div>
-
       <!-- Tool cards — static layout, dynamic state via renderOverview() -->
       <div class="section-title">Tools</div>
       <div class="tool-grid">
@@ -1984,7 +1960,10 @@ function onToolEvent(type, data) {
     activeProject.toolData[key] = data.payload || data.data || data;
     activeProject.updatedAt = new Date().toISOString();
     upsertHistoryEntry(activeProject);
-    storeProject(activeProject).catch(() => {});
+    // Only persist to Worker if we have the full project (not just the lightweight history cache)
+    if (activeProject.crawl && activeProject.crawl.results && activeProject.crawl.results.length) {
+      storeProject(activeProject).catch(() => {});
+    }
   }
 
   if (type === 'tool:navigate') {
@@ -2341,7 +2320,7 @@ function renderProjectsList() {
 
   history.forEach(entry => {
     let domain = entry.url;
-    try { domain = new URL(entry.url).hostname; } catch {}
+    try { domain = new URL(entry.url).hostname; } catch (e) {}
 
     const completedCount = entry.tools
       ? Object.values(entry.tools).filter(t => t && t.complete).length : 0;
@@ -2402,7 +2381,7 @@ async function loadProject(id) {
       showPage('overview', overviewBtn);
       return;
     }
-  } catch {}
+  } catch (e) {}
 
   // Try local index cache for instant navigation
   const cached = getHistory().find(e => e.id === id);
@@ -2417,7 +2396,7 @@ async function loadProject(id) {
     if (project) {
       setProjectActive(project);
       upsertHistoryEntry(project);
-      try { sessionStorage.setItem('proj_' + id, JSON.stringify(project)); } catch {}
+      try { sessionStorage.setItem('proj_' + id, JSON.stringify(project)); } catch (e) {}
       if (document.getElementById('page-overview').classList.contains('active')) renderOverview();
     }
   }).catch(() => {});
@@ -2450,7 +2429,7 @@ function renderOverview() {
   const crawl = p.crawl;
   const tools = p.tools;
   let domain = p.url;
-  try { domain = new URL(p.url).hostname; } catch {}
+  try { domain = new URL(p.url).hostname; } catch (e) {}
 
   /* ── Topbar ── */
   updateTopbar();
@@ -2483,44 +2462,18 @@ function renderOverview() {
     }
   });
 
-  /* ── Summary cards ── */
-  if (crawl && crawl.totalUrls) {
-    const pct = Math.round((crawl.okUrls / crawl.totalUrls) * 100);
-    const err = crawl.totalUrls - crawl.okUrls;
-    setText('ov-sc-crawl-n', crawl.totalUrls.toLocaleString());
-    setText('ov-sc-crawl-meta', crawl.okUrls.toLocaleString() + ' ok' + (err ? ' · ' + err + ' errors' : ''));
-    document.getElementById('ov-sc-crawl-bar').style.width = pct + '%';
-  } else {
-    setText('ov-sc-crawl-n', '—');
-    setText('ov-sc-crawl-meta', 'No crawl yet');
-    document.getElementById('ov-sc-crawl-bar').style.width = '0%';
-  }
+  /* ── Summary cards removed — info shown in tool cards below ── */
 
-  // Scout summary
-  const scout = tools.scout;
-  setText('ov-sc-scout-n', scout && scout.complete ? '✓' : scout && scout.openedAt ? '→' : '—');
-  setText('ov-sc-scout-meta', scout && scout.openedAt ? 'opened ' + formatDate(scout.openedAt) : 'not opened');
-
-  // Waypoint summary
-  const wp = tools.waypoint;
-  setText('ov-sc-waypoint-n', wp && wp.complete ? '✓' : wp && wp.openedAt ? '→' : '—');
-  setText('ov-sc-waypoint-meta', wp && wp.openedAt ? 'opened ' + formatDate(wp.openedAt) : 'not opened');
-
-  // Atlas summary
+  // Atlas tool card body
   const atlas = tools.atlas;
   const atlasData = activeProject.toolData && activeProject.toolData.atlas;
   if (atlasData && atlasData.rows && atlasData.rows.length) {
-    const rows      = atlasData.rows;
-    const assigned  = rows.filter(r => r.disposition !== 'unset').length;
-    const flagged   = rows.filter(r => r.flagState === 'red' || r.flagState === 'yellow').length;
-    const pct       = Math.round((assigned / rows.length) * 100);
-    setText('ov-sc-atlas-n', rows.length);
-    setText('ov-sc-atlas-meta', pct + '% assigned · ' + flagged + ' flagged');
+    const rows     = atlasData.rows;
+    const assigned = rows.filter(r => r.disposition !== 'unset').length;
+    const flagged  = rows.filter(r => r.flagState === 'red' || r.flagState === 'yellow').length;
+    const pct      = Math.round((assigned / rows.length) * 100);
     const body = document.getElementById('tc-atlas-body');
     if (body) body.innerHTML = '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>' + rows.length + ' pages · ' + pct + '% assigned</div>' + (flagged ? '<div class="tc-finding-row"><div class="tf-bullet tb-warn"></div>' + flagged + ' flagged</div>' : '');
-  } else {
-    setText('ov-sc-atlas-n', atlas && atlas.complete ? '✓' : atlas && atlas.openedAt ? '→' : '—');
-    setText('ov-sc-atlas-meta', atlas && atlas.openedAt ? 'opened ' + formatDate(atlas.openedAt) : 'not opened');
   }
   // Atlas card badge
   const atlasBadge = document.getElementById('tc-atlas-badge');
@@ -2620,7 +2573,7 @@ function updateTopbar() {
   if (nameEl) nameEl.textContent = activeProject.name;
   if (domEl) {
     let domain = activeProject.url;
-    try { domain = new URL(activeProject.url).hostname; } catch {}
+    try { domain = new URL(activeProject.url).hostname; } catch (e) {}
     domEl.textContent = domain;
   }
   if (badgeEl && activeProject.crawl && activeProject.crawl.completedAt) {
@@ -2688,7 +2641,7 @@ function renderCrawlPage() {
   content.style.display = '';
   document.getElementById('crawl-project-name').textContent = activeProject.name;
   let domain = activeProject.url;
-  try { domain = new URL(activeProject.url).hostname; } catch {}
+  try { domain = new URL(activeProject.url).hostname; } catch (e) {}
   document.getElementById('crawl-project-url').textContent = domain;
   document.getElementById('crawl-url-display').textContent = activeProject.url;
 
@@ -2733,7 +2686,7 @@ function parseImportText(raw, baseUrl) {
       const doc = new DOMParser().parseFromString(text, 'application/xml');
       doc.querySelectorAll('loc').forEach(loc => { const u = loc.textContent.trim(); if (u) urls.add(u); });
       if (urls.size > 0) return [...urls];
-    } catch {}
+    } catch (e) {}
   }
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   for (const line of lines) {
@@ -2742,7 +2695,7 @@ function parseImportText(raw, baseUrl) {
     const urlCol = cols.find(c => c.startsWith('http'));
     if (urlCol) { urls.add(urlCol); continue; }
     if (line.startsWith('http')) { urls.add(line); continue; }
-    if (baseUrl && line.startsWith('/')) { try { urls.add(new URL(line, baseUrl).href); } catch {} }
+    if (baseUrl && line.startsWith('/')) { try { urls.add(new URL(line, baseUrl).href); } catch (e) {} }
   }
   return [...urls];
 }
@@ -2757,7 +2710,7 @@ function runImport() {
   excludedCount = 0;
   crawlState.results = urls.map(url => {
     let depth = 0, section = '/';
-    try { const u = new URL(url); const parts = u.pathname.split('/').filter(Boolean); depth = parts.length; section = parts.length ? '/' + parts[0] : '/'; } catch {}
+    try { const u = new URL(url); const parts = u.pathname.split('/').filter(Boolean); depth = parts.length; section = parts.length ? '/' + parts[0] : '/'; } catch (e) {}
     return { url, ok: true, status: 200, statusText: 'imported', depth, section };
   });
   showResults();
@@ -2828,7 +2781,7 @@ function extractLinks(html, base) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const links = [];
     doc.querySelectorAll('a[href]').forEach(a => {
-      try { links.push(new URL(a.getAttribute('href'), base).href); } catch {}
+      try { links.push(new URL(a.getAttribute('href'), base).href); } catch (e) {}
     });
     return links;
   } catch { return []; }
@@ -2920,7 +2873,7 @@ async function startCrawl() {
             if (shouldExclude(clean, f)) { excludedCount++; updateExcluded(); crawlState.visited.add(clean); continue; }
             crawlState.visited.add(clean);
             crawlState.queue.push(clean);
-          } catch {}
+          } catch (e) {}
         }
       }
     }
@@ -3444,7 +3397,7 @@ function seedDemoData() {
     sessionStorage.setItem('proj_' + acme.id,    JSON.stringify(acme));
     sessionStorage.setItem('proj_' + bbc.id,     JSON.stringify(bbc));
     sessionStorage.setItem('proj_' + veritas.id, JSON.stringify(veritas));
-  } catch {}
+  } catch (e) {}
 
   // Land on Overview with Acme loaded
   setProjectActive(acme);
