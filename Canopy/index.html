@@ -1604,6 +1604,7 @@ function buildDiagram(resetView) {
   document.getElementById('d-status').textContent = '✅ complete';
 
   renderDiagram(showCounts, resetView);
+  canopySave();
 }
 
 /* ── Layout engine ──
@@ -2137,6 +2138,7 @@ function autoSaveAnnotation() {
   } else {
     delete nodeAnnotations[url];
   }
+  canopySave();
 }
 
 function setNodeTag(tag) {
@@ -2170,6 +2172,7 @@ function setNodeTag(tag) {
       el.appendChild(strip);
     }
   }
+  canopySave();
 }
 
 function handleDiagramSearch(val) {
@@ -2785,6 +2788,14 @@ function init(project) {
   requestAnimationFrame(() => {
   activeProjectName = project.name || '';
 
+  // Restore saved annotations/tags/labels from project
+  const saved = project.toolData && project.toolData.canopy;
+  if (saved) {
+    if (saved.nodeStatusTags)  Object.assign(nodeStatusTags,  saved.nodeStatusTags);
+    if (saved.nodeAnnotations) Object.assign(nodeAnnotations, saved.nodeAnnotations);
+    if (saved.customLabels)    Object.assign(customLabels,    saved.customLabels);
+  }
+
   // Load crawl results from Alchemy project into Canopy's crawlState
   if (project.crawl && project.crawl.results && project.crawl.results.length) {
     crawlState.results = project.crawl.results.map(r => ({
@@ -2799,11 +2810,9 @@ function init(project) {
     crawlState.base = project.url || '';
     crawlState.running = false;
 
-    // Show diagram page and build immediately
     switchPage('diagram');
     buildDiagram();
   } else {
-    // No crawl data yet — show empty state
     switchPage('diagram');
     const empty = document.getElementById('diagram-empty');
     if (empty) {
@@ -2840,7 +2849,8 @@ window.clearSearch      = clearSearch;
 window.copyURLs         = copyURLs;
 window.sendToWaypoint   = sendToWaypoint;
 window.previewCustomLabel = previewCustomLabel;
-window.setNodeTag         = setNodeTag;
+window.setNodeTag          = setNodeTag;
+window.autoSaveAnnotation  = autoSaveAnnotation;
 window.handleDiagramSearch = handleDiagramSearch;
 window.clearDiagramSearch  = clearDiagramSearch;
 
@@ -2981,6 +2991,20 @@ document.querySelectorAll('[data-cdiff-filter]').forEach(btn => {
 window.loadCanopyDiffFile = loadCanopyDiffFile;
 window.runCanopyDiff      = runCanopyDiff;
 window.clearCanopyDiff    = clearCanopyDiff;
+
+/* ── Persist state to Alchemy project ── */
+let _canopySaveTimer = null;
+function canopySave() {
+  clearTimeout(_canopySaveTimer);
+  _canopySaveTimer = setTimeout(function() {
+    window.onToolEvent('tool:save', { tool: 'canopy', payload: {
+      savedAt:        new Date().toISOString(),
+      nodeStatusTags: nodeStatusTags,
+      nodeAnnotations:nodeAnnotations,
+      customLabels:   customLabels,
+    }});
+  }, 800);
+}
 
 return { init };
 
