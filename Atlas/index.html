@@ -489,7 +489,8 @@
 
     /* ── ENRICH PROGRESS ── */
     .enrich-bar-wrap {
-      display: none; padding: 0.5rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: none; padding: 0.65rem 1.5rem; border-bottom: 1px solid var(--border);
+      border-top: 1px solid var(--border-inner);
       background: var(--bg); align-items: center; gap: 0.75rem; flex-shrink: 0;
     }
     .enrich-bar-wrap.visible { display: flex; }
@@ -574,18 +575,18 @@
       <span class="toolbar-count" id="toolbar-count"></span>
       <button class="enrich-btn" onclick="atlasShowAddUrls()">+ Add URLs</button>
       <button class="enrich-btn" onclick="atlasShowWorkbench()">⚙ Workbench</button>
-      <button class="enrich-btn" onclick="atlasStartEnrich()">+ Enrich</button>
-      <button class="enrich-btn" onclick="atlasConfirmRebuild()" title="Rebuild inventory from crawl — resets all rows">↺ Rebuild</button>
+      <button class="enrich-btn" onclick="atlasStartRecrawl()">↺ Recrawl</button>
       <div class="view-toggle">
         <button class="vt-btn active" id="vt-table" title="Table view" onclick="atlasSetView('table')">☰</button>
         <button class="vt-btn"        id="vt-card"  title="Card view"  onclick="atlasSetView('card')">⊞</button>
       </div>
     </div>
 
-    <!-- Enrich progress bar -->
+    <!-- Recrawl progress bar -->
     <div class="enrich-bar-wrap" id="enrich-bar-wrap">
+      <span id="enrich-snail" style="font-size:1rem;line-height:1;">🐌</span>
       <div class="enrich-bar-track"><div class="enrich-bar-fill" id="enrich-bar-fill" style="width:0%"></div></div>
-      <span class="enrich-label" id="enrich-label">Enriching…</span>
+      <span class="enrich-label" id="enrich-label">Recrawling…</span>
       <button class="enrich-cancel" onclick="atlasStopEnrich()">✕ cancel</button>
     </div>
 
@@ -822,15 +823,13 @@ function atlasBuildFromFoundry() {
   if (!p || !p.crawl || !p.crawl.results || !p.crawl.results.length) return;
 
   /* Scout saves a single-URL audit: { url, raw: { readability, og, ... } }
-     Map it by URL so we can look up data per crawl row */
+     Map it by URL for readability score (the one thing the crawl doesn't provide) */
   const scoutData = (p.toolData && p.toolData.scout) || null;
   const scoutMap  = {};
   if (scoutData && scoutData.url && scoutData.raw) {
     const raw = scoutData.raw;
     scoutMap[scoutData.url] = {
-      wordCount:   (raw.readability && raw.readability.words)   || null,
-      readability: (raw.readability && raw.readability.fre)     || null,
-      metaDesc:    (raw.og && raw.og.descText !== undefined)    ? raw.og.descText : null,
+      readability: (raw.readability && raw.readability.fre) || null,
     };
   }
 
@@ -842,11 +841,10 @@ function atlasBuildFromFoundry() {
     row.depth      = r.depth || 0;
     row.section    = r.section || getSection(r.url);
     row.title      = r.title || null;
-    if (s) {
-      row.wordCount   = s.wordCount;
-      row.readability = s.readability;
-      row.metaDesc    = s.metaDesc;
-    }
+    /* Use enriched crawl data if available, fall back to Scout for readability */
+    row.metaDesc    = (r.metaDesc !== undefined && r.metaDesc !== null) ? r.metaDesc : null;
+    row.wordCount   = r.wordCount || null;
+    row.readability = s ? s.readability : null;
     return row;
   });
 
@@ -856,8 +854,8 @@ function atlasBuildFromFoundry() {
   atlasUpdateExport();
   atlasShowPage('inventory');
 
-  /* Auto-enrich: if most rows are missing word count (Scout only covers 1 URL),
-     start enriching automatically after a brief delay so the table renders first */
+  /* Auto-enrich: if most rows are still missing word count (pre-enrichment crawl),
+     start enriching automatically */
   const missingData = A.rows.filter(function(r) { return !r.isNew && r.wordCount === null; }).length;
   if (missingData > 1) {
     setTimeout(atlasStartEnrich, 400);
@@ -1148,44 +1146,54 @@ function atlasEditNotes(el) {
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = row.notes || ''; inp.blur(); } });
 }
 
-/* ── Enrich ── */
+/* ── Recrawl / Enrich ── */
 let enrichAbort = false;
 function atlasStartEnrich() {
-  const rows = A.rows.filter(r => !r.isNew && r.wordCount === null);
-  if (!rows.length) { alert('Nothing to enrich — all rows already have data.'); return; }
+  const rows = A.rows.filter(function(r) { return !r.isNew && r.wordCount === null; });
+  if (!rows.length) { alert('Nothing to recrawl — all rows already have data.'); return; }
   enrichAbort = false;
   const bar  = document.getElementById('enrich-bar-wrap');
   const fill = document.getElementById('enrich-bar-fill');
   const lbl  = document.getElementById('enrich-label');
   bar.classList.add('visible');
-  (async () => {
+  (async function() {
     for (let i = 0; i < rows.length; i++) {
       if (enrichAbort) break;
       const row = rows[i];
-      lbl.textContent = 'Enriching ' + (i + 1) + ' / ' + rows.length + ' — ' + row.url.replace(/^https?:\/\//, '').substring(0, 40);
+      lbl.textContent = (i + 1) + ' / ' + rows.length;
       fill.style.width = Math.round((i / rows.length) * 100) + '%';
       try {
         const res  = await fetch(PROXY + encodeURIComponent(row.url));
         const data = await res.json();
         const html = data.html || '';
         const doc  = new DOMParser().parseFromString(html, 'text/html');
-        const h1   = doc.querySelector('h1');
         if (!row.title) { const t = doc.querySelector('title'); if (t) row.title = t.textContent.trim(); }
         const metaEl = doc.querySelector('meta[name="description"]');
-        if (metaEl) row.metaDesc = metaEl.getAttribute('content') || '';
-        const bodyText = doc.body ? doc.body.innerText || doc.body.textContent : '';
-        row.wordCount  = bodyText.trim().split(/\s+/).filter(Boolean).length;
-      } catch (e) { /* skip */ }
+        row.metaDesc = metaEl ? (metaEl.getAttribute('content') || '') : null;
+        const bodyText = doc.body ? (doc.body.innerText || doc.body.textContent || '') : '';
+        row.wordCount = bodyText.trim().split(/\s+/).filter(Boolean).length;
+      } catch (e) { /* skip failed URLs */ }
     }
     fill.style.width = '100%';
-    lbl.textContent = enrichAbort ? 'Cancelled.' : 'Enrich complete.';
-    setTimeout(() => bar.classList.remove('visible'), 2000);
+    lbl.textContent = enrichAbort ? 'Cancelled.' : 'Done.';
+    setTimeout(function() { bar.classList.remove('visible'); }, 2000);
     atlasApplyFlags();
     atlasSave();
     atlasRenderTable();
   })();
 }
 function atlasStopEnrich() { enrichAbort = true; }
+
+/* ── Recrawl button ── */
+function atlasStartRecrawl() {
+  const missing = A.rows.filter(function(r) { return !r.isNew && r.wordCount === null; }).length;
+  if (!missing) { alert('All rows already have data.'); return; }
+  const msg = missing === A.rows.length
+    ? 'Recrawl all ' + A.rows.length + ' pages to fetch words, meta descriptions, and readability?'
+    : 'Recrawl ' + missing + ' pages that are still missing data?';
+  if (!confirm(msg)) return;
+  atlasStartEnrich();
+}
 
 /* ── Export page ── */
 function atlasUpdateExport() {
@@ -1278,12 +1286,6 @@ function getSection(url) {
   catch (e) { return '/'; }
 }
 
-/* ── Rebuild ── */
-function atlasConfirmRebuild() {
-  if (!confirm('Rebuild inventory from crawl? This will reset all rows and lose any dispositions, flags, and notes.')) return;
-  A.rows = [];
-  atlasBuildFromFoundry();
-}
 
 /* ── Add URLs modal ── */
 function atlasShowAddUrls() {
@@ -1354,6 +1356,7 @@ window.atlasSetView         = atlasSetView;
 window.atlasSort            = atlasSort;
 window.atlasStartEnrich     = atlasStartEnrich;
 window.atlasStopEnrich      = atlasStopEnrich;
+window.atlasStartRecrawl    = atlasStartRecrawl;
 window.atlasBuildFromFoundry= atlasBuildFromFoundry;
 window.atlasApplyFlags      = atlasApplyFlags;
 window.atlasCycleFlag       = atlasCycleFlag;
@@ -1369,7 +1372,6 @@ window.atlasCommitAddUrls   = atlasCommitAddUrls;
 window.atlasShowWorkbench   = atlasShowWorkbench;
 window.atlasHideWorkbench   = atlasHideWorkbench;
 window.atlasRenderTable     = atlasRenderTable;
-window.atlasConfirmRebuild  = atlasConfirmRebuild;
 
 })();
 </script>
