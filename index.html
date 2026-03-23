@@ -1959,11 +1959,11 @@ function onToolEvent(type, data) {
   }
 
   if (type === 'tool:save') {
-    // Tool is passing back updated data to persist in the project
     const key = data.tool || activeTool;
     if (!key || !activeProject) return;
     if (!activeProject.toolData) activeProject.toolData = {};
     activeProject.toolData[key] = data.payload || data.data || data;
+    console.log('[Alchemy] tool:save received for', key, '— keys:', Object.keys(activeProject.toolData[key] || {}));
     activeProject.updatedAt = new Date().toISOString();
     upsertHistoryEntry(activeProject);
     // Only persist to Worker if we have the full project (not just the lightweight history cache)
@@ -2400,12 +2400,13 @@ async function loadProject(id) {
   // Fetch full project from Worker in background
   fetchProject(id).then(project => {
     if (project) {
+      console.log('[Alchemy] Worker returned toolData:', JSON.stringify(project.toolData || null));
       setProjectActive(project);
       upsertHistoryEntry(project);
       try { sessionStorage.setItem('proj_' + id, JSON.stringify(project)); } catch (e) {}
       if (document.getElementById('page-overview').classList.contains('active')) renderOverview();
     }
-  }).catch(() => {});
+  }).catch((e) => { console.log('[Alchemy] Worker fetch failed:', e); });
 }
 
 function deleteProject(id) {
@@ -2478,9 +2479,6 @@ function renderOverview() {
       dot.classList.add('soon');
     }
   });
-
-  /* ── debug: expose toolData shape ── */
-  if (p.toolData) console.log('[Alchemy] toolData:', JSON.stringify(p.toolData, null, 2));
 
   /* ── Summary cards removed — info shown in tool cards below ── */
 
