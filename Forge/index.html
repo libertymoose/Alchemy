@@ -119,6 +119,19 @@
 
     .row-slug{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--text-muted);flex-shrink:0;margin:0 0.45rem;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
 
+    .row-notes-cell{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--text-muted);flex-shrink:0;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:0 0.3rem;border-radius:3px;border:1px solid transparent;transition:border-color 0.12s}
+    .row-notes-cell:hover{border-color:var(--border-soft);color:var(--text-body)}
+    .row-notes-cell.empty{color:var(--text-dim)}
+    .row-notes-input{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;background:var(--bg-input);border:1px solid var(--teal);border-radius:3px;color:var(--text);padding:0.1rem 0.3rem;width:160px;outline:none;flex-shrink:0}
+
+    .row-atlas-status{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;padding:1px 5px;border-radius:99px;flex-shrink:0;margin-right:4px;white-space:nowrap}
+    .ras-keep{color:var(--c-keep);border:1px solid rgba(90,171,114,0.3);background:rgba(90,171,114,0.08)}
+    .ras-rewrite{color:var(--c-rewrite);border:1px solid rgba(200,150,58,0.3);background:rgba(200,150,58,0.08)}
+    .ras-merge{color:var(--c-merge);border:1px solid rgba(90,138,200,0.3);background:rgba(90,138,200,0.08)}
+    .ras-redirect{color:var(--c-redirect);border:1px solid rgba(0,160,160,0.3);background:rgba(0,160,160,0.08)}
+    .ras-delete{color:var(--c-delete);border:1px solid rgba(200,106,90,0.3);background:rgba(200,106,90,0.08)}
+    .ras-new{color:var(--c-new);border:1px solid rgba(154,128,224,0.3);background:rgba(154,128,224,0.08)}
+
     .src-pill{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;padding:1px 5px;border-radius:99px;flex-shrink:0;margin-right:3px;white-space:nowrap}
     .sp-keep{color:var(--c-keep);border:1px solid rgba(90,171,114,0.3);background:rgba(90,171,114,0.08)}
     .sp-rewrite{color:var(--c-rewrite);border:1px solid rgba(200,150,58,0.3);background:rgba(200,150,58,0.08)}
@@ -223,7 +236,7 @@
 <div class="forge-wrap">
 
   <nav class="forge-tabnav">
-    <button class="nav-tab active" data-page="builder"><span class="nav-emoji">🏗</span>Builder</button>
+    <button class="nav-tab active" data-page="builder"><span class="nav-emoji">🚧</span>Builder</button>
     <button class="nav-tab" data-page="export"><span class="nav-emoji">📤</span>Export</button>
   </nav>
 
@@ -253,7 +266,7 @@
     <div class="forge-kanban-scroll" id="forge-kanban-wrap" style="display:none"><div class="forge-kanban" id="forge-kanban"></div></div>
 
     <div class="forge-empty" id="forge-init-screen">
-      <div class="forge-empty-icon">🔨</div>
+      <div class="forge-empty-icon">🚧</div>
       <div class="forge-empty-title">Design the new structure</div>
       <div class="forge-empty-sub">Build the new site IA from scratch, or import from Atlas or Canopy to start from the existing structure.</div>
       <button class="btn btn-primary" onclick="forgeShowInitModal()" style="margin-top:0.5rem">Get started →</button>
@@ -672,7 +685,48 @@ function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
 function csv(v){var s=String(v||'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
 function forgeToast(msg){var el=document.getElementById('forge-toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},2500);}
 
-/* ── Undo/redo ── */
+/* ── Atlas status lookup ── */
+function getAtlasStatus(row) {
+  var p = F.project;
+  if (!p || !p.toolData || !p.toolData.atlas || !p.toolData.atlas.rows) return '';
+  var atlasRows = p.toolData.atlas.rows;
+  var slug = row.slug || '';
+  var match = atlasRows.find(function(r) {
+    if (!r.url) return false;
+    var path = '';
+    try { path = new URL(r.url).pathname.replace(/\/$/,''); } catch(e) { path = r.url; }
+    var parts = path.split('/').filter(Boolean);
+    var urlSlug = parts[parts.length - 1] || '';
+    return urlSlug === slug || r.url.indexOf('/' + slug) !== -1;
+  });
+  return (match && match.disposition && match.disposition !== 'unset') ? match.disposition : '';
+}
+
+/* ── Notes inline editing ── */
+function forgeStartNoteEdit(id, el) {
+  var row = F.rows.find(function(r) { return r.id === id; });
+  if (!row) return;
+  var input = document.createElement('input');
+  input.className = 'row-notes-input';
+  input.type = 'text';
+  input.value = row.notes || '';
+  input.maxLength = 200;
+  input.placeholder = 'Add note…';
+  input.onclick = function(e) { e.stopPropagation(); };
+  input.onblur = function() {
+    snapshot();
+    row.notes = input.value.trim();
+    forgeSave(); forgeRender();
+  };
+  input.onkeydown = function(e) {
+    if (e.key === 'Enter') { input.blur(); }
+    if (e.key === 'Escape') { input.value = row.notes || ''; input.blur(); }
+    e.stopPropagation();
+  };
+  el.parentNode.replaceChild(input, el);
+  input.focus();
+  input.select();
+}
 function snapshot(){F.undoStack.push(JSON.stringify({rows:F.rows,collapsed:F.collapsed}));if(F.undoStack.length>50)F.undoStack.shift();F.redoStack=[];}
 function forgeUndo(){if(!F.undoStack.length)return;F.redoStack.push(JSON.stringify({rows:F.rows,collapsed:F.collapsed}));var s=JSON.parse(F.undoStack.pop());F.rows=s.rows;F.collapsed=s.collapsed||{};forgeSave();forgeRender();}
 function forgeRedo(){if(!F.redoStack.length)return;F.undoStack.push(JSON.stringify({rows:F.rows,collapsed:F.collapsed}));var s=JSON.parse(F.redoStack.pop());F.rows=s.rows;F.collapsed=s.collapsed||{};forgeSave();forgeRender();}
@@ -753,6 +807,16 @@ function treeNode(row, ancestorLines, q) {
 
   var dimmed=q&&!isMatch&&!allCh.some(function(c){return descendantMatches(c,q);});
 
+  /* atlas status */
+  var atlasStatus = getAtlasStatus(row);
+  var atlasPill = atlasStatus ? '<span class="row-atlas-status ras-' + atlasStatus + '">' + cap(atlasStatus) + '</span>' : '';
+
+  /* notes */
+  var notesVal = row.notes || '';
+  var notesHtml = !row.isMergeGhost
+    ? '<span class="row-notes-cell' + (notesVal ? '' : ' empty') + '" title="Click to edit note" onclick="forgeStartNoteEdit(\'' + row.id + '\',this)">' + esc(notesVal || '+ note') + '</span>'
+    : '';
+
   var rowHtml='<div class="tree-row'+(dimmed?' tree-dimmed':'')+(isMatch?' tree-highlight':'')+'"'+
     ' data-id="'+row.id+'" draggable="true"'+
     ' ondragstart="fDragStart(event,\''+row.id+'\')"'+
@@ -766,6 +830,8 @@ function treeNode(row, ancestorLines, q) {
     tpill+
     '<span class="'+lblCls+'"'+lblClick+'>'+lblPfx+esc(row.label)+'</span>'+
     '<span class="row-slug">'+slugHtml+'</span>'+
+    atlasPill+
+    notesHtml+
     badges+
     '<div class="row-acts">'+acts+'</div>'+
     '</div>';
@@ -794,40 +860,46 @@ function renderKanban(){
   var c=document.getElementById('forge-kanban');
   var root=F.rows.find(function(r){return!r.parentId;});
   if(!root){c.innerHTML='';return;}
-  var topLevel=getChildren(root.id);
-  var navSections=topLevel.filter(function(r){return r.type==='nav';});
-  var rootPages=topLevel.filter(function(r){return r.type==='page'&&!r.isMergeGhost;});
+  var rootChildren=getChildren(root.id);
   var html='';
-  /* site column */
-  html+=kbCol('Site',[root],root.id);
-  /* per nav section */
-  navSections.forEach(function(sec){html+=kbCol(sec.label,getChildren(sec.id),sec.id);});
-  /* loose root pages */
-  if(rootPages.length) html+=kbCol('Root pages',rootPages,root.id);
+
+  /* Root column — home node only */
+  html+=kbCol(root.label||'Root',[root],root.id,true);
+
+  /* One column per direct root child, containing that child + all its descendants */
+  rootChildren.forEach(function(child){
+    var desc=getDescendants(child.id);
+    html+=kbCol(child.label,[child].concat(desc),child.id,false);
+  });
+
   c.innerHTML=html;
 }
 
-function kbCol(title,rows,parentId){
+function kbCol(title,rows,parentId,isRoot){
   var cards=rows.map(function(row){
     var sc='';
     if(row.isGroup) sc='kbc-group';
     else if(row.type==='nav') sc='kbc-nav';
     else if(row.source&&row.source!=='manual') sc='kbc-'+row.source;
     var badges='';
+    var atlasStatus=getAtlasStatus(row);
+    if(atlasStatus) badges+='<span class="row-atlas-status ras-'+atlasStatus+'">'+cap(atlasStatus)+'</span>';
     if(row.isGroup) badges+='<span class="group-badge">×'+(row.groupIds?row.groupIds.length:'?')+'</span>';
     else if(row.source&&row.source!=='manual') badges+='<span class="src-pill sp-'+row.source+'">'+cap(row.source)+'</span>';
     var ch=getChildren(row.id);
     if(ch.length&&!row.isGroup) badges+='<span class="child-count">'+ch.length+' child'+(ch.length===1?'':'ren')+'</span>';
+    var notesSnip=row.notes?'<div class="kb-card-slug" style="color:var(--text-muted);font-style:italic;">'+esc(row.notes.slice(0,40)+(row.notes.length>40?'…':''))+'</div>':'';
     return'<div class="kb-card '+sc+(row.isMergeGhost?' kb-card-ghost':'')+'" onclick="forgeEditRow(\''+row.id+'\')" title="'+esc(computePath(row.id))+'">'+
       '<div class="kb-card-name">'+esc(row.label)+'</div>'+
-      '<div class="kb-card-slug">/'+esc(row.slug)+'</div>'+
+      '<div class="kb-card-slug">/'+esc(row.slug||'')+'</div>'+
+      notesSnip+
       (badges?'<div class="kb-card-badges">'+badges+'</div>':'')+
       '</div>';
   }).join('');
   return'<div class="kb-col">'+
     '<div class="kb-col-hd"><span class="kb-col-name">'+esc(title)+'</span><span class="kb-col-count">'+rows.length+'</span></div>'+
     '<div class="kb-col-body">'+cards+'</div>'+
-    '<button class="kb-add" onclick="forgeAddChild(\''+parentId+'\')">+ Add page</button>'+
+    (isRoot?'':'<button class="kb-add" onclick="forgeAddChild(\''+parentId+'\')">+ Add page</button>')+
     '</div>';
 }
 
@@ -1002,6 +1074,7 @@ window.forgeCommitEdit=forgeCommitEdit; window.forgeHideGroupModal=forgeHideGrou
 window.forgeCommitGroup=forgeCommitGroup; window.forgeAcceptSuggest=forgeAcceptSuggest;
 window.forgeDismissSuggest=forgeDismissSuggest; window.forgeSendToWaypoint=forgeSendToWaypoint;
 window.forgeExportCSV=forgeExportCSV; window.forgeCopyPaths=forgeCopyPaths;
+window.forgeStartNoteEdit=forgeStartNoteEdit;
 window.fDragStart=fDragStart; window.fDragOver=fDragOver; window.fDrop=fDrop; window.fDragEnd=fDragEnd;
 
 })();
