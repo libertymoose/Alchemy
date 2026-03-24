@@ -812,41 +812,41 @@
         </div>
       </div>
 
-      <!-- Report card -->
-      <div class="section-card" style="margin-top:1rem;">
-        <div class="card-header">
-          <div class="card-header-text">
-            <div class="card-title">Report</div>
-            <div class="card-help">Generate a shareable summary — opens in a new tab.</div>
-          </div>
-          <div style="display:flex;gap:0.5rem;align-self:center;">
-            <button class="btn-session save" id="btn-download-report">↓ HTML report</button>
-            <button class="btn-session save" id="btn-download-pdf">↓ PDF report</button>
-            <button class="btn-session" id="btn-copy-report">⧉ Copy HTML</button>
-          </div>
+    </div>
+
+    <!-- Report card — always visible -->
+    <div class="section-card" style="margin-top:1rem;">
+      <div class="card-header">
+        <div class="card-header-text">
+          <div class="card-title">Report</div>
+          <div class="card-help">Generate a shareable summary — opens in a new tab.</div>
+        </div>
+        <div style="display:flex;gap:0.5rem;align-self:center;">
+          <button class="btn-session save" id="btn-download-report">↓ HTML report</button>
+          <button class="btn-session save" id="btn-download-pdf">↓ PDF report</button>
+          <button class="btn-session" id="btn-copy-report">⧉ Copy HTML</button>
         </div>
       </div>
+    </div>
 
-      <!-- Export card -->
-      <div class="section-card" style="margin-top:1rem;">
-        <div class="card-header">
-          <div class="card-header-text">
-            <div class="card-title">Export</div>
-            <div class="card-help">Download your confirmed redirects. You can export even with warnings — just make sure you've reviewed them.</div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="export-format-bar" style="margin-bottom:1rem;">
-            <span class="filter-label">format:</span>
-            <button class="pill active" data-format="csv">CSV</button>
-            <button class="pill" data-format="htaccess">.htaccess</button>
-            <button class="pill" data-format="nginx">Nginx</button>
-          </div>
-          <pre id="export-preview"></pre>
-          <button class="btn-download" id="btn-download">↓ download</button>
+    <!-- Export card — always visible -->
+    <div class="section-card" style="margin-top:1rem;">
+      <div class="card-header">
+        <div class="card-header-text">
+          <div class="card-title">Export</div>
+          <div class="card-help">Download your confirmed redirects. You can export even with warnings — just make sure you've reviewed them.</div>
         </div>
       </div>
-
+      <div class="card-body">
+        <div class="export-format-bar" style="margin-bottom:1rem;">
+          <span class="filter-label">format:</span>
+          <button class="pill active" data-format="csv">CSV</button>
+          <button class="pill" data-format="htaccess">.htaccess</button>
+          <button class="pill" data-format="nginx">Nginx</button>
+        </div>
+        <pre id="export-preview"></pre>
+        <button class="btn-download" id="btn-download">↓ download</button>
+      </div>
     </div>
 
     <div id="validator-empty" class="placeholder">analyse and confirm some redirects on the Mapper first</div>
@@ -1310,6 +1310,18 @@ function switchPage(page) {
   document.getElementById('page-checker').classList.toggle('hidden', page !== 'checker');
   document.getElementById('page-validator').classList.toggle('hidden', page !== 'validator');
   document.getElementById('page-diff').classList.toggle('hidden', page !== 'diff');
+
+  // Refresh export preview whenever validator is shown
+  if (page === 'validator') {
+    const exportPreview = document.getElementById('export-preview');
+    if (exportPreview) {
+      exportPreview.textContent = buildExport();
+      const dlBtn = document.getElementById('btn-download');
+      if (dlBtn) dlBtn.textContent = '↓ download ' + exportFilename();
+    }
+    document.querySelectorAll('.export-format-bar .pill').forEach(p =>
+      p.classList.toggle('active', p.dataset.format === state.exportFormat));
+  }
 }
 document.querySelectorAll('.waypoint-tabnav .nav-tab').forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.page)));
 
