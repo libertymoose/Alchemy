@@ -636,7 +636,6 @@
             <div style="border-top:1px solid var(--border-soft);padding-top:0.5rem;display:flex;flex-direction:column;gap:4px;">
               <div class="d-info-row"><span class="dk">path</span><span class="dv" id="d-node-path" style="word-break:break-all;">—</span></div>
               <div class="d-info-row"><span class="dk">depth</span><span class="dv" id="d-node-depth">—</span></div>
-              <div class="d-info-row"><span class="dk">status</span><span class="dv" id="d-node-status">—</span></div>
               <div class="d-info-row" id="d-node-children-row"><span class="dk">children</span><span class="dv" id="d-node-children">—</span></div>
             </div>
             <div style="border-top:1px solid var(--border-soft);padding-top:0.5rem;display:flex;gap:0.4rem;flex-wrap:wrap;">
@@ -655,18 +654,6 @@
             <div id="d-node-annotation-row" style="border-top:1px solid var(--border-soft);padding-top:0.5rem;display:none;">
               <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.3rem;">Note</div>
               <textarea id="d-node-annotation" class="base-url-input" rows="3" placeholder="e.g. Merging with /about in new IA" maxlength="280" style="width:100%;font-size:0.68rem;padding:0.3rem 0.5rem;resize:none;line-height:1.5;" oninput="autoSaveAnnotation()"></textarea>
-            </div>
-            <!-- Status tag -->
-            <div id="d-node-tag-row" style="border-top:1px solid var(--border-soft);padding-top:0.5rem;display:none;">
-              <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.4rem;">Status</div>
-              <div style="display:flex;flex-wrap:wrap;gap:0.3rem;" id="d-node-tag-btns">
-                <button class="node-tag-btn" data-tag="keep"     onclick="setNodeTag('keep')"    style="--tag-c:#5aab72;--tag-b:#243d28;--tag-bg:#0c1f10;">keep</button>
-                <button class="node-tag-btn" data-tag="merge"    onclick="setNodeTag('merge')"   style="--tag-c:#6a9fd8;--tag-b:#1a3050;--tag-bg:#0a1828;">merge</button>
-                <button class="node-tag-btn" data-tag="redirect" onclick="setNodeTag('redirect')" style="--tag-c:#c8a060;--tag-b:#3a2808;--tag-bg:#1a1008;">redirect</button>
-                <button class="node-tag-btn" data-tag="new"      onclick="setNodeTag('new')"     style="--tag-c:#a06ad8;--tag-b:#301848;--tag-bg:#180c28;">new</button>
-                <button class="node-tag-btn" data-tag="delete"   onclick="setNodeTag('delete')"  style="--tag-c:#c86a5a;--tag-b:#3a1e1a;--tag-bg:#1e0f0c;">delete</button>
-                <button class="node-tag-btn" data-tag=""         onclick="setNodeTag('')"        style="--tag-c:var(--text-muted);--tag-b:var(--border);--tag-bg:transparent;">none</button>
-              </div>
             </div>
           </div>
         </div>
@@ -2060,7 +2047,8 @@ function showNodePanel(n) {
     else if (result.status) statusTxt = String(result.status) + ' error';
     else statusTxt = result.statusText || '—';
   }
-  document.getElementById('d-node-status').textContent = statusTxt;
+  const statusEl = document.getElementById('d-node-status');
+  if (statusEl) statusEl.textContent = statusTxt;
 
   const childRow = document.getElementById('d-node-children-row');
   const childVal = document.getElementById('d-node-children');
@@ -2114,16 +2102,6 @@ function showNodePanel(n) {
   if (annotRow && annotInput) {
     annotRow.style.display = n.isRoot ? 'none' : '';
     annotInput.value = nodeAnnotations[n.url || ''] || '';
-  }
-
-  // Status tag — shown for all non-root nodes
-  const tagRow = document.getElementById('d-node-tag-row');
-  if (tagRow) {
-    tagRow.style.display = n.isRoot ? 'none' : '';
-    const currentTag = nodeStatusTags[n.url || ''] || '';
-    document.querySelectorAll('.node-tag-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tag === currentTag);
-    });
   }
 
   panel.classList.remove('hidden');
