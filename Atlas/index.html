@@ -152,6 +152,19 @@
       background: var(--bg-card); border: 1px solid var(--border);
       border-radius: 8px; margin-bottom: 1rem; overflow: hidden;
     }
+    .card-header {
+      padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border-inner);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .card-header.accordion { cursor: pointer; user-select: none; }
+    .card-header.accordion:hover .card-title { color: var(--text); }
+    .card-header-text { flex: 1; min-width: 0; }
+    .accordion-toggle {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+      color: var(--text-muted); flex-shrink: 0;
+    }
+    .accordion-body { display: none; }
+    .accordion-body.open { display: block; }
     .card-hd {
       padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border-inner);
       display: flex; align-items: center; gap: 0.6rem;
@@ -319,7 +332,6 @@
     .col-wc     { width: 7%; }
     .col-read   { width: 6%; }
     .col-meta   { width: 12%; }
-    .col-type   { width: 10%; }
     .col-notes  { width: 13%; }
 
     /* ── DISPOSITION PILLS ── */
@@ -711,7 +723,6 @@
 
       <span class="toolbar-count" id="toolbar-count"></span>
       <button class="enrich-btn" onclick="atlasShowAddUrls()">+ Add URLs</button>
-      <button class="enrich-btn" onclick="atlasShowWorkbench()">⚙ Workbench</button>
       <button class="enrich-btn" onclick="atlasStartRecrawl()">↺ Recrawl</button>
       <div class="view-toggle">
         <button class="vt-btn active" id="vt-table" title="Table view" onclick="atlasSetView('table')">☰</button>
@@ -740,7 +751,6 @@
             <th class="col-wc sortable"   onclick="atlasSort('wordCount')">Words</th>
             <th class="col-read sortable" onclick="atlasSort('readability')">Read.</th>
             <th class="col-meta">Meta desc.</th>
-            <th class="col-type">Type</th>
             <th class="col-notes">Notes</th>
           </tr>
         </thead>
@@ -756,6 +766,36 @@
     <!-- Card view -->
     <div class="inv-table-wrap" id="inv-card-wrap" style="display:none">
       <div class="card-grid" id="inv-card-grid"></div>
+    </div>
+
+    <!-- Workbench accordion -->
+    <div class="section-card" style="margin-top:0.75rem;">
+      <div class="card-header accordion" id="atlas-wb-header" onclick="toggleAtlasWorkbench()">
+        <div class="card-header-text">
+          <div class="card-title">⚙ Workbench</div>
+          <div class="card-help">Flag thresholds — Atlas highlights rows where values fall below these limits.</div>
+        </div>
+        <span class="accordion-toggle" id="atlas-wb-toggle">◀</span>
+      </div>
+      <div class="accordion-body" id="atlas-wb-body">
+        <div class="card-body">
+          <div class="wb-row">
+            <span class="wb-label">Minimum word count</span>
+            <input class="wb-input" type="number" id="thresh-words" value="300" min="0" onchange="atlasApplyFlags();atlasRenderTable();" />
+            <span class="wb-unit">words</span>
+          </div>
+          <div class="wb-row">
+            <span class="wb-label">Minimum readability score</span>
+            <input class="wb-input" type="number" id="thresh-read" value="60" min="0" max="100" onchange="atlasApplyFlags();atlasRenderTable();" />
+            <span class="wb-unit">/ 100</span>
+          </div>
+          <div class="wb-row">
+            <span class="wb-label">Minimum meta description length</span>
+            <input class="wb-input" type="number" id="thresh-meta" value="120" min="0" onchange="atlasApplyFlags();atlasRenderTable();" />
+            <span class="wb-unit">chars</span>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div><!-- /atlas-page-inventory -->
@@ -890,36 +930,7 @@
     </div>
   </div>
 
-  <!-- Workbench modal -->
-  <div class="atlas-modal-overlay" id="wb-overlay" onclick="if(event.target===this)atlasHideWorkbench()">
-    <div class="atlas-modal">
-      <div class="atlas-modal-hd">
-        <span class="atlas-modal-title">Workbench</span>
-        <button class="atlas-modal-close" onclick="atlasHideWorkbench()">✕</button>
-      </div>
-      <div class="atlas-modal-body">
-        <div class="card-help" style="margin-bottom:0.75rem;">Flag thresholds — Atlas highlights rows where values fall below these limits.</div>
-        <div class="wb-row">
-          <span class="wb-label">Minimum word count</span>
-          <input class="wb-input" type="number" id="thresh-words" value="300" min="0" onchange="atlasApplyFlags()" />
-          <span class="wb-unit">words</span>
-        </div>
-        <div class="wb-row">
-          <span class="wb-label">Minimum readability score</span>
-          <input class="wb-input" type="number" id="thresh-read" value="60" min="0" max="100" onchange="atlasApplyFlags()" />
-          <span class="wb-unit">/ 100</span>
-        </div>
-        <div class="wb-row">
-          <span class="wb-label">Minimum meta description length</span>
-          <input class="wb-input" type="number" id="thresh-meta" value="120" min="0" onchange="atlasApplyFlags()" />
-          <span class="wb-unit">chars</span>
-        </div>
-      </div>
-      <div class="atlas-modal-footer">
-        <button class="btn btn-primary" onclick="atlasApplyFlags();atlasRenderTable();atlasHideWorkbench();">Apply</button>
-      </div>
-    </div>
-  </div>
+
 
 </div><!-- /atlas-wrap -->
 
@@ -1173,7 +1184,6 @@ function atlasRowHTML(row) {
     metaCell = mLen < mThresh ? '<span class="cell-flag-num">' + mLen + ' ch</span>' : '<span class="cell-muted">' + mLen + ' ch</span>';
   }
 
-  const typeCell  = row.contentType ? esc(row.contentType) : '<span class="cell-muted">—</span>';
   const notesCell = '<span class="notes-cell cell-muted" data-id="' + row.id + '" onclick="atlasEditNotes(this)">' + (row.notes ? esc(row.notes) : '—') + '</span>';
 
   return '<tr data-id="' + row.id + '">' +
@@ -1185,7 +1195,6 @@ function atlasRowHTML(row) {
     '<td class="col-wc">' + wcCell + '</td>' +
     '<td class="col-read">' + rdCell + '</td>' +
     '<td class="col-meta">' + metaCell + '</td>' +
-    '<td class="col-type cell-muted" style="font-size:0.65rem">' + typeCell + '</td>' +
     '<td class="col-notes">' + notesCell + '</td>' +
     '</tr>';
 }
@@ -1488,13 +1497,20 @@ function atlasCommitAddUrls() {
   atlasHideAddUrls();
 }
 
-/* ── Workbench modal ── */
-function atlasShowWorkbench() {
-  document.getElementById('wb-overlay').classList.add('open');
+/* ── Workbench accordion ── */
+function toggleAtlasWorkbench() {
+  var hdr  = document.getElementById('atlas-wb-header');
+  var body = document.getElementById('atlas-wb-body');
+  var tog  = document.getElementById('atlas-wb-toggle');
+  if (!hdr || !body) return;
+  var isOpen = hdr.classList.contains('open');
+  hdr.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+  if (tog) tog.textContent = isOpen ? '◀' : '▼';
 }
-function atlasHideWorkbench() {
-  document.getElementById('wb-overlay').classList.remove('open');
-}
+/* ── Stub old Workbench functions so any lingering references don't error ── */
+function atlasShowWorkbench() { toggleAtlasWorkbench(); }
+function atlasHideWorkbench() { toggleAtlasWorkbench(); }
 
 /* ── Wire tab nav ── */
 document.querySelectorAll('.atlas-tabnav .nav-tab').forEach(function(t) {
@@ -1527,6 +1543,7 @@ window.atlasHandleAddUrlsFile = atlasHandleAddUrlsFile;
 window.atlasCommitAddUrls   = atlasCommitAddUrls;
 window.atlasShowWorkbench   = atlasShowWorkbench;
 window.atlasHideWorkbench   = atlasHideWorkbench;
+window.toggleAtlasWorkbench = toggleAtlasWorkbench;
 window.atlasRenderTable     = atlasRenderTable;
 
 /* ══════════════════════════════════════════
