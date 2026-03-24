@@ -507,10 +507,10 @@
   <div id="page-audit">
   <!-- PAGE: Audit -->
 
-    <!-- recrawl buttons — re-run all always shown after audit; retry failed only shown when errors exist -->
-    <div id="recrawl-bar" style="display:none;margin-bottom:0.5rem;align-items:center;justify-content:flex-end;gap:0.5rem;">
-      <button class="btn-session" id="btn-retry-failed" onclick="retryFailedChecks()" style="border-color:rgba(200,160,96,0.4);color:#c8a060;">↺ re-run failed checks</button>
-      <button class="btn-session" id="btn-rerun-all" onclick="startAudit(S.url, S.client).catch(e=>console.error(e))">↺ re-run crawl</button>
+    <!-- recrawl buttons — re-run all always shown; retry failed only shown when errors exist -->
+    <div id="recrawl-bar" style="display:flex;margin-bottom:0.5rem;align-items:center;justify-content:flex-end;gap:0.5rem;">
+      <button class="btn-session" id="btn-retry-failed" onclick="retryFailedChecks()" style="display:none;border-color:rgba(200,160,96,0.4);color:#c8a060;">↺ re-run failed checks</button>
+      <button class="btn-session" id="btn-rerun-all" onclick="startAudit(S.url, S.client).catch(e=>console.error(e))">↺ Recrawl</button>
     </div>
 
     <!-- session + run bar -->
@@ -941,9 +941,11 @@ async function startAudit(url, clientName) {
     img.src='https://image.thum.io/get/width/200/crop/130/'+S.url;
   }
   const _runBar=document.getElementById('run-bar'); // always visible — no display change needed
-  const _recrawlBar=document.getElementById('recrawl-bar'); if(_recrawlBar)_recrawlBar.style.display='none';
+  const _retryBtn=document.getElementById('btn-retry-failed'); if(_retryBtn)_retryBtn.style.display='none';
+  const _rerunBtn=document.getElementById('btn-rerun-all'); if(_rerunBtn)_rerunBtn.style.display='none';
   switchPage('audit');
   await runChecks();
+  if(_rerunBtn)_rerunBtn.style.display='';
 }
 
 const GREETINGS = [
@@ -1001,9 +1003,12 @@ async function retryFailedChecks() {
   if(!failedIds.size) return;
   const failedChecks = CHECKS.filter(c => failedIds.has(c.id));
 
-  // Hide recrawl bar while retrying
+  // Hide rerun-all while retrying
   const recrawlBar = document.getElementById('recrawl-bar');
-  if(recrawlBar) recrawlBar.style.display = 'none';
+  const retryBtn0 = document.getElementById('btn-retry-failed');
+  const rerunBtn0 = document.getElementById('btn-rerun-all');
+  if(retryBtn0) retryBtn0.style.display = 'none';
+  if(rerunBtn0) rerunBtn0.style.display = 'none';
 
   // Re-run only failed checks
   for(const check of failedChecks) {
@@ -1023,9 +1028,8 @@ async function retryFailedChecks() {
       sumEl.innerHTML=`<span style="color:#008080">All ${doneCount} scans complete</span>`;
     }
   }
-  if(recrawlBar) recrawlBar.style.display = 'flex';
-  const retryFailedBtn = document.getElementById('btn-retry-failed');
-  if(retryFailedBtn) retryFailedBtn.style.display = errs > 0 ? '' : 'none';
+  if(rerunBtn0) rerunBtn0.style.display = '';
+  if(retryBtn0) retryBtn0.style.display = errs > 0 ? '' : 'none';
   autoSaveAuditToProject();
 }
 
@@ -1051,10 +1055,9 @@ async function runChecks() {
       sumEl.innerHTML=`<span style="color:#008080">All ${doneCount} scans complete</span>`;
     }
   }
-  // Show recrawl bar after audit completes; only show retry-failed if there were errors
+  // Show retry-failed only if there were errors; rerun-all always visible
   const recrawlBar = document.getElementById('recrawl-bar');
   const retryFailedBtn = document.getElementById('btn-retry-failed');
-  if(recrawlBar) recrawlBar.style.display = 'flex';
   if(retryFailedBtn) retryFailedBtn.style.display = errCount > 0 ? '' : 'none';
   // Auto-save completed audit to project so it can be restored next time Scout loads
   autoSaveAuditToProject();
@@ -2000,10 +2003,24 @@ async function runTechStack(){
       uxHtml+='</div>';
     }
 
+    // Multilingual / hreflang detection
+    var hreflangTags = html.match(/<link[^>]+hreflang=["'][^"']+["'][^>]*>/gi) || [];
+    var hreflangLangs = hreflangTags.map(function(t){var m=t.match(/hreflang=["']([^"']+)["']/i);return m?m[1]:null;}).filter(Boolean);
+    var uniqueLangs = [...new Set(hreflangLangs.filter(function(l){return l!=='x-default';}))];
+    if (uniqueLangs.length > 1 || (uniqueLangs.length === 1 && hreflangLangs.indexOf('x-default') !== -1)) {
+      uxHtml += '<div class="data-grid" style="margin-bottom:0.75rem;">';
+      uxHtml += '<div class="data-card good"><div class="dc-label">Multiple languages</div><div class="dc-value">' + uniqueLangs.length + '</div><div class="dc-sub">' + uniqueLangs.slice(0,4).join(', ') + (uniqueLangs.length > 4 ? ' + more' : '') + '</div></div>';
+      uxHtml += '<div class="data-card ' + (hreflangLangs.indexOf('x-default') !== -1 ? 'good' : 'mid') + '"><div class="dc-label">x-default</div><div class="dc-value">' + (hreflangLangs.indexOf('x-default') !== -1 ? '✓' : '✗') + '</div><div class="dc-sub">' + (hreflangLangs.indexOf('x-default') !== -1 ? 'present' : 'missing') + '</div></div>';
+      uxHtml += '</div>';
+      S.raw.multilingual = { count: uniqueLangs.length, langs: uniqueLangs, hasXDefault: hreflangLangs.indexOf('x-default') !== -1 };
+    } else {
+      S.raw.multilingual = null;
+    }
+
     uxAuto.innerHTML=uxHtml;
 
     // Save ux analysis data for restore-on-load — must be after all analysis vars are defined
-    S.raw.uxData={hasSearch,navLinks,navCl:(navLinks>50?'bad':navLinks>25?'mid':''),h1s,h2s,h3s,h1Cl:(h1s===1?'good':h1s===0||h1s>1?'bad':''),altPct,allImgs:allImgs.length,imgsWithAlt:imgsWithAlt.length,altCl:(altPct>=90?'good':altPct>=60?'mid':'bad'),hasSkip,hasLang,lang:(langMatch?langMatch[1]:''),formInputs,formLabels,labelCl:(formInputs===0?'':formLabels>=formInputs?'good':formLabels>0?'mid':'bad')};
+    S.raw.uxData={hasSearch,navLinks,navCl:(navLinks>50?'bad':navLinks>25?'mid':''),h1s,h2s,h3s,h1Cl:(h1s===1?'good':h1s===0||h1s>1?'bad':''),altPct,allImgs:allImgs.length,imgsWithAlt:imgsWithAlt.length,altCl:(altPct>=90?'good':altPct>=60?'mid':'bad'),hasSkip,hasLang,lang:(langMatch?langMatch[1]:''),formInputs,formLabels,labelCl:(formInputs===0?'':formLabels>=formInputs?'good':formLabels>0?'mid':'bad'),multilingual:S.raw.multilingual||null};
 
     // Findings
     var flUx=document.getElementById('fl-ux');
@@ -2052,20 +2069,6 @@ async function runTechStack(){
       ogHtml += '<div class="sp-title">'+(ogTitle ? esc(ogTitle[1].slice(0,60)+(ogTitle[1].length>60?'…':'')) : '<span style="color:var(--text-dim);font-style:italic;">no title</span>')+'</div>';
       ogHtml += '<div class="sp-desc">'+previewDesc+'</div>';
       ogHtml += '</div>';
-
-      // Social share card preview
-      ogHtml += '<div class="field-label-sm" style="margin-bottom:0.5rem;margin-top:0.85rem;">Social share card preview</div>';
-      ogHtml += '<div class="social-preview share-preview">';
-      if (ogImg) {
-        ogHtml += '<div class="sp-img-placeholder"><span style="font-size:0.65rem;color:var(--text-muted);">og:image present — image will appear here</span></div>';
-      } else {
-        ogHtml += '<div class="sp-img-placeholder sp-img-missing"><span style="font-size:0.65rem;color:var(--text-dim);">no og:image — card will show without image</span></div>';
-      }
-      ogHtml += '<div class="sp-card-body">';
-      ogHtml += '<div class="sp-card-domain">'+esc(domain.toUpperCase())+'</div>';
-      ogHtml += '<div class="sp-card-title">'+(ogTitle ? esc(ogTitle[1].slice(0,70)+(ogTitle[1].length>70?'…':'')) : '<span style="color:var(--text-dim);font-style:italic;">no title</span>')+'</div>';
-      ogHtml += '<div class="sp-card-desc">'+previewDesc+'</div>';
-      ogHtml += '</div></div>';
       // ── end social previews ─────────────────────────────────────────────
 
       ogHtml+='<div class="field-label-sm" style="margin-bottom:0.4rem;margin-top:0.85rem;">Structured data / Schema.org</div>';
@@ -2829,6 +2832,15 @@ function renderFromRaw(){
         </div>`;
       }
 
+      // Multilingual
+      const ml = u.multilingual || r.multilingual;
+      if(ml && ml.count > 1){
+        uxHtml+=`<div class="data-grid" style="margin-bottom:0.75rem;">
+          <div class="data-card good"><div class="dc-label">Multiple languages</div><div class="dc-value">${ml.count}</div><div class="dc-sub">${(ml.langs||[]).slice(0,4).join(', ')}${ml.langs&&ml.langs.length>4?' + more':''}</div></div>
+          <div class="data-card ${ml.hasXDefault?'good':'mid'}"><div class="dc-label">x-default</div><div class="dc-value">${ml.hasXDefault?'✓':'✗'}</div><div class="dc-sub">${ml.hasXDefault?'present':'missing'}</div></div>
+        </div>`;
+      }
+
       // Link check summary card
       if(r.linkCheck){
         const lc=r.linkCheck;
@@ -2899,8 +2911,6 @@ function renderFromRaw(){
     var rDesc  = og.descText ? esc(og.descText.slice(0,160)+(og.descText.length>160?'…':'')) : '<span style="color:var(--text-dim);font-style:italic;">no description</span>';
     ogHtml += '<div class="field-label-sm" style="margin-bottom:0.5rem;">Search result preview</div>';
     ogHtml += `<div class="social-preview google-preview"><div class="sp-site-row"><div class="sp-favicon"></div><div class="sp-site-info"><div class="sp-site-name">${esc(S.client||rDomain)}</div><div class="sp-breadcrumb">${esc(rDomain)}</div></div></div><div class="sp-title">${og.title?esc(og.title.slice(0,60)+(og.title.length>60?'…':'')):'<span style="color:var(--text-dim);font-style:italic;">no title</span>'}</div><div class="sp-desc">${rDesc}</div></div>`;
-    ogHtml += '<div class="field-label-sm" style="margin-bottom:0.5rem;margin-top:0.85rem;">Social share card preview</div>';
-    ogHtml += `<div class="social-preview share-preview"><div class="sp-img-placeholder${og.img?'':' sp-img-missing'}"><span style="font-size:0.65rem;color:var(--text-muted);">${og.img?'og:image present — image will appear here':'no og:image — card will show without image'}</span></div><div class="sp-card-body"><div class="sp-card-domain">${esc(rDomain.toUpperCase())}</div><div class="sp-card-title">${og.title?esc(og.title.slice(0,70)+(og.title.length>70?'…':'')):'<span style="color:var(--text-dim);font-style:italic;">no title</span>'}</div><div class="sp-card-desc">${rDesc}</div></div></div>`;
 
     ogHtml+='<div class="field-label-sm" style="margin-bottom:0.4rem;margin-top:0.85rem;">Structured data / Schema.org</div><div class="data-grid" style="margin-bottom:0.75rem;">';
     ogHtml+=`<div class="data-card ${og.schema?'good':'mid'}"><div class="dc-label">JSON-LD schema</div><div class="dc-value">${og.schema?'✓':'✗'}</div><div class="dc-sub">${og.schema?'present':'not detected'}</div></div>`;
