@@ -1447,8 +1447,8 @@
             </div>
             <span class="tc-badge" id="tc-waypoint-badge">—</span>
           </div>
-          <div class="tc-body">
-            <div class="tc-empty" id="ov-waypoint-body">Open Waypoint after running a crawl to start mapping redirects.</div>
+          <div class="tc-body" id="ov-waypoint-body">
+            <div class="tc-empty">Open Waypoint after running a crawl to start mapping redirects.</div>
           </div>
           <div class="tc-footer">
             <div>
@@ -1475,7 +1475,11 @@
             <div class="tc-empty">Catalogue every page — assign dispositions, surface flags, export to Waypoint.</div>
           </div>
           <div class="tc-footer">
-            <a class="tc-open-btn" onclick="openTool('atlas')" style="cursor:pointer;">Open Atlas →</a>
+            <div>
+              <button class="tc-complete" id="tc-atlas-complete" data-tool-complete="atlas" onclick="toggleToolComplete('atlas')"></button>
+              <div class="tc-opened" id="tc-atlas-opened"></div>
+            </div>
+            <a class="tc-open-btn" id="tc-atlas-open" href="#" onclick="openTool('atlas');return false;">Open Atlas →</a>
           </div>
         </div>
 
@@ -2457,13 +2461,11 @@ function renderOverview() {
   setText('ov-subtitle', p.name + ' · ' + domain + ' · ' + crawlInfo);
 
   /* ── Pipeline dots ── */
-  const LIVE_TOOLS = ['scout','canopy','waypoint']; // tools that exist
-  ['scout','canopy','atlas','waypoint'].forEach(key => {
+  ['scout','canopy','atlas','forge','waypoint'].forEach(key => {
     const dot  = document.getElementById('pl-' + key);
     const line = document.getElementById('pl-line-' + key);
     if (!dot) return;
     const t = tools[key];
-    // Reset classes
     dot.className = 'pl-dot';
     if (line) line.className = 'pl-line';
     if (t && t.complete) {
@@ -2484,25 +2486,49 @@ function renderOverview() {
   const scoutData = activeProject.toolData && activeProject.toolData.scout;
   const scoutBody = document.getElementById('tc-scout-body');
   if (scoutBody) {
-    if (scoutData && scoutData.findings) {
-      const f = scoutData.findings;
+    if (scoutData && scoutData.raw) {
+      const raw = scoutData.raw || {};
+      const f   = scoutData.findings || {};
       const allFindings = [].concat(f.ux||[], f.content||[], f.perf||[], f.a11y||[], f.security||[], f.integrations||[]);
       const high = allFindings.filter(x => x.lv === 'high').length;
       const mid  = allFindings.filter(x => x.lv === 'mid').length;
-      const raw  = scoutData.raw || {};
+      const low  = allFindings.filter(x => x.lv === 'low').length;
       let html = '';
-      // PSI scores
-      if (raw.psi) {
-        const d = raw.psi.desktop, m = raw.psi.mobile;
-        const cls = s => s >= 90 ? 'ts-ok' : s >= 50 ? 'ts-warn' : 'ts-err';
-        html += '<div class="tc-stat-row">';
-        if (d && d.performance !== undefined) html += '<div class="tc-stat ' + cls(d.performance) + '"><strong>' + d.performance + '</strong>perf desktop</div>';
-        if (m && m.performance !== undefined) html += '<div class="tc-stat ' + cls(m.performance) + '"><strong>' + m.performance + '</strong>perf mobile</div>';
-        if (d && d.seo          !== undefined) html += '<div class="tc-stat ' + cls(d.seo) + '"><strong>' + d.seo + '</strong>SEO</div>';
+
+      // PSI score pills — bento style matching screenshot
+      const psiD = raw.psi_desktop && raw.psi_desktop.lighthouseResult && raw.psi_desktop.lighthouseResult.categories;
+      const psiM = raw.psi_mobile  && raw.psi_mobile.lighthouseResult  && raw.psi_mobile.lighthouseResult.categories;
+      // Also try legacy raw.psi shape
+      const legD = raw.psi && raw.psi.desktop;
+      const legM = raw.psi && raw.psi.mobile;
+      function psiScore(cats, key) {
+        if (!cats) return undefined;
+        const c = cats[key];
+        return c !== undefined ? Math.round((c.score !== undefined ? c.score : c) * (c.score !== undefined && c.score <= 1 ? 100 : 1)) : undefined;
+      }
+      function legScore(obj, key) { return obj && obj[key] !== undefined ? obj[key] : undefined; }
+      const perf = psiScore(psiD, 'performance') !== undefined ? psiScore(psiD, 'performance') : legScore(legD, 'performance');
+      const a11y = psiScore(psiD, 'accessibility') !== undefined ? psiScore(psiD, 'accessibility') : legScore(legD, 'accessibility');
+      const seo  = psiScore(psiD, 'seo') !== undefined ? psiScore(psiD, 'seo') : legScore(legD, 'seo');
+      const best = psiScore(psiD, 'best-practices') !== undefined ? psiScore(psiD, 'best-practices') : legScore(legD, 'bestPractices');
+
+      const scoreCls = s => s === undefined ? '' : s >= 90 ? 'sp-ok' : s >= 50 ? 'sp-warn' : 'sp-err';
+
+      if (perf !== undefined || a11y !== undefined || seo !== undefined || best !== undefined) {
+        html += '<div class="score-row">';
+        if (perf !== undefined) html += '<div class="score-pill ' + scoreCls(perf) + '"><span class="sp-val">' + perf + '</span><span class="sp-lbl">Perf</span></div>';
+        if (a11y !== undefined) html += '<div class="score-pill ' + scoreCls(a11y) + '"><span class="sp-val">' + a11y + '</span><span class="sp-lbl">A11Y</span></div>';
+        if (seo  !== undefined) html += '<div class="score-pill ' + scoreCls(seo)  + '"><span class="sp-val">' + seo  + '</span><span class="sp-lbl">SEO</span></div>';
+        if (best !== undefined) html += '<div class="score-pill ' + scoreCls(best) + '"><span class="sp-val">' + best + '</span><span class="sp-lbl">Best</span></div>';
         html += '</div>';
       }
+
+      // Findings bullets
       if (high) html += '<div class="tc-finding-row"><div class="tf-bullet tb-err"></div>' + high + ' high priority finding' + (high !== 1 ? 's' : '') + '</div>';
       if (mid)  html += '<div class="tc-finding-row"><div class="tf-bullet tb-warn"></div>' + mid  + ' medium priority finding' + (mid  !== 1 ? 's' : '') + '</div>';
+      if (low && !high && !mid) html += '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>' + low + ' low priority finding' + (low !== 1 ? 's' : '') + '</div>';
+      if (!high && !mid && !low) html += '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>No critical findings</div>';
+
       scoutBody.innerHTML = html || '<div class="tc-empty">Audit saved — open Scout to view results.</div>';
     } else if (tools.scout && tools.scout.openedAt) {
       scoutBody.innerHTML = '<div class="tc-empty">Audit in progress — save from Scout to see a summary here.</div>';
@@ -2516,19 +2542,30 @@ function renderOverview() {
   const wpBody = document.getElementById('ov-waypoint-body');
   if (wpBody) {
     if (wpData && wpData.rows && wpData.rows.length) {
-      const rows   = wpData.rows;
-      const mapped = rows.filter(r => r.confirmed && r.confirmed.trim()).length;
-      const pct    = Math.round((mapped / rows.length) * 100);
-      const errors = rows.filter(r => r.destStatus && r.destStatus >= 400).length;
-      wpBody.outerHTML = '<div id="ov-waypoint-body">'
-        + '<div class="tc-stat-row"><div class="tc-stat ts-teal"><strong>' + rows.length + '</strong>redirects</div>'
-        + '<div class="tc-stat ' + (pct === 100 ? 'ts-ok' : 'ts-warn') + '"><strong>' + pct + '%</strong>mapped</div></div>'
-        + (errors ? '<div class="tc-finding-row"><div class="tf-bullet tb-err"></div>' + errors + ' destination error' + (errors !== 1 ? 's' : '') + '</div>' : '')
-        + '</div>';
+      const rows     = wpData.rows;
+      const confirmed = rows.filter(r => r.confirmed && r.confirmed.trim()).length;
+      const pending   = rows.filter(r => !r.confirmed || !r.confirmed.trim()).length;
+      const loops     = rows.filter(r => r.hasLoop).length;
+      const pct       = Math.round((confirmed / rows.length) * 100);
+      const errors    = rows.filter(r => r.destStatus && r.destStatus >= 400).length;
+      const pctCls    = pct === 100 ? 'ts-ok' : pct >= 50 ? 'ts-warn' : 'ts-err';
+      const barCls    = pct === 100 ? 'tc-bar-ok' : 'tc-bar-warn';
+      let html = '';
+      html += '<div class="tc-stat-row" style="gap:1.5rem;margin-bottom:0.5rem;">';
+      html += '<div class="tc-stat ts-ok"><strong>' + confirmed + '</strong>confirmed</div>';
+      html += '<div class="tc-stat ts-warn"><strong>' + pending + '</strong>pending</div>';
+      html += '<div class="tc-stat ' + (loops > 0 ? 'ts-err' : '') + '"><strong>' + loops + '</strong>loops</div>';
+      html += '</div>';
+      html += '<div class="tc-bar-wrap ' + barCls + '" style="margin-bottom:0.5rem;"><div class="tc-bar-fill" style="width:' + pct + '%;"></div></div>';
+      html += '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>' + confirmed + ' / ' + rows.length + ' redirects confirmed</div>';
+      if (pending > 0) html += '<div class="tc-finding-row"><div class="tf-bullet tb-warn"></div>' + pending + ' URL' + (pending !== 1 ? 's' : '') + ' need manual review</div>';
+      if (errors > 0) html += '<div class="tc-finding-row"><div class="tf-bullet tb-err"></div>' + errors + ' destination error' + (errors !== 1 ? 's' : '') + '</div>';
+      if (pending === 0 && errors === 0) html += '<div class="tc-finding-row"><div class="tf-bullet tb-dim"></div>Export ready when complete</div>';
+      wpBody.innerHTML = html;
     } else if (tools.waypoint && tools.waypoint.openedAt) {
-      wpBody.textContent = 'Waypoint opened — save from Waypoint to see a summary here.';
+      wpBody.innerHTML = '<div class="tc-empty">Waypoint opened — save from Waypoint to see a summary here.</div>';
     } else {
-      wpBody.textContent = 'Open Waypoint after running a crawl to start mapping redirects.';
+      wpBody.innerHTML = '<div class="tc-empty">Open Waypoint after running a crawl to start mapping redirects.</div>';
     }
   }
 
@@ -2543,18 +2580,11 @@ function renderOverview() {
     const body = document.getElementById('tc-atlas-body');
     if (body) body.innerHTML = '<div class="tc-finding-row"><div class="tf-bullet tb-ok"></div>' + rows.length + ' pages · ' + pct + '% assigned</div>' + (flagged ? '<div class="tc-finding-row"><div class="tf-bullet tb-warn"></div>' + flagged + ' flagged</div>' : '');
   }
-  // Atlas card badge
-  const atlasBadge = document.getElementById('tc-atlas-badge');
-  if (atlasBadge) {
-    if (atlas && atlas.complete) { atlasBadge.textContent = 'done'; atlasBadge.className = 'tc-badge tb-done'; }
-    else if (atlas && atlas.openedAt) { atlasBadge.textContent = 'in progress'; atlasBadge.className = 'tc-badge tb-active'; }
-    else { atlasBadge.textContent = 'not started'; atlasBadge.className = 'tc-badge tb-idle'; }
-  }
 
   /* ── Tool cards: clickable badge cycles state, open btn calls loadTool ── */
   const hasCrawl = !!(crawl && crawl.results && crawl.results.length > 0 && crawl.totalUrls);
 
-  ['scout','canopy','waypoint','forge'].forEach(key => {
+  ['scout','canopy','waypoint','forge','atlas'].forEach(key => {
     const t       = tools[key];
     const card    = document.getElementById('tc-' + key);
     const badge   = document.getElementById('tc-' + key + '-badge');
@@ -2713,12 +2743,17 @@ function renderCrawlPage() {
   document.getElementById('crawl-project-url').textContent = domain;
   document.getElementById('crawl-url-display').textContent = activeProject.url;
 
-  // Open workbench accordion by default on first render
-  const wbHeader = document.getElementById('wb-header');
-  const wbBody   = document.getElementById('wb-body');
-  if (wbHeader && !wbHeader.classList.contains('open')) {
-    wbHeader.classList.add('open');
-    wbBody.classList.add('open');
+  // Restore crawl results if available and no active crawl running
+  if (!crawlState.running && activeProject.crawl && activeProject.crawl.results && activeProject.crawl.results.length && crawlState.results.length === 0) {
+    crawlState.results = activeProject.crawl.results;
+    crawlState.base = activeProject.url;
+    showResults();
+    updateStats();
+    renderResults();
+    setEnabled('btn-save-crawl', false);
+    setEnabled('btn-copy-urls', true);
+    const wrapEl = document.getElementById('crawl-progress-wrap');
+    if (wrapEl) wrapEl.style.display = 'none';
   }
 }
 
