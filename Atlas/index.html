@@ -533,6 +533,142 @@
       border-radius: 6px; padding: 0.65rem 0.9rem;
       font-size: 0.72rem; color: var(--warn); margin-bottom: 0.85rem;
     }
+
+    /* ══════════════════════════════════════════
+       PLAN TAB
+    ══════════════════════════════════════════ */
+    #atlas-page-plan { display: none; flex-direction: column; overflow: hidden; padding: 0; }
+    #atlas-page-plan.active { display: flex; }
+
+    .plan-toolbar {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border);
+      flex-shrink: 0; flex-wrap: wrap; background: var(--bg);
+    }
+    .plan-toolbar-count {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+      color: var(--text-muted); white-space: nowrap; margin-left: auto;
+    }
+    .plan-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+      padding: 1rem 1.5rem 0; flex-shrink: 0;
+    }
+    .plan-stat { background: var(--bg-input); border-radius: 6px; padding: 0.75rem 1rem; }
+    .plan-stat-val { font-family: 'IBM Plex Mono', monospace; font-size: 1.3rem; font-weight: 500; color: var(--text-strong); }
+    .plan-stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--text-muted); margin-top: 2px; }
+    .plan-cards-wrap { flex: 1; overflow-y: auto; padding: 1rem 1.5rem 1.5rem; }
+    .plan-cards { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    /* Brief card */
+    .brief-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .brief-card.is-ready { border-color: var(--ok); }
+    .brief-card.flag-red    { border-left: 3px solid var(--err); }
+    .brief-card.flag-yellow { border-left: 3px solid var(--warn); }
+
+    .brief-card-hd {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-inner);
+      cursor: pointer; user-select: none;
+    }
+    .brief-card-hd:hover { background: var(--bg-card-hd); }
+    .brief-disp { flex-shrink: 0; }
+    .brief-url {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+      color: var(--text-muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .brief-flag-chips { display: flex; gap: 0.3rem; flex-wrap: wrap; flex-shrink: 0; }
+    .brief-flag-chip { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; padding: 2px 7px; border-radius: 99px; }
+    .bfc-red    { background: var(--err-bg);  color: var(--err);  border: 1px solid #3a1a16; }
+    .bfc-yellow { background: var(--warn-bg); color: var(--warn); border: 1px solid #4a3518; }
+    html.light .bfc-red    { background: #f0d8d4; color: #8a2818; border-color: #c87868; }
+    html.light .bfc-yellow { background: #f0e4c8; color: #7a4808; border-color: #d4a855; }
+
+    .brief-ready-badge {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem;
+      padding: 2px 8px; border-radius: 99px; flex-shrink: 0;
+      background: var(--ok-bg); color: var(--ok); border: 1px solid #243d28;
+    }
+    html.light .brief-ready-badge { background: #c8e8d2; color: #145828; border-color: #7ab888; }
+
+    .brief-collapse-icon { font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; transition: transform 0.15s; }
+    .brief-card.collapsed .brief-collapse-icon { transform: rotate(-90deg); }
+
+    .brief-body { padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .brief-card.collapsed .brief-body { display: none; }
+
+    .brief-field { display: flex; flex-direction: column; gap: 0.3rem; }
+    .brief-field.full { grid-column: 1 / -1; }
+    .brief-field-label {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .brief-field-ro {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--text-body);
+      background: var(--bg-input); border: 1px solid var(--border-inner);
+      border-radius: 5px; padding: 0.4rem 0.6rem; min-height: 30px; line-height: 1.4;
+    }
+    .brief-field-ro.empty { color: var(--text-dim); font-style: italic; }
+    .brief-inp {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--text);
+      background: var(--bg-input); border: 1px solid var(--border-inner);
+      border-radius: 5px; padding: 0.4rem 0.6rem; min-height: 30px; width: 100%;
+    }
+    .brief-inp:focus { outline: none; border-color: var(--teal); }
+    textarea.brief-inp { min-height: 60px; resize: none; line-height: 1.5; }
+
+    /* Keyword tag input */
+    .kw-wrap {
+      background: var(--bg-input); border: 1px solid var(--border-inner);
+      border-radius: 5px; padding: 0.3rem 0.5rem;
+      display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;
+      cursor: text; min-height: 30px;
+    }
+    .kw-wrap:focus-within { border-color: var(--teal); }
+    .kw-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--teal-dim); border: 1px solid rgba(0,128,128,0.3);
+      border-radius: 99px; padding: 2px 8px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--teal-bright);
+    }
+    .kw-tag-remove { background: none; border: none; cursor: pointer; color: var(--teal-bright); font-size: 0.75rem; line-height: 1; padding: 0; opacity: 0.7; }
+    .kw-tag-remove:hover { opacity: 1; }
+    .kw-input {
+      background: none; border: none; outline: none;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+      color: var(--text); min-width: 100px; flex: 1; height: 22px;
+    }
+    .kw-hint { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+    /* Brief footer */
+    .brief-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 1rem; border-top: 1px solid var(--border-inner);
+      background: var(--bg-card-hd);
+    }
+    .brief-card.collapsed .brief-foot { display: none; }
+    .ready-toggle {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+      color: var(--text-muted); cursor: pointer; user-select: none;
+    }
+    .ready-toggle input[type=checkbox] { accent-color: var(--ok); cursor: pointer; width: 14px; height: 14px; }
+    .ready-toggle.is-ready { color: var(--ok); }
+
+    /* Plan empty state */
+    .plan-empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 4rem 2rem; text-align: center; flex: 1;
+    }
+    .plan-empty-icon  { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
+    .plan-empty-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .plan-empty-sub   { font-size: 0.78rem; color: var(--text-dim); }
+
+    .plan-export-bar {
+      display: flex; gap: 0.5rem; align-items: center;
+      padding: 0.65rem 1.5rem; border-top: 1px solid var(--border);
+      flex-shrink: 0; background: var(--bg);
+    }
+
   </style>
 </head>
 <body>
@@ -541,7 +677,8 @@
 
   <!-- NAV BAR -->
   <div class="atlas-tabnav">
-    <button class="nav-tab active" data-page="inventory"><span class="nav-emoji">📋</span>Inventory</button>
+    <button class="nav-tab active" data-page="inventory"><span class="nav-emoji">📚</span>Inventory</button>
+    <button class="nav-tab" data-page="plan"><span class="nav-emoji">📝</span>Plan</button>
     <button class="nav-tab" data-page="export"><span class="nav-emoji">⬇</span>Export</button>
   </div>
 
@@ -624,6 +761,43 @@
   </div><!-- /atlas-page-inventory -->
 
 
+
+  <!-- ══════════════════════════════════════════
+       PLAN PAGE
+  ══════════════════════════════════════════ -->
+  <div class="atlas-page" id="atlas-page-plan">
+
+    <div class="plan-toolbar">
+      <button class="filter-pill active" data-plan-filter="all"     onclick="planSetFilter('all',this)">All</button>
+      <button class="filter-pill"        data-plan-filter="rewrite" onclick="planSetFilter('rewrite',this)">Rewrite</button>
+      <button class="filter-pill"        data-plan-filter="new"     onclick="planSetFilter('new',this)">New</button>
+      <button class="filter-pill"        data-plan-filter="ready"   onclick="planSetFilter('ready',this)">✓ Ready</button>
+      <button class="filter-pill"        data-plan-filter="unready" onclick="planSetFilter('unready',this)">Unfilled</button>
+      <span class="plan-toolbar-count" id="plan-toolbar-count"></span>
+    </div>
+
+    <div class="plan-stats">
+      <div class="plan-stat"><div class="plan-stat-val" id="plan-stat-total">0</div><div class="plan-stat-label">pages to plan</div></div>
+      <div class="plan-stat"><div class="plan-stat-val" id="plan-stat-unfilled">0</div><div class="plan-stat-label">unfilled briefs</div></div>
+      <div class="plan-stat"><div class="plan-stat-val" id="plan-stat-flagged">0</div><div class="plan-stat-label">flagged</div></div>
+    </div>
+
+    <div class="plan-cards-wrap">
+      <div class="plan-cards" id="plan-cards"></div>
+      <div class="plan-empty" id="plan-empty" style="display:none">
+        <div class="plan-empty-icon">📝</div>
+        <div class="plan-empty-title">No pages to plan yet</div>
+        <div class="plan-empty-sub">Set pages to Rewrite or New in the Inventory tab to create briefs here.</div>
+      </div>
+    </div>
+
+    <div class="plan-export-bar">
+      <button class="btn btn-primary" onclick="planExportCSV()">↓ Export briefs CSV</button>
+      <button class="btn" disabled style="opacity:0.4;cursor:not-allowed;" title="Charter not yet built">Send to Charter</button>
+    </div>
+
+  </div><!-- /atlas-page-plan -->
+
   <!-- ══════════════════════════════════════════
        EXPORT PAGE
   ══════════════════════════════════════════ -->
@@ -691,11 +865,6 @@
 
   </div><!-- /atlas-page-export -->
 
-  <!-- Footer -->
-  <footer>
-    <span class="footer-text">🗺 // Atlas // ✦ Alchemy suite</span>
-  </footer>
-
   <!-- Status cycle popup -->
   <div class="status-popup" id="status-popup"></div>
 
@@ -757,8 +926,8 @@
 <script>
 (function() {
 /* ═══════════════════════════════════════════════════════
-   ATLAS — v0.1.0
-   Content inventory for the Alchemy suite
+   ATLAS — v0.2.0
+   Content inventory + content planning for the Alchemy suite
 ═══════════════════════════════════════════════════════ */
 
 const PROXY = 'https://scoutproxy.libertyhphillips.workers.dev/fetch?url=';
@@ -772,17 +941,8 @@ let A = {
   filterFlag: 'all',
   view:       'table',
   enrichStop: false,
+  planFilter: 'all',
 };
-
-/* AtlasRow shape:
-  { id, url, httpStatus, depth, section, title,
-    wordCount, readability, metaDesc,
-    disposition, contentType, notes,
-    flagState,   // 'red' | 'yellow' | 'green' | null
-    autoFlags,   // string[] — computed
-    isNew        // placeholder row
-  }
-*/
 
 const DISPOSITIONS = ['keep','rewrite','merge','redirect','delete','new','unset'];
 const CONTENT_TYPES = ['Page','Post','Landing page','Product','Category','PDF','Other'];
@@ -792,10 +952,8 @@ function atlasInit(project) {
   A.project = project;
   A.rows = [];
 
-  /* Restore saved inventory from project */
   atlasRestoreFromProject();
 
-  /* If no saved rows but crawl exists, auto-build */
   if (!A.rows.length && project.crawl && project.crawl.results && project.crawl.results.length) {
     atlasBuildFromFoundry();
     return;
@@ -815,6 +973,7 @@ function atlasShowPage(name) {
     t.classList.toggle('active', t.dataset.page === name);
   });
   if (name === 'export') atlasUpdateExport();
+  if (name === 'plan')   planRender();
 }
 
 /* ── Build from Foundry ── */
@@ -822,8 +981,6 @@ function atlasBuildFromFoundry() {
   const p = A.project;
   if (!p || !p.crawl || !p.crawl.results || !p.crawl.results.length) return;
 
-  /* Scout saves a single-URL audit: { url, raw: { readability, og, ... } }
-     Map it by URL for readability score (the one thing the crawl doesn't provide) */
   const scoutData = (p.toolData && p.toolData.scout) || null;
   const scoutMap  = {};
   if (scoutData && scoutData.url && scoutData.raw) {
@@ -841,7 +998,6 @@ function atlasBuildFromFoundry() {
     row.depth      = r.depth || 0;
     row.section    = r.section || getSection(r.url);
     row.title      = r.title || null;
-    /* Use enriched crawl data if available, fall back to Scout for readability */
     row.metaDesc    = (r.metaDesc !== undefined && r.metaDesc !== null) ? r.metaDesc : null;
     row.wordCount   = r.wordCount || null;
     row.readability = s ? s.readability : null;
@@ -854,8 +1010,6 @@ function atlasBuildFromFoundry() {
   atlasUpdateExport();
   atlasShowPage('inventory');
 
-  /* Auto-enrich: if most rows are still missing word count (pre-enrichment crawl),
-     start enriching automatically */
   const missingData = A.rows.filter(function(r) { return !r.isNew && (r.wordCount == null || r.wordCount === 0); }).length;
   if (missingData > 1) {
     setTimeout(atlasStartEnrich, 400);
@@ -870,6 +1024,7 @@ function atlasBlankRow(url) {
     title: null, wordCount: null, readability: null, metaDesc: null,
     disposition: 'unset', contentType: null, notes: '',
     flagState: null, autoFlags: [], isNew: false,
+    brief: { proposedTitle:'', targetWords:'', keywords:[], keyMessages:'', tone:'', isReady:false },
   };
 }
 
@@ -1113,6 +1268,7 @@ function atlasSetDisposition(id, disposition) {
   const row = A.rows.find(r => r.id === id);
   if (row) { row.disposition = disposition; atlasSave(); atlasRenderTable(); }
   document.getElementById('status-popup').classList.remove('open');
+  if (document.getElementById('atlas-page-plan').classList.contains('active')) planRender();
 }
 
 document.addEventListener('click', e => {
@@ -1372,6 +1528,252 @@ window.atlasCommitAddUrls   = atlasCommitAddUrls;
 window.atlasShowWorkbench   = atlasShowWorkbench;
 window.atlasHideWorkbench   = atlasHideWorkbench;
 window.atlasRenderTable     = atlasRenderTable;
+
+/* ══════════════════════════════════════════
+   PLAN TAB
+══════════════════════════════════════════ */
+
+  /* brief shape on row.brief:
+     { proposedTitle, targetWords, keywords[], keyMessages, tone, isReady }
+     row.notes is SHARED with Inventory (synced) */
+  function getBrief(row) {
+    if (!row.brief) row.brief = { proposedTitle:'', targetWords:'', keywords:[], keyMessages:'', tone:'', isReady:false };
+    if (!Array.isArray(row.brief.keywords)) row.brief.keywords = [];
+    return row.brief;
+  }
+
+  function planRows() {
+    return A.rows.filter(function(r) { return r.disposition === 'rewrite' || r.disposition === 'new'; });
+  }
+
+  function planFilteredRows() {
+    var all = planRows(), f = A.planFilter;
+    if (f === 'rewrite') return all.filter(function(r) { return r.disposition === 'rewrite'; });
+    if (f === 'new')     return all.filter(function(r) { return r.disposition === 'new'; });
+    if (f === 'ready')   return all.filter(function(r) { return getBrief(r).isReady; });
+    if (f === 'unready') return all.filter(function(r) { return !getBrief(r).isReady; });
+    return all;
+  }
+
+  /* red > yellow > no-flag; ready rows sink to bottom */
+  function planSortedRows(rows) {
+    var pri = { red:0, yellow:1 };
+    return rows.slice().sort(function(a, b) {
+      var aR = getBrief(a).isReady ? 1 : 0, bR = getBrief(b).isReady ? 1 : 0;
+      if (aR !== bR) return aR - bR;
+      var pa = pri[a.flagState] !== undefined ? pri[a.flagState] : 2;
+      var pb = pri[b.flagState] !== undefined ? pri[b.flagState] : 2;
+      return pa - pb;
+    });
+  }
+
+  function planSetFilter(f, btn) {
+    A.planFilter = f;
+    document.querySelectorAll('[data-plan-filter]').forEach(function(p) { p.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    planRender();
+  }
+
+  function planRender() {
+    var all    = planRows();
+    var shown  = planSortedRows(planFilteredRows());
+    var unfill = all.filter(function(r) { return !getBrief(r).isReady; }).length;
+    var flagd  = all.filter(function(r) { return r.flagState === 'red' || r.flagState === 'yellow'; }).length;
+
+    document.getElementById('plan-stat-total').textContent    = all.length;
+    document.getElementById('plan-stat-unfilled').textContent = unfill;
+    document.getElementById('plan-stat-flagged').textContent  = flagd;
+    document.getElementById('plan-toolbar-count').textContent = shown.length + ' of ' + all.length + ' shown';
+
+    var container = document.getElementById('plan-cards');
+    var empty     = document.getElementById('plan-empty');
+
+    if (!all.length) { container.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    if (!shown.length) {
+      container.innerHTML = '<div class="plan-empty" style="padding:2rem"><div class="plan-empty-title">No briefs match this filter</div></div>';
+      return;
+    }
+    container.innerHTML = shown.map(function(row) { return planCardHTML(row); }).join('');
+    shown.forEach(function(row) { planWireKw(row.id); });
+  }
+
+  function planCardHTML(row) {
+    var brief   = getBrief(row);
+    var isReady = brief.isReady;
+    var isNew   = row.disposition === 'new';
+
+    var borderCls = isReady ? 'is-ready' : (row.flagState === 'red' ? 'flag-red' : (row.flagState === 'yellow' ? 'flag-yellow' : ''));
+    var chipCls   = row.flagState === 'red' ? 'bfc-red' : 'bfc-yellow';
+    var chipHTML  = row.autoFlags.map(function(f) {
+      return '<span class="brief-flag-chip ' + chipCls + '">' + f + '</span>';
+    }).join('');
+
+    var kwHTML = brief.keywords.map(function(kw, i) {
+      return '<span class="kw-tag">' + esc(kw) +
+        '<button class="kw-tag-remove" onclick="planRemoveKw(\'' + row.id + '\',' + i + ')">\u00d7</button></span>';
+    }).join('');
+
+    var titleField = isNew
+      ? '<div class="brief-field"><div class="brief-field-label">Proposed title</div>' +
+        '<input class="brief-inp" type="text" placeholder="e.g. Brand Strategy Services" value="' + esc(brief.proposedTitle||'') + '" oninput="planSave(\'' + row.id + '\',' + "'proposedTitle'" + ',this.value)" /></div>'
+      : '<div class="brief-field"><div class="brief-field-label">Current title</div>' +
+        '<div class="brief-field-ro' + (row.title ? '' : ' empty') + '">' + (row.title ? esc(row.title) : 'no title set') + '</div></div>';
+
+    var issuesBlock = '';
+    if (row.autoFlags.length) {
+      issuesBlock = '<div class="brief-field full"><div class="brief-field-label">Issues from inventory</div>' +
+        '<div class="brief-field-ro">' + row.autoFlags.map(function(f) {
+          return '<span class="brief-flag-chip ' + chipCls + '" style="margin-right:4px">' + f + '</span>';
+        }).join('') + '</div></div>';
+    }
+
+    return '<div class="brief-card ' + borderCls + '" id="bc-' + row.id + '">' +
+      '<div class="brief-card-hd" onclick="planToggleCard(\'' + row.id + '\')">' +
+        '<span class="brief-disp"><span class="dp dp-' + row.disposition + '" style="pointer-events:none">' + cap(row.disposition) + '</span></span>' +
+        '<span class="brief-url" title="' + esc(row.url) + '">' + esc(row.url) + '</span>' +
+        (chipHTML ? '<span class="brief-flag-chips">' + chipHTML + '</span>' : '') +
+        (isReady  ? '<span class="brief-ready-badge">&#10003; ready</span>' : '') +
+        '<span class="brief-collapse-icon">&#9662;</span>' +
+      '</div>' +
+      '<div class="brief-body">' +
+        titleField +
+        '<div class="brief-field"><div class="brief-field-label">Target word count</div>' +
+          '<input class="brief-inp" type="number" placeholder="e.g. 650" min="0" value="' + esc(brief.targetWords||'') + '" oninput="planSave(\'' + row.id + '\',\'targetWords\',this.value)" /></div>' +
+        '<div class="brief-field full"><div class="brief-field-label">SEO keywords</div>' +
+          '<div class="kw-wrap" id="kw-' + row.id + '">' + kwHTML +
+            '<input class="kw-input" id="kwi-' + row.id + '" placeholder="Type and press Enter or comma\u2026" /></div>' +
+          '<div class="kw-hint">Enter or comma to add &nbsp;&middot;&nbsp; Backspace to remove last</div>' +
+        '</div>' +
+        '<div class="brief-field full"><div class="brief-field-label">Key messages</div>' +
+          '<textarea class="brief-inp" placeholder="What should this page communicate?" oninput="planSave(\'' + row.id + '\',\'keyMessages\',this.value)">' + esc(brief.keyMessages||'') + '</textarea></div>' +
+        '<div class="brief-field"><div class="brief-field-label">Tone</div>' +
+          '<input class="brief-inp" type="text" placeholder="e.g. confident, approachable" value="' + esc(brief.tone||'') + '" oninput="planSave(\'' + row.id + '\',\'tone\',this.value)" /></div>' +
+        '<div class="brief-field"><div class="brief-field-label">Current word count</div>' +
+          '<div class="brief-field-ro' + (row.wordCount === null ? ' empty' : '') + '">' +
+            (row.wordCount !== null ? row.wordCount.toLocaleString() + ' words' : 'not yet crawled') +
+          '</div></div>' +
+        '<div class="brief-field full"><div class="brief-field-label">Notes \u2014 synced with Inventory</div>' +
+          '<textarea class="brief-inp" placeholder="Shared notes visible in both tabs\u2026" oninput="planSaveNotes(\'' + row.id + '\',this.value)">' + esc(row.notes||'') + '</textarea></div>' +
+        issuesBlock +
+      '</div>' +
+      '<div class="brief-foot">' +
+        '<label class="ready-toggle' + (isReady ? ' is-ready' : '') + '" onclick="event.stopPropagation()">' +
+          '<input type="checkbox" ' + (isReady ? 'checked' : '') + ' onchange="planToggleReady(\'' + row.id + '\',this.checked)" />' +
+          'Mark as ready' +
+        '</label>' +
+        '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:0.65rem;color:var(--text-dim)">' +
+          (row.wordCount !== null ? row.wordCount.toLocaleString() + ' words now' : '') +
+        '</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function planWireKw(rowId) {
+    var inp = document.getElementById('kwi-' + rowId);
+    if (!inp) return;
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        var val = inp.value.trim().replace(/,$/, '');
+        if (val) planAddKw(rowId, val);
+        inp.value = '';
+      } else if (e.key === 'Backspace' && !inp.value) {
+        var row = A.rows.find(function(r) { return r.id === rowId; });
+        if (row && row.brief && row.brief.keywords.length) planRemoveKw(rowId, row.brief.keywords.length - 1);
+      }
+    });
+  }
+
+  function planAddKw(rowId, kw) {
+    var row = A.rows.find(function(r) { return r.id === rowId; });
+    if (!row) return;
+    var brief = getBrief(row), clean = kw.trim();
+    if (!clean || brief.keywords.indexOf(clean) !== -1) return;
+    brief.keywords.push(clean);
+    atlasSave(); planRender();
+  }
+
+  function planRemoveKw(rowId, idx) {
+    var row = A.rows.find(function(r) { return r.id === rowId; });
+    if (!row) return;
+    getBrief(row).keywords.splice(idx, 1);
+    atlasSave(); planRender();
+  }
+
+  function planSave(rowId, field, value) {
+    var row = A.rows.find(function(r) { return r.id === rowId; });
+    if (row) { getBrief(row)[field] = value; atlasSave(); }
+  }
+
+  /* Notes synced to row.notes so Inventory reflects the same value */
+  function planSaveNotes(rowId, value) {
+    var row = A.rows.find(function(r) { return r.id === rowId; });
+    if (row) { row.notes = value; atlasSave(); }
+  }
+
+  function planToggleReady(rowId, checked) {
+    var row = A.rows.find(function(r) { return r.id === rowId; });
+    if (!row) return;
+    getBrief(row).isReady = checked;
+    atlasSave();
+    var card = document.getElementById('bc-' + rowId);
+    if (!card) return;
+    card.classList.remove('is-ready', 'flag-red', 'flag-yellow');
+    if (checked) {
+      card.classList.add('is-ready');
+    } else {
+      if (row.flagState === 'red')    card.classList.add('flag-red');
+      if (row.flagState === 'yellow') card.classList.add('flag-yellow');
+    }
+    var badge = card.querySelector('.brief-ready-badge');
+    if (checked && !badge) {
+      var icon = card.querySelector('.brief-collapse-icon');
+      var nb = document.createElement('span'); nb.className = 'brief-ready-badge'; nb.textContent = '\u2713 ready';
+      icon.parentNode.insertBefore(nb, icon);
+    } else if (!checked && badge) { badge.remove(); }
+    var toggle = card.querySelector('.ready-toggle');
+    if (toggle) toggle.classList.toggle('is-ready', checked);
+    document.getElementById('plan-stat-unfilled').textContent =
+      planRows().filter(function(r) { return !getBrief(r).isReady; }).length;
+  }
+
+  function planToggleCard(rowId) {
+    var card = document.getElementById('bc-' + rowId);
+    if (card) card.classList.toggle('collapsed');
+  }
+
+  function planExportCSV() {
+    var rows = planRows();
+    if (!rows.length) { alert('No Rewrite or New pages to export.'); return; }
+    var headers = ['URL','Disposition','Current title','Proposed title','Current words','Target words','Keywords','Key messages','Tone','Issues flagged','Notes','Ready'];
+    var lines = [headers.join(',')];
+    rows.forEach(function(r) {
+      var b = getBrief(r);
+      lines.push([
+        csvCell(r.url), csvCell(r.disposition), csvCell(r.title||''), csvCell(b.proposedTitle||''),
+        r.wordCount !== null ? r.wordCount : '', csvCell(b.targetWords||''),
+        csvCell(b.keywords.join(', ')), csvCell(b.keyMessages||''), csvCell(b.tone||''),
+        csvCell(r.autoFlags.join('; ')), csvCell(r.notes||''),
+        b.isReady ? 'yes' : 'no',
+      ].join(','));
+    });
+    var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (A.project ? A.project.name.replace(/[^a-z0-9]/gi,'-').toLowerCase() : 'atlas') + '-briefs.csv';
+    a.click();
+  }
+
+
+  window.planSetFilter   = planSetFilter;
+  window.planToggleCard  = planToggleCard;
+  window.planToggleReady = planToggleReady;
+  window.planSave        = planSave;
+  window.planSaveNotes   = planSaveNotes;
+  window.planAddKw       = planAddKw;
+  window.planRemoveKw    = planRemoveKw;
+  window.planExportCSV   = planExportCSV;
 
 })();
 </script>
